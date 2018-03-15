@@ -131,6 +131,10 @@ class UwbDataPre:
         # self.start_time
 
     def filter(self):
+        '''
+        filter Source data according to second div.
+        :return:
+        '''
         print("try to filter")
 
         # filter for each Beacon
