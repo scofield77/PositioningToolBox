@@ -54,6 +54,8 @@ class BasicXsenseReader:
         self.data = np.zeros([len(file_lines) - 7, 10])
 
         for i in range(7, len(file_lines)):
+
+
             # print(file_lines[i])
             matcher = re.compile('[-]{0,1}[0-9]{1,3}\.{0,1}[0-9]{0,15}')
             all_num = matcher.findall(file_lines[i])
@@ -79,11 +81,12 @@ class BasicXsenseReader:
         plt.show()
 
     def save(self, file_name):
-        np.savetxt(file_name, self.data)
+        np.savetxt(file_name, self.data,delimiter=',')
 
 
 if __name__ == '__main__':
-    dir_name = '/home/steve/Data/XsensUwb/0001/'
+    dir_name = '/home/steve/Data/XsensUwb/MTI700/0003/'
 
-    bxr = BasicXsenseReader(dir_name + '1.CVS')
+    bxr = BasicXsenseReader(dir_name + 'HEAD.txt')
+    bxr.save(dir_name+'imu.data')
     bxr.show()
