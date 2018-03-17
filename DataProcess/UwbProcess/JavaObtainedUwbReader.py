@@ -23,7 +23,6 @@
          佛祖保佑       永无BUG 
 '''
 
-
 import numpy as np
 import scipy as sp
 import matplotlib.pyplot as plt
@@ -79,5 +78,7 @@ class UwbProcess:
 
 
 if __name__ == '__main__':
-    uwb_file_name = UwbProcess("/home/steve/Data/FusingLocationData/0013/HEAD_UWB.data",
-                               '/home/steve/Data/FusingLocationData/mac.txt')
+    # uwb_file_name = UwbProcess("/home/steve/Data/FusingLocationData/0013/HEAD_UWB.data",
+    #                            '/home/steve/Data/FusingLocationData/mac.txt')
+    uwb_file_name = UwbProcess("/home/steve/Data/XsensUwb/0001/HEAD_UWB.data",
+                               '/home/steve/Data/XsensUwb/0001/beaconSet.csv')
