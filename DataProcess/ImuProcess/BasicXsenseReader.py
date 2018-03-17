@@ -51,10 +51,10 @@ class BasicXsenseReader:
         '''
         file_lines = open(self.file_name).readlines()
 
-        self.data = np.zeros([len(file_lines) - 7, 10])
+        self.data = np.zeros([len(file_lines) - 8, 13])
 
-        for i in range(7, len(file_lines)):
-
+        # first line of data.
+        for i in range(7, len(file_lines) - 1):
 
             # print(file_lines[i])
             matcher = re.compile('[-]{0,1}[0-9]{1,3}\.{0,1}[0-9]{0,15}')
@@ -70,23 +70,44 @@ class BasicXsenseReader:
             self.data[i - 7, 0] = tt.timestamp() + float(all_num[0]) * 1e-9
 
             # print(all_num)
-            for j in range(9):
-                self.data[i - 7, 1 + j] = float(all_num[j + len(all_num) - 9])
+            for j in range(11):
+                self.data[i - 7, 1 + j] = float(all_num[j + len(all_num) - 11])
+        print(self.data)
 
     def show(self):
-        plt.figure()
-        plt.imshow(self.data / self.data.std(axis=0))
+        # plt.figure()
+        # plt.imshow(self.data / self.data.std(axis=0))
         # plt.imshow(self.data)
-        plt.colorbar()
+        # plt.colorbar()
+        plt.figure()
+        for i in range(3):
+            plt.plot(self.data[:, 0], self.data[:, i + 1], '-+', label='acc' + str(i))
+        plt.legend()
+        plt.grid()
+        plt.figure()
+        for i in range(3):
+            plt.plot(self.data[:, 0], self.data[:, i + 4], '-+', label='gyr' + str(i))
+        plt.legend()
+        plt.grid()
+        plt.figure()
+        for i in range(3):
+            plt.plot(self.data[:, 0], self.data[:, i + 7], '-+', label='mag' + str(i))
+        plt.legend()
+        plt.grid()
+        plt.figure()
+        for i in range(3):
+            plt.plot(self.data[:, 0], self.data[:, i + 10], '-+', label='angle' + str(i))
+        plt.legend()
+        plt.grid()
         plt.show()
 
     def save(self, file_name):
-        np.savetxt(file_name, self.data,delimiter=',')
+        np.savetxt(file_name, self.data, delimiter=',')
 
 
 if __name__ == '__main__':
-    dir_name = '/home/steve/Data/XsensUwb/MTI700/0003/'
+    dir_name = '/home/steve/Data/XsensUwb/MTI700/0001/'
 
     bxr = BasicXsenseReader(dir_name + 'HEAD.txt')
-    bxr.save(dir_name+'imu.data')
+    bxr.save(dir_name + 'imu.data')
     bxr.show()

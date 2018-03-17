@@ -64,21 +64,30 @@ class UwbProcess:
                 print('mac:', mac, ' dis:', dis, 'index:', mac_list.index(mac))
                 uwb_data[i, 1 + mac_list.index(mac)] = dis
 
-        plt.figure()
-        for i in range(1, uwb_data.shape[1]):
-            if (np.max(uwb_data[:, i]) > 0):
-                plt.plot(uwb_data[:, 0], uwb_data[:, i], '.', label=str(i))
-        plt.legend()
-        plt.grid()
+
         self.uwb_data = uwb_data
         self.beaconSet = beaconSet
         # plt.show()
+    def show(self):
+        plt.figure()
+        for i in range(1, self.uwb_data.shape[1]):
+            if (np.max(self.uwb_data[:, i]) > 0):
+                plt.plot(self.uwb_data[:, 0], self.uwb_data[:, i], '.', label=str(i))
+        plt.legend()
+        plt.grid()
+
 
         #
+    def save(self,dir_name):
+        np.savetxt(dir_name+'uwb_data.csv',self.uwb_data,delimiter=',')
+        np.savetxt(dir_name+'beaconset_no_mac.csv',self.uwb_data,delimiter=',')
 
 
 if __name__ == '__main__':
     # uwb_file_name = UwbProcess("/home/steve/Data/FusingLocationData/0013/HEAD_UWB.data",
     #                            '/home/steve/Data/FusingLocationData/mac.txt')
-    uwb_file_name = UwbProcess("/home/steve/Data/XsensUwb/0001/HEAD_UWB.data",
-                               '/home/steve/Data/XsensUwb/0001/beaconSet.csv')
+    dir_name = '/home/steve/Data/XsensUwb/MTI700/0003/'
+    uwb_file_p = UwbProcess(dir_name+"HEAD_UWB.data",
+                               dir_name+'beaconSet.csv')
+
+    uwb_file_p.save(dir_name)
