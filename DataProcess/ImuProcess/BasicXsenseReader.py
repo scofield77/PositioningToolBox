@@ -67,7 +67,7 @@ class BasicXsenseReader:
 
             if is_debug:
                 print(tt.timestamp() + float(all_num[1]) * 1e-9)
-            self.data[i - 7, 0] = tt.timestamp() + float(all_num[0]) * 1e-9
+            self.data[i - 7, 0] = tt.timestamp() + float(all_num[1]) * 1e-9
 
             # print(all_num)
             for j in range(11):
@@ -79,6 +79,12 @@ class BasicXsenseReader:
         # plt.imshow(self.data / self.data.std(axis=0))
         # plt.imshow(self.data)
         # plt.colorbar()
+        plt.figure()
+        plt.plot(self.data[:,0],'+-',label='time')
+        plt.grid()
+        plt.legend()
+
+
         plt.figure()
         for i in range(3):
             plt.plot(self.data[:, 0], self.data[:, i + 1], '-+', label='acc' + str(i))
@@ -106,7 +112,7 @@ class BasicXsenseReader:
 
 
 if __name__ == '__main__':
-    dir_name = '/home/steve/Data/XsensUwb/MTI700/0001/'
+    dir_name = '/home/steve/Data/XsensUwb/MTI700/0003/'
 
     bxr = BasicXsenseReader(dir_name + 'HEAD.txt')
     bxr.save(dir_name + 'imu.data')
