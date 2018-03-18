@@ -46,9 +46,13 @@ class KalmanFilterBase:
         else:
             # self.A, self.B = transaction_function(self.state_x,input)
             # compute jacobian matrix
-            state_function = lambda s: transaction_function(s, input)
+            # state_function = lambda s: transaction_function(s, input)
+            def state_function(s):
+                return transaction_function(s,input)
             self.A = nd.Jacobian(state_function)(self.state_x)
-            input_function = lambda i: transaction_function(self.state_x, i)
+            # input_function = lambda i: transaction_function(self.state_x, i)
+            def input_function(i):
+                return transaction_function(self.state_x,i)
             self.B = nd.Jacobian(input_function)(input)
 
             self.state_x = transaction_function(self.state_x, input)
