@@ -168,6 +168,7 @@ if __name__ == '__main__':
         # print( i /)
         trace[i,:] = kf.state_x[0:3]
         rate = i/imu_data.shape[0]
+
         print('finished:',rate*100.0,"% ",i,imu_data.shape[0])
 
 
