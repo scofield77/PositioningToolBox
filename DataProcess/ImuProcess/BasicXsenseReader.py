@@ -32,6 +32,9 @@ import matplotlib.pyplot as plt
 import scipy as sp
 import numpy as np
 
+# import numba
+from numba import jit
+
 
 class BasicXsenseReader:
 
@@ -43,6 +46,7 @@ class BasicXsenseReader:
         self.file_name = file_name
         self.load()
 
+    @jit
     def load(self, is_debug=False):
         '''
         load data from file.
@@ -113,7 +117,10 @@ class BasicXsenseReader:
 
 if __name__ == '__main__':
     dir_name = '/home/steve/Data/XsensUwb/MTI700/0001/'
+    start_time = time.time()
 
-    bxr = BasicXsenseReader(dir_name + 'HEAD.txt')
-    bxr.save(dir_name + 'imu.data')
-    bxr.show()
+    for i in range(100):
+        bxr = BasicXsenseReader(dir_name + 'HEAD.txt')
+        bxr.save(dir_name + 'imu.data')
+    # bxr.show()
+    print(time.time()-start_time)
