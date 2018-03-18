@@ -45,9 +45,15 @@ class UwbOptimizeLocation:
         :param measurements:
         :return:
         '''
-        # return np.sum(pose-)
         dis_to_beacon = np.linalg.norm(pose - self.beacon_set, axis=1)
-        return np.sum((dis_to_beacon - self.measurements)[np.where(self.measurements > 0.0)])
+        return np.linalg.norm((dis_to_beacon - self.measurements)[np.where(self.measurements > 0.0)])
+        # sum = 0
+        # for i in range(self.measurements.shape[0]):
+        #     dis = np.linalg.norm(pose - beacon_data[i, :])
+        #     print('measurements', i, self.measurements[i])
+        #     if self.measurements[i] > 0.0:
+        #         sum += abs(dis - self.measurements[i])
+        # return sum
 
     def positioning_fucntion(self, initial_pose, measurements):
         '''
@@ -69,7 +75,7 @@ class UwbOptimizeLocation:
 
 
 if __name__ == '__main__':
-    dir_name = '/home/steve/Data/XsensUwb/MTI700/0001/'
+    dir_name = '/home/steve/Data/XsensUwb/MTI700/0002/'
     beacon_data = np.loadtxt(dir_name + 'beaconset_no_mac.csv', delimiter=',')
     uwb_data = np.loadtxt(dir_name + 'uwb_data.csv', delimiter=',')
 
@@ -82,10 +88,13 @@ if __name__ == '__main__':
         if i is 0:
             trace[i, :], res_error[i] = uol.positioning_fucntion((0, 0, 0), uwb_data[i, 1:])
         else:
-            trace[i, :], res_error[i] = uol.positioning_fucntion(trace[i - 1, :], uwb_data[:, 1:])
+            trace[i, :], res_error[i] = uol.positioning_fucntion(trace[i - 1, :], uwb_data[i, 1:])
 
     plt.figure()
-    plt.plot(trace[:, 0], trace[:, 1], '-+')
+    plt.plot(trace[:, 0], trace[:, 1], '-+', label='source')
+    selected_trace = trace[np.where(res_error < 2.5)]
+    plt.plot(selected_trace[:,0],selected_trace[:,1], '-*', label='selected')
+    plt.legend()
     plt.grid()
 
     plt.figure()
