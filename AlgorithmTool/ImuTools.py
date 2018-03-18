@@ -26,7 +26,7 @@
 import numpy as np
 import scipy as sp
 
-import numdiff
+import numdifftools
 
 from numba import jit
 
@@ -85,7 +85,7 @@ class settings:
         # self.s_P = np.loadtxt("../Data/P.csv", dtype=float, delimiter=",")
         self.gravity = 9.8
 
-        self.time_Window_size = 10
+        self.time_Window_size = 3
 
         #
         self.pose_constraint = True
@@ -103,7 +103,7 @@ class zero_velocity_tester:
         if method_type is 'GLRT':
             self.GLRT_Detector(u)
 
-    @jit
+    # @jit
     def GLRT_Detector(self, u):
         g = self.setting.gravity
 
@@ -113,6 +113,7 @@ class zero_velocity_tester:
         sigma2_g = sigma2_g ** 2.0
 
         W = self.setting.time_Window_size
+        # W = u.
 
         N = u.shape[0]
         T = np.zeros([N - W + 1, 1])
