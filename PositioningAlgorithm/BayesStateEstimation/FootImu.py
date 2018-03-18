@@ -144,6 +144,9 @@ if __name__ == '__main__':
     kf.state_prob = np.diag((0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001))
 
     set_setting = settings()
+    set_setting.sigma_a *= 5.0
+    set_setting.sigma_g *= 5.0
+
     z_tester = zero_velocity_tester(set_setting)
     zv_state = z_tester.GLRT_Detector(imu_data[:, 1:7])
 
