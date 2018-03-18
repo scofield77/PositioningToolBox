@@ -74,6 +74,7 @@ class UwbOptimizeLocation:
         return result.x, result.fun
 
 
+
 if __name__ == '__main__':
     dir_name = '/home/steve/Data/XsensUwb/MTI700/0002/'
     beacon_data = np.loadtxt(dir_name + 'beaconset_no_mac.csv', delimiter=',')
