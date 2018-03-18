@@ -71,7 +71,7 @@ class BasicXsenseReader:
 
             # print(all_num)
             for j in range(11):
-                self.data[i - 7, 1 + j] = float(all_num[j + len(all_num) - 11])
+                self.data[i - 7, 1 + j] = float(all_num[j + len(all_num) - 12])
         print(self.data)
 
     def show(self):
@@ -112,7 +112,7 @@ class BasicXsenseReader:
 
 
 if __name__ == '__main__':
-    dir_name = '/home/steve/Data/XsensUwb/MTI700/0003/'
+    dir_name = '/home/steve/Data/XsensUwb/MTI700/0001/'
 
     bxr = BasicXsenseReader(dir_name + 'HEAD.txt')
     bxr.save(dir_name + 'imu.data')
