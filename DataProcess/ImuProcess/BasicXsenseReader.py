@@ -84,10 +84,9 @@ class BasicXsenseReader:
         # plt.imshow(self.data)
         # plt.colorbar()
         plt.figure()
-        plt.plot(self.data[:,0],'+-',label='time')
+        plt.plot(self.data[:, 0], '+-', label='time')
         plt.grid()
         plt.legend()
-
 
         plt.figure()
         for i in range(3):
@@ -119,8 +118,9 @@ if __name__ == '__main__':
     dir_name = '/home/steve/Data/XsensUwb/MTI700/0001/'
     start_time = time.time()
 
-    for i in range(100):
-        bxr = BasicXsenseReader(dir_name + 'HEAD.txt')
-        bxr.save(dir_name + 'imu.data')
-    # bxr.show()
-    print(time.time()-start_time)
+    bxr = BasicXsenseReader(dir_name + 'HEAD.txt')
+    bxr.save(dir_name + 'imu.data')
+
+    print(time.time() - start_time)
+
+    bxr.show()
