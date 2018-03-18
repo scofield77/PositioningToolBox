@@ -26,6 +26,8 @@
 import numpy as np
 import scipy as sp
 
+import numdiff
+
 from numba import jit
 
 
@@ -135,3 +137,5 @@ class zero_velocity_tester:
                 zupt[k:k + W] = np.ones([W, 1])
 
         return zupt
+
+# class gravity
