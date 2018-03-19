@@ -87,9 +87,9 @@ class UwbProcess:
 if __name__ == '__main__':
     # uwb_file_name = UwbProcess("/home/steve/Data/FusingLocationData/0013/HEAD_UWB.data",
     #                            '/home/steve/Data/FusingLocationData/mac.txt')
-    dir_name = '/home/steve/Data/XsensUwb/MTI700/0002/'
+    dir_name = '/home/steve/Data/XsensUwb/MTI700/0004/'
     uwb_file_p = UwbProcess(dir_name + "HEAD_UWB.data",
                             dir_name + 'beaconSet.csv')
 
-    uwb_file_p.show()
     uwb_file_p.save(dir_name)
+    uwb_file_p.show()

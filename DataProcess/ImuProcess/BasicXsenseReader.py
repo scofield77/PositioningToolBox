@@ -46,7 +46,7 @@ class BasicXsenseReader:
         self.file_name = file_name
         self.load()
 
-    @jit
+    # @jit
     def load(self, is_debug=False):
         '''
         load data from file.
@@ -72,6 +72,7 @@ class BasicXsenseReader:
             if is_debug:
                 print(tt.timestamp() + float(all_num[1]) * 1e-9)
             self.data[i - 7, 0] = tt.timestamp() + float(all_num[1]) * 1e-9
+            print(self.data[i-7,0], "%20.20f"%tt.timestamp())
 
             # print(all_num)
             for j in range(11):
@@ -115,11 +116,13 @@ class BasicXsenseReader:
 
 
 if __name__ == '__main__':
-    dir_name = '/home/steve/Data/XsensUwb/MTI700/0001/'
+    dir_name = '/home/steve/Data/XsensUwb/MTI700/0004/'
     start_time = time.time()
 
     bxr = BasicXsenseReader(dir_name + 'HEAD.txt')
     bxr.save(dir_name + 'imu.data')
+
+    print('%20.20f'%bxr.data[0,0])
 
     print(time.time() - start_time)
 
