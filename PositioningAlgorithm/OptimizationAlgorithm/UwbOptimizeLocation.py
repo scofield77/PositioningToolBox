@@ -46,7 +46,8 @@ class UwbOptimizeLocation:
         :return:
         '''
         dis_to_beacon = np.linalg.norm(pose - self.beacon_set, axis=1)
-        return np.linalg.norm((dis_to_beacon - self.measurements)[np.where(np.logical_and(self.measurements > 0.0 , self.measurements < 15.0))])
+        return np.linalg.norm((dis_to_beacon - self.measurements)[
+                                  np.where(np.logical_and(self.measurements > 0.0, self.measurements < 15.0))])
 
     def positioning_fucntion(self, initial_pose, measurements):
         '''
