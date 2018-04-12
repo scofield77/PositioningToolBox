@@ -108,7 +108,6 @@ def sample(q_array, input, sigma, rng):
     if pos < q_array.shape[1]:
         for i in range(euler.shape[0]):
             euler[i] = input[i] + (xoroshiro128p_uniform_float32(rng, pos) - 0.5)
-        # Theta = cuda.shared.array([4, 4], dtype=np.float32)
         Theta = cuda.local.array(shape=(4, 4), dtype=float32)
 
         delta_euler = (euler[0] * euler[0] + euler[1] * euler[1] + euler[2] + euler[2])
@@ -138,7 +137,9 @@ def sample(q_array, input, sigma, rng):
         Theta[3, 3] = c
 
         tq = cuda.local.array(4, dtype=float32)
-        tq = q_array[:,pos]
+        # tq = q_array[:,pos]
+        for i in range(4):
+            tq[i] = q_array[i, pos]
         norm_new_q = 0.0
         for i in range(4):
             q_array[i, pos] = 0.0
@@ -148,8 +149,8 @@ def sample(q_array, input, sigma, rng):
             norm_new_q += q_array[i, pos] * q_array[i, pos]
         norm_new_q = math.sqrt(norm_new_q)
 
-        norm_new_q = 0.5
-        for i in range(3):
+        # norm_new_q = 0.5
+        for i in range(4):
             q_array[i, pos] = q_array[i, pos] / norm_new_q
 
 
@@ -174,23 +175,26 @@ if __name__ == '__main__':
     q_state = cuda.device_array([4, particle_num], dtype=np.float32)
 
     initial_unit_q[block_num, thread_pre_block](q_state)
-    print('after initial')
 
     input_array = cuda.device_array(input_num - 3, dtype=np.float32)
     input_array = cuda.to_device(np.zeros(input_num - 3))
 
-    print('before create euler')
     euler_array = cuda.device_array([3, particle_num], dtype=np.float32)
 
-    print('befoer sample')
-    sample[block_num,thread_pre_block](q_state, input_array, 0.0, rng_states)
-    print('after sample')
+    sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
     # print(q_state.to_host())
     q_state_host = np.empty(shape=q_state.shape, dtype=q_state.dtype)
     # q_state_host = q_state.to_host()
     q_state.copy_to_host(q_state_host)
     plt.figure()
-    plt.plot(q_state_host.transpose(),label='q')
+    plt.plot(q_state_host.transpose(), label='q')
+    plt.plot(np.linalg.norm(q_state_host, axis=0), label='norm')
+    plt.legend()
+    plt.grid()
+
+    plt.figure()
+    plt.plot(np.linalg.norm(q_state_host, axis=0), label='norm')
+    plt.grid()
     plt.legend()
     plt.show()
     cuda.profile_stop()
