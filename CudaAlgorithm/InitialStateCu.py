@@ -55,48 +55,48 @@ def initial_unit_q(q_array):
         q_array[3, pos] = 0.0
 
 
-# @cuda.jit
-# def quaternion_add_euler(q, euler):
-#     Theta = cuda.shared.array([4, 4], dtype=np.float32)
-#
-#     delta_euler = (euler[0] * euler[0] + euler[1] * euler[1] + euler[2] + euler[2])
-#     delta_euler = math.sqrt(delta_euler)
-#
-#     c = math.cos(delta_euler / 2.0)
-#     sdiv = math.sin(delta_euler / 2.0) / delta_euler
-#
-#     Theta[0, 0] = c
-#     Theta[0, 1] = -euler[0] * sdiv
-#     Theta[0, 2] = -euler[1] * sdiv
-#     Theta[0, 3] = -euler[2] * sdiv
-#
-#     Theta[1, 0] = euler[0] * sdiv
-#     Theta[1, 1] = c
-#     Theta[1, 2] = euler[2] * sdiv
-#     Theta[1, 3] = -euler[1] * sdiv
-#
-#     Theta[2, 0] = euler[1] * sdiv
-#     Theta[2, 1] = -euler[2] * sdiv
-#     Theta[2, 2] = c
-#     Theta[2, 3] = euler[0] * sdiv
-#
-#     Theta[3, 0] = euler[2] * sdiv
-#     Theta[3, 1] = euler[1] * sdiv
-#     Theta[3, 2] = -euler[0] * sdiv
-#     Theta[3, 3] = c
-#
-#     tq = cuda.device_array(4)
-#     tq = q
-#     norm_new_q = 0.0
-#     for i in range(4):
-#         q[i] = 0.0
-#         for j in range(4):
-#             q[i] += Theta[i, j] * tq[j]
-#         norm_new_q += q[i] * q[i]
-#     norm_new_q = math.sqrt(norm_new_q)
-#
-#     for i in range(4):
-#         q[i] = q[i] / norm_new_q
+@cuda.jit(device=True)
+def quaternion_add_euler(q, euler):
+    Theta = cuda.shared.array([4, 4], dtype=np.float32)
+
+    delta_euler = (euler[0] * euler[0] + euler[1] * euler[1] + euler[2] + euler[2])
+    delta_euler = math.sqrt(delta_euler)
+
+    c = math.cos(delta_euler / 2.0)
+    sdiv = math.sin(delta_euler / 2.0) / delta_euler
+
+    Theta[0, 0] = c
+    Theta[0, 1] = -euler[0] * sdiv
+    Theta[0, 2] = -euler[1] * sdiv
+    Theta[0, 3] = -euler[2] * sdiv
+
+    Theta[1, 0] = euler[0] * sdiv
+    Theta[1, 1] = c
+    Theta[1, 2] = euler[2] * sdiv
+    Theta[1, 3] = -euler[1] * sdiv
+
+    Theta[2, 0] = euler[1] * sdiv
+    Theta[2, 1] = -euler[2] * sdiv
+    Theta[2, 2] = c
+    Theta[2, 3] = euler[0] * sdiv
+
+    Theta[3, 0] = euler[2] * sdiv
+    Theta[3, 1] = euler[1] * sdiv
+    Theta[3, 2] = -euler[0] * sdiv
+    Theta[3, 3] = c
+
+    tq = cuda.device_array(4)
+    tq = q
+    norm_new_q = 0.0
+    for i in range(4):
+        q[i] = 0.0
+        for j in range(4):
+            q[i] += Theta[i, j] * tq[j]
+        norm_new_q += q[i] * q[i]
+    norm_new_q = math.sqrt(norm_new_q)
+
+    for i in range(4):
+        q[i] = q[i] / norm_new_q
 
 
 @cuda.jit
