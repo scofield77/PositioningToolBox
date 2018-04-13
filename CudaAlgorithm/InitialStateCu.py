@@ -57,7 +57,7 @@ def initial_unit_q(q_array):
 
 @cuda.jit(device=True)
 def quaternion_add_euler(q, euler):
-    Theta = cuda.shared.array([4, 4], dtype=np.float32)
+    Theta = cuda.local.array(shape=(4,4), dtype=float32)
 
     delta_euler = (euler[0] * euler[0] + euler[1] * euler[1] + euler[2] + euler[2])
     delta_euler = math.sqrt(delta_euler)
@@ -85,8 +85,10 @@ def quaternion_add_euler(q, euler):
     Theta[3, 2] = -euler[0] * sdiv
     Theta[3, 3] = c
 
-    tq = cuda.device_array(4)
-    tq = q
+    tq = cuda.local.array(shape=(4),dtype=float32)
+    # tq = q
+    for i in range(4):
+        tq[i] = q[i]
     norm_new_q = 0.0
     for i in range(4):
         q[i] = 0.0
@@ -103,55 +105,56 @@ def quaternion_add_euler(q, euler):
 def sample(q_array, input, sigma, rng):
     pos = cuda.grid(1)
 
-    euler = cuda.local.array(shape=(3), dtype=float32)
-
     if pos < q_array.shape[1]:
+
+        euler = cuda.local.array(shape=(3), dtype=float32)
         for i in range(euler.shape[0]):
             euler[i] = input[i] + (xoroshiro128p_uniform_float32(rng, pos) - 0.5)
-        Theta = cuda.local.array(shape=(4, 4), dtype=float32)
-
-        delta_euler = (euler[0] * euler[0] + euler[1] * euler[1] + euler[2] + euler[2])
-        delta_euler = math.sqrt(delta_euler)
-
-        c = math.cos(delta_euler / 2.0)
-        sdiv = math.sin(delta_euler / 2.0) / delta_euler
-
-        Theta[0, 0] = c
-        Theta[0, 1] = -euler[0] * sdiv
-        Theta[0, 2] = -euler[1] * sdiv
-        Theta[0, 3] = -euler[2] * sdiv
-
-        Theta[1, 0] = euler[0] * sdiv
-        Theta[1, 1] = c
-        Theta[1, 2] = euler[2] * sdiv
-        Theta[1, 3] = -euler[1] * sdiv
-
-        Theta[2, 0] = euler[1] * sdiv
-        Theta[2, 1] = -euler[2] * sdiv
-        Theta[2, 2] = c
-        Theta[2, 3] = euler[0] * sdiv
-
-        Theta[3, 0] = euler[2] * sdiv
-        Theta[3, 1] = euler[1] * sdiv
-        Theta[3, 2] = -euler[0] * sdiv
-        Theta[3, 3] = c
-
-        tq = cuda.local.array(4, dtype=float32)
-        # tq = q_array[:,pos]
-        for i in range(4):
-            tq[i] = q_array[i, pos]
-        norm_new_q = 0.0
-        for i in range(4):
-            q_array[i, pos] = 0.0
-
-            for j in range(4):
-                q_array[i, pos] += Theta[i, j] * tq[j]
-            norm_new_q += q_array[i, pos] * q_array[i, pos]
-        norm_new_q = math.sqrt(norm_new_q)
+        quaternion_add_euler(q_array[:, pos], euler)
+        # Theta = cuda.local.array(shape=(4, 4), dtype=float32)
+        #
+        # delta_euler = (euler[0] * euler[0] + euler[1] * euler[1] + euler[2] + euler[2])
+        # delta_euler = math.sqrt(delta_euler)
+        #
+        # c = math.cos(delta_euler / 2.0)
+        # sdiv = math.sin(delta_euler / 2.0) / delta_euler
+        #
+        # Theta[0, 0] = c
+        # Theta[0, 1] = -euler[0] * sdiv
+        # Theta[0, 2] = -euler[1] * sdiv
+        # Theta[0, 3] = -euler[2] * sdiv
+        #
+        # Theta[1, 0] = euler[0] * sdiv
+        # Theta[1, 1] = c
+        # Theta[1, 2] = euler[2] * sdiv
+        # Theta[1, 3] = -euler[1] * sdiv
+        #
+        # Theta[2, 0] = euler[1] * sdiv
+        # Theta[2, 1] = -euler[2] * sdiv
+        # Theta[2, 2] = c
+        # Theta[2, 3] = euler[0] * sdiv
+        #
+        # Theta[3, 0] = euler[2] * sdiv
+        # Theta[3, 1] = euler[1] * sdiv
+        # Theta[3, 2] = -euler[0] * sdiv
+        # Theta[3, 3] = c
+        #
+        # tq = cuda.local.array(4, dtype=float32)
+        # # tq = q_array[:,pos]
+        # for i in range(4):
+        #     tq[i] = q_array[i, pos]
+        # norm_new_q = 0.0
+        # for i in range(4):
+        #     q_array[i, pos] = 0.0
+        #
+        #     for j in range(4):
+        #         q_array[i, pos] += Theta[i, j] * tq[j]
+        #     norm_new_q += q_array[i, pos] * q_array[i, pos]
+        # norm_new_q = math.sqrt(norm_new_q)
 
         # norm_new_q = 0.5
-        for i in range(4):
-            q_array[i, pos] = q_array[i, pos] / norm_new_q
+        # for i in range(4):
+        #     q_array[i, pos] = q_array[i, pos] / norm_new_q
 
 
 if __name__ == '__main__':
