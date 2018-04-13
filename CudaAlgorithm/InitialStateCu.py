@@ -34,7 +34,7 @@ from numba import cuda
 from numba.cuda.random import create_xoroshiro128p_states, xoroshiro128p_uniform_float32
 import numba
 
-from numba import float32
+from numba import float32, float64
 
 import math
 
@@ -66,7 +66,7 @@ def quaternion_add_euler(q, euler):
     :param euler:
     :return:
     '''
-    Theta = cuda.local.array(shape=(4, 4), dtype=float32)
+    Theta = cuda.local.array(shape=(4, 4), dtype=float64)
 
     delta_euler = (euler[0] * euler[0] + euler[1] * euler[1] + euler[2] + euler[2])
     delta_euler = math.sqrt(delta_euler)
@@ -98,7 +98,7 @@ def quaternion_add_euler(q, euler):
     Theta[3, 2] = -euler[0] * sdiv
     Theta[3, 3] = c
 
-    tq = cuda.local.array(shape=(4), dtype=float32)
+    tq = cuda.local.array(shape=(4), dtype=float64)
     # tq = q
     for i in range(4):
         tq[i] = q[i]
@@ -120,9 +120,9 @@ def sample(q_array, input, sigma, rng):
 
     if pos < q_array.shape[1]:
 
-        euler = cuda.local.array(shape=(3), dtype=float32)
+        euler = cuda.local.array(shape=(3), dtype=float64)
         for i in range(euler.shape[0]):
-            euler[i] = input[i] + (xoroshiro128p_uniform_float32(rng, pos) - 0.5)
+            euler[i] = input[i] + (xoroshiro128p_uniform_float32(rng, pos) - 0.5) * 2.0
         quaternion_add_euler(q_array[:, pos], euler)
     cuda.syncthreads()
 
@@ -138,17 +138,45 @@ def init_weight(q_weight):
 @cuda.jit
 def average_quaternion(q_array, q_weight, q_array_buffer, average_q):
     pos = cuda.grid(1)
+
+    sdata = cuda.shared.array(shape=(4, 1024), dtype=float64)
     if pos < q_array.shape[1]:
+
+        if pos < 4:
+            average_q[pos] = 0.0
         for i in range(4):
-            # q_array_buffer[i, pos] = q_array[i, pos] * q_weight[pos]
-            t = q_array[i, pos] * q_weight[pos]
-            cuda.atomic.add(average_q, i, t)
+            sdata[i, cuda.threadIdx.x] = q_array[i, pos] * q_weight[pos]
+
+        cuda.syncthreads()
+        s = 1
+        while s < cuda.blockDim.x:
+            index = cuda.threadIdx.x
+            if index+s < cuda.blockDim.x:
+                for i in range(4):
+                    sdata[i, index] = sdata[i, index] + sdata[i, index + s]
+            s = s * 2
+            cuda.syncthreads()
+
+        if cuda.threadIdx.x == 0:
+            for i in range(4):
+                # sdata[i,0] = sdata[i,0] + sdata[i,1]
+                cuda.atomic.add(average_q, i, sdata[i, 0])
+
+
         cuda.syncthreads()
 
+        t_dot = 0.0
+        for i in range(4):
+            t_dot += average_q[i] * q_array[i, pos]
 
-
-
-
+        # cuda.syncthreads()
+        if pos < 4:
+            average_q[i] = 0.0
+        cuda.syncthreads()
+        for i in range(4):
+            t = q_array[i, pos] * q_weight[pos] * t_dot / abs(t_dot)
+            cuda.atomic.add(average_q, i, t)
+        cuda.syncthreads()
 
 
 if __name__ == '__main__':
@@ -163,8 +191,8 @@ if __name__ == '__main__':
     Prepare cuda parameters
     '''
     print(numba.__version__)
-    block_num = 1024
-    thread_pre_block = 512
+    block_num = 512
+    thread_pre_block = 1024
 
     particle_num = block_num * thread_pre_block
     print("particle num is", particle_num, 'block num:', block_num, 'thread pre block:', thread_pre_block)
@@ -174,16 +202,16 @@ if __name__ == '__main__':
 
     rng_states = create_xoroshiro128p_states(block_num * thread_pre_block, seed=1)
 
-    q_state = cuda.device_array([4, particle_num], dtype=np.float32)
-    q_weight = cuda.device_array([particle_num], dtype=np.float32)
+    q_state = cuda.device_array([4, particle_num], dtype=np.float64)
+    q_weight = cuda.device_array([particle_num], dtype=q_state.dtype)
 
     initial_unit_q[block_num, thread_pre_block](q_state)
     init_weight[block_num, thread_pre_block](q_weight)
 
-    input_array = cuda.device_array(input_num - 3, dtype=np.float32)
+    input_array = cuda.device_array(input_num - 3, dtype=q_state.dtype)
     input_array = cuda.to_device(np.zeros(input_num - 3))
 
-    euler_array = cuda.device_array([3, particle_num], dtype=np.float32)
+    euler_array = cuda.device_array([3, particle_num], dtype=q_state.dtype)
 
     # sample from
     sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
@@ -191,15 +219,15 @@ if __name__ == '__main__':
     sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
     sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
     sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
-    sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
+    # sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
     # sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
     # sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
     # sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
     # sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
 
-    ave_q = cuda.device_array([4], dtype=np.float32)
-    ave_q = cuda.to_device(np.zeros(4, dtype=np.float32))
-    ave_q_buffer = cuda.device_array([4, particle_num], dtype=np.float32)
+    ave_q = cuda.device_array([4], dtype=q_state.dtype)
+    ave_q = cuda.to_device(np.zeros(4, dtype=q_state.dtype))
+    ave_q_buffer = cuda.device_array([4, particle_num], dtype=q_state.dtype)
 
     average_quaternion[block_num, thread_pre_block](q_state, q_weight, ave_q_buffer, ave_q)
 
@@ -213,10 +241,10 @@ if __name__ == '__main__':
 
     ave_q_host = ave_q.copy_to_host()
 
-    print("ave q:", ave_q_host, "ave q normlized", ave_q_host/np.linalg.norm(ave_q_host))
+    print("ave q:", ave_q_host, "ave q normlized", ave_q_host / np.linalg.norm(ave_q_host))
 
     print('sum:', q_state_host.sum())
-    print('std q state host:',q_state_host.std(axis=1))
+    print('std q state host:', q_state_host.std(axis=1))
     print('sum of weight:', q_weight_host.sum())
 
     cuda.profile_stop()
