@@ -62,8 +62,13 @@ def quaternion_add_euler(q, euler):
     delta_euler = (euler[0] * euler[0] + euler[1] * euler[1] + euler[2] + euler[2])
     delta_euler = math.sqrt(delta_euler)
 
-    c = math.cos(delta_euler / 2.0)
-    sdiv = math.sin(delta_euler / 2.0) / delta_euler
+    if delta_euler > 1e-19:
+        c = math.cos(delta_euler / 2.0)
+        sdiv = math.sin(delta_euler / 2.0) / delta_euler
+    else:
+        c = 1.0
+        sdiv = 0.0
+
 
     Theta[0, 0] = c
     Theta[0, 1] = -euler[0] * sdiv
@@ -98,7 +103,7 @@ def quaternion_add_euler(q, euler):
     norm_new_q = math.sqrt(norm_new_q)
 
     for i in range(4):
-        q[i] = q[i] / norm_new_q
+        q[i] = q[i]/norm_new_q
 
 
 @cuda.jit
@@ -111,50 +116,15 @@ def sample(q_array, input, sigma, rng):
         for i in range(euler.shape[0]):
             euler[i] = input[i] + (xoroshiro128p_uniform_float32(rng, pos) - 0.5)
         quaternion_add_euler(q_array[:, pos], euler)
-        # Theta = cuda.local.array(shape=(4, 4), dtype=float32)
-        #
-        # delta_euler = (euler[0] * euler[0] + euler[1] * euler[1] + euler[2] + euler[2])
-        # delta_euler = math.sqrt(delta_euler)
-        #
-        # c = math.cos(delta_euler / 2.0)
-        # sdiv = math.sin(delta_euler / 2.0) / delta_euler
-        #
-        # Theta[0, 0] = c
-        # Theta[0, 1] = -euler[0] * sdiv
-        # Theta[0, 2] = -euler[1] * sdiv
-        # Theta[0, 3] = -euler[2] * sdiv
-        #
-        # Theta[1, 0] = euler[0] * sdiv
-        # Theta[1, 1] = c
-        # Theta[1, 2] = euler[2] * sdiv
-        # Theta[1, 3] = -euler[1] * sdiv
-        #
-        # Theta[2, 0] = euler[1] * sdiv
-        # Theta[2, 1] = -euler[2] * sdiv
-        # Theta[2, 2] = c
-        # Theta[2, 3] = euler[0] * sdiv
-        #
-        # Theta[3, 0] = euler[2] * sdiv
-        # Theta[3, 1] = euler[1] * sdiv
-        # Theta[3, 2] = -euler[0] * sdiv
-        # Theta[3, 3] = c
-        #
-        # tq = cuda.local.array(4, dtype=float32)
-        # # tq = q_array[:,pos]
-        # for i in range(4):
-        #     tq[i] = q_array[i, pos]
-        # norm_new_q = 0.0
-        # for i in range(4):
-        #     q_array[i, pos] = 0.0
-        #
-        #     for j in range(4):
-        #         q_array[i, pos] += Theta[i, j] * tq[j]
-        #     norm_new_q += q_array[i, pos] * q_array[i, pos]
-        # norm_new_q = math.sqrt(norm_new_q)
+    cuda.syncthreads()
 
-        # norm_new_q = 0.5
-        # for i in range(4):
-        #     q_array[i, pos] = q_array[i, pos] / norm_new_q
+
+@cuda.jit
+def average_quaternion(q_array,q_weight,average_q):
+    pos = cuda.grid(1)
+    if pos < q_array.shape[0]:
+
+        cuda.atomic.add()
 
 
 if __name__ == '__main__':
@@ -185,10 +155,16 @@ if __name__ == '__main__':
     euler_array = cuda.device_array([3, particle_num], dtype=np.float32)
 
     sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
+    sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
+    sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
+
+
     # print(q_state.to_host())
     q_state_host = np.empty(shape=q_state.shape, dtype=q_state.dtype)
     # q_state_host = q_state.to_host()
     q_state.copy_to_host(q_state_host)
+
+    print('sum:',q_state_host.sum())
     plt.figure()
     plt.plot(q_state_host.transpose(), label='q')
     plt.plot(np.linalg.norm(q_state_host, axis=0), label='norm')
