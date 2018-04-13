@@ -108,6 +108,7 @@ if __name__ == '__main__':
             # print('i:',i)
             # zv_state[i] = z_tester.GLRT_Detector(imu_data[i - 4:i + 4, 1:8])
             if zv_state[i] > 0.5:
+                print('i',i)
         # kf.measurement_function(np.asarray((0, 0, 0)),
         #                         np.diag((0.0001, 0.0001, 0.0001)),
         #                         zero_velocity_measurement,
@@ -115,7 +116,7 @@ if __name__ == '__main__':
 
         # print(kf.state_x)
         # print( i /)
-        trace[i, :] = kf.state_x[0:3]
+        # trace[i, :] = kf.state_x[0:3]
         rate = i / imu_data.shape[0]
 
         print('finished:', rate * 100.0, "% ", i, imu_data.shape[0])
