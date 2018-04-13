@@ -57,6 +57,12 @@ def initial_unit_q(q_array):
 
 @cuda.jit(device=True)
 def quaternion_add_euler(q, euler):
+    '''
+    quaternion add function.
+    :param q:
+    :param euler:
+    :return:
+    '''
     Theta = cuda.local.array(shape=(4, 4), dtype=float32)
 
     delta_euler = (euler[0] * euler[0] + euler[1] * euler[1] + euler[2] + euler[2])
@@ -130,11 +136,12 @@ def init_weight(q_weight):
 def average_quaternion(q_array, q_weight, average_q):
     pos = cuda.grid(1)
     if pos < q_array.shape[0]:
-        q_weighted_local = cuda.local.array(shape=(4),dtype=float32)
+        q_weighted_local = cuda.local.array(shape=(4), dtype=float32)
         for i in range(4):
-            q_weighted_local[i] = q_array[i,pos] * q_weight[pos]
-        cuda.syncthreads()
+            q_weighted_local[i] = q_array[i, pos] * q_weight[pos]
+            cuda.atomic.add(average_q, i, q_weighted_local[i])
 
+        cuda.syncthreads()
 
 
 if __name__ == '__main__':
@@ -149,7 +156,7 @@ if __name__ == '__main__':
     '''
     print(numba.__version__)
     block_num = 1024
-    thread_pre_block = 128
+    thread_pre_block = 320
 
     particle_num = block_num * thread_pre_block
     print("particle num is", particle_num, 'block num:', block_num, 'thread pre block:', thread_pre_block)
@@ -171,39 +178,48 @@ if __name__ == '__main__':
     euler_array = cuda.device_array([3, particle_num], dtype=np.float32)
 
     sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
+    sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
+    sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
+    sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
+    sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
+    sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
+    sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
+    sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
+    sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
+    sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
 
-    ave_q = cuda.device_array([4],dtype=np.float32)
-    average_quaternion[block_num,thread_pre_block](q_state,q_weight,ave_q)
-
-
+    ave_q = cuda.device_array([4], dtype=np.float32)
+    ave_q = cuda.to_device(np.zeros(4,dtype=np.float32))
+    average_quaternion[block_num, thread_pre_block](q_state, q_weight, ave_q)
 
     q_state_host = np.empty(shape=q_state.shape, dtype=q_state.dtype)
     q_weight_host = np.empty(shape=q_weight.shape, dtype=q_weight.dtype)
-    # q_state_host = q_state.to_host()
+
     q_state.copy_to_host(q_state_host)
     q_weight.copy_to_host(q_weight_host)
 
-    print("ave q:",ave_q)
+    ave_q_host = ave_q.copy_to_host()
+
+    print("ave q:", ave_q_host)
 
     print('sum:', q_state_host.sum())
     print('sum of weight:', q_weight_host.sum())
 
     cuda.profile_stop()
 
-
-
-    plt.figure()
-    plt.plot(q_weight_host)
-    plt.grid()
-
-    plt.figure()
-    plt.plot(q_state_host.transpose(), label='q')
-    plt.plot(np.linalg.norm(q_state_host, axis=0), label='norm')
-    plt.legend()
-    plt.grid()
-
-    plt.figure()
-    plt.plot(np.linalg.norm(q_state_host, axis=0), label='norm')
-    plt.grid()
-    plt.legend()
-    plt.show()
+    #
+    # plt.figure()
+    # plt.plot(q_weight_host)
+    # plt.grid()
+    #
+    # plt.figure()
+    # plt.plot(q_state_host.transpose(), label='q')
+    # plt.plot(np.linalg.norm(q_state_host, axis=0), label='norm')
+    # plt.legend()
+    # plt.grid()
+    #
+    # plt.figure()
+    # plt.plot(np.linalg.norm(q_state_host, axis=0), label='norm')
+    # plt.grid()
+    # plt.legend()
+    # plt.show()
