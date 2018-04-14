@@ -122,7 +122,7 @@ def sample(q_array, input, sigma, rng):
 
         euler = cuda.local.array(shape=(3), dtype=float64)
         for i in range(euler.shape[0]):
-            euler[i] = input[i] + (xoroshiro128p_uniform_float32(rng, pos) - 0.5) * 2.0
+            euler[i] = input[i] + (xoroshiro128p_uniform_float32(rng, pos) - 0.5)
         quaternion_add_euler(q_array[:, pos], euler)
     cuda.syncthreads()
 
@@ -138,6 +138,7 @@ def init_weight(q_weight):
 @cuda.jit
 def average_quaternion(q_array, q_weight, q_array_buffer, average_q):
     pos = cuda.grid(1)
+    tid = cuda.threadIdx.x
 
     sdata = cuda.shared.array(shape=(4, 1024), dtype=float64)
     if pos < q_array.shape[1]:
@@ -145,38 +146,78 @@ def average_quaternion(q_array, q_weight, q_array_buffer, average_q):
         if pos < 4:
             average_q[pos] = 0.0
         for i in range(4):
-            sdata[i, cuda.threadIdx.x] = q_array[i, pos] * q_weight[pos]
+            sdata[i, tid] = q_array[i, pos] * q_weight[pos]
 
         cuda.syncthreads()
-        s = 1
-        while s < cuda.blockDim.x:
-            index = cuda.threadIdx.x
-            if index+s < cuda.blockDim.x:
+        s = cuda.blockDim.x >> 1
+        while s > 0:
+
+            if tid < s:
                 for i in range(4):
-                    sdata[i, index] = sdata[i, index] + sdata[i, index + s]
-            s = s * 2
+                    sdata[i, tid] = sdata[i, tid] + sdata[i, tid + s]
+            s = s >> 1
             cuda.syncthreads()
 
-        if cuda.threadIdx.x == 0:
+        if tid == 0:
             for i in range(4):
-                # sdata[i,0] = sdata[i,0] + sdata[i,1]
                 cuda.atomic.add(average_q, i, sdata[i, 0])
-
 
         cuda.syncthreads()
 
+        ### Calculate average consider about q or -q.
         t_dot = 0.0
         for i in range(4):
             t_dot += average_q[i] * q_array[i, pos]
-
-        # cuda.syncthreads()
+        if t_dot > 0:
+            t_dot = 1.0
+        else:
+            t_dot = -1.0
+        cuda.syncthreads()
         if pos < 4:
             average_q[i] = 0.0
         cuda.syncthreads()
         for i in range(4):
-            t = q_array[i, pos] * q_weight[pos] * t_dot / abs(t_dot)
-            cuda.atomic.add(average_q, i, t)
+            if t_dot > 0:
+                sdata[i, tid] = q_array[i, pos] * q_weight[pos]
+            else:
+                sdata[i, tid] = q_array[i, pos] * -1.0 * q_weight[pos]
+            # q_array[i, pos] = t_dot * q_array[i, pos]
         cuda.syncthreads()
+
+        s = cuda.blockDim.x >> 1
+        while s > 0:
+            if tid < s:
+                for i in range(4):
+                    sdata[i, tid] = sdata[i, tid] + sdata[i, tid + s]
+            s = s >> 1
+            cuda.syncthreads()
+
+        if tid == 0:
+            for i in range(4):
+                cuda.atomic.add(average_q, i, sdata[i, 0])
+
+        # t_dot = 0.0
+        # for i in range(4):
+        #     t_dot += average_q[i] * q_array[i, pos]
+        #
+        # if pos < 4:
+        #     average_q[i] = 0.0
+        # cuda.syncthreads()
+        # for i in range(4):
+        #     sdata[i,tid] = q_array[i, pos] * q_weight[pos] * t_dot / abs(t_dot)
+        # cuda.syncthreads()
+        #
+        # s = cuda.blockDim.x >> 1
+        # while s > 0:
+        #     if tid < s:
+        #         for i in range(4):
+        #             sdata[i, tid] = sdata[i, tid] + sdata[i, tid + s]
+        #     s = s >> 1
+        #     cuda.syncthreads()
+        #
+        # if tid == 0:
+        #     for i in range(4):
+        #         cuda.atomic.add(average_q, i, sdata[i, 0])
 
 
 if __name__ == '__main__':
@@ -219,11 +260,11 @@ if __name__ == '__main__':
     sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
     sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
     sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
-    # sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
-    # sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
-    # sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
-    # sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
-    # sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
+    sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
+    sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
+    sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
+    sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
+    sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
 
     ave_q = cuda.device_array([4], dtype=q_state.dtype)
     ave_q = cuda.to_device(np.zeros(4, dtype=q_state.dtype))
@@ -241,11 +282,14 @@ if __name__ == '__main__':
 
     ave_q_host = ave_q.copy_to_host()
 
+    print('ave q norm:', np.linalg.norm(ave_q_host))
     print("ave q:", ave_q_host, "ave q normlized", ave_q_host / np.linalg.norm(ave_q_host))
 
     print('sum:', q_state_host.sum())
     print('std q state host:', q_state_host.std(axis=1))
     print('sum of weight:', q_weight_host.sum())
+    print('cpu ave:', (q_state_host * q_weight_host).sum(axis=1))
+    print('cpu ave q norm:', np.linalg.norm((q_state_host * q_weight_host).sum(axis=1)))
 
     cuda.profile_stop()
 
