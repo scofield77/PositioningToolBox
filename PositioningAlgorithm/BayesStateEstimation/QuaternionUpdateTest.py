@@ -35,6 +35,16 @@ from numba import cuda
 from PositioningAlgorithm.BayesStateEstimation.FootImu import *
 from numba.cuda.random import create_xoroshiro128p_states, xoroshiro128p_uniform_float32
 
+
+def q_add(q,w,t):
+    '''
+
+    :param q: w x y z
+    :param w: x y z
+    :param t:
+    :return:
+    '''
+
 if __name__ == '__main__':
     dir_name = '/home/steve/Data/NewFusingLocationData/0013/'
     imu_data = np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=',')
@@ -44,5 +54,17 @@ if __name__ == '__main__':
 
     initial_state = get_initial_state(imu_data[:40, 1:4], np.asarray((0, 0, 0)), 0.0, 9)
 
+    time_interval = (imu_data[-1,0]-imu_data[0,0])/float(imu_data.shape[0])
+    print('time interval :', time_interval)
+
     trace = np.zeros([imu_data.shape[0], 3])
     zv_state = np.zeros([imu_data.shape[0], 1])
+
+
+
+
+    q = np.asarray((1.0,0.0,0.0,0.0))
+
+    for i in range(200):
+        print(i)
+

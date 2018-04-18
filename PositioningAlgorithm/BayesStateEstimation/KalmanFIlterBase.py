@@ -29,6 +29,9 @@ import scipy as sp
 import numdifftools as nd
 
 
+from numba import jit
+
+
 class KalmanFilterBase:
     def __init__(self, state_dim):
         self.state_x = np.zeros(state_dim)
@@ -40,7 +43,15 @@ class KalmanFilterBase:
 
 
 
+    @jit
     def state_transaction_function(self, input, input_cov, transaction_function=None):
+        '''
+        normal state transaction function.
+        :param input:
+        :param input_cov:
+        :param transaction_function:
+        :return:
+        '''
         if transaction_function is None:
             print("Error: transaction function is None.")
         else:
@@ -63,12 +74,27 @@ class KalmanFilterBase:
             self.state_prob = (self.state_prob.copy() + np.transpose(self.state_prob.copy())) * 0.5
 
 
-    def measurement_function(self, measurement, m_cov, measurement_function=None, state_update_function=None):
+    @jit
+    def measurement_function(self, measurement, m_cov,H=None, measurement_function=None, state_update_function=None):
+        '''
+        normal measurement function
+        :param measurement:
+        :param m_cov:
+        :param H:
+        :param measurement_function:
+        :param state_update_function:
+        :return:
+        '''
+
         if measurement_function is None:
             print("Error: measurement function is None.")
 
         else:
-            self.H = nd.Jacobian(measurement_function)(self.state_x)
+
+            if H is None:
+                self.H = nd.Jacobian(measurement_function)(self.state_x)
+            else:
+                self.H = H
 
             self.y = measurement - measurement_function(self.state_x)
 
