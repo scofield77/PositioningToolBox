@@ -37,7 +37,7 @@ from scipy.optimize import minimize
 
 from AlgorithmTool.ImuTools import settings, zero_velocity_tester
 
-# @jit
+@jit
 def imu_state_update(state: np.ndarray,
                      input: np.ndarray,
                      time_interval=0.01) -> np.ndarray:
@@ -75,7 +75,7 @@ def zero_velocity_measurement(state: np.ndarray) -> np.ndarray:
     '''
     return state[3:6]
 
-# @jit
+@jit
 def update_function(state: np.ndarray,
                     dx: np.ndarray) -> np.ndarray:
     '''
@@ -100,7 +100,7 @@ def update_function(state: np.ndarray,
 
     return state
 
-# @jit
+@jit
 def get_initial_state(imu_data: np.ndarray,
                       initial_pose: np.ndarray,
                       initial_yaw: float,
@@ -150,12 +150,16 @@ if __name__ == '__main__':
     z_tester = zero_velocity_tester(set_setting)
     zv_state = z_tester.GLRT_Detector(imu_data[:, 1:7])
 
+    time_interval = (imu_data[-1,0]-imu_data[0,0])/float(imu_data.shape[0])
+    print('time interval :', time_interval)
+
+
     for i in range(imu_data.shape[0]):
         def inter_imu(s, i):
             return imu_state_update(s, i, 0.01)
 
 
-        kf.state_transaction_function(imu_data[i, 1:7],
+        kf.state_transaction_function_imu_ukf(imu_data[i, 1:7],
                                       np.diag((0.01, 0.01, 0.01, 0.02, 0.02, 0.02)),
                                       inter_imu)
         if (i > 5) and (i < imu_data.shape[0] - 5):

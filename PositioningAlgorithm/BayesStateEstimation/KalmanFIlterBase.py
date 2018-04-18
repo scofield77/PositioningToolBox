@@ -24,10 +24,10 @@
 '''
 
 import numpy as np
+from numpy import linalg
 import scipy as sp
 
 import numdifftools as nd
-
 
 from numba import jit
 
@@ -40,8 +40,6 @@ class KalmanFilterBase:
     def initial_filter(self, initial_state, initial_prob):
         self.state_x = initial_state
         self.state_prob = initial_prob
-
-
 
     @jit
     def state_transaction_function(self, input, input_cov, transaction_function=None):
@@ -59,11 +57,14 @@ class KalmanFilterBase:
             # compute jacobian matrix
             # state_function = lambda s: transaction_function(s, input)
             def state_function(s):
-                return transaction_function(s,input)
+                return transaction_function(s, input)
+
             self.A = nd.Jacobian(state_function)(self.state_x)
+
             # input_function = lambda i: transaction_function(self.state_x, i)
             def input_function(i):
-                return transaction_function(self.state_x,i)
+                return transaction_function(self.state_x, i)
+
             self.B = nd.Jacobian(input_function)(input)
 
             self.state_x = transaction_function(self.state_x, input)
@@ -73,9 +74,23 @@ class KalmanFilterBase:
 
             self.state_prob = (self.state_prob.copy() + np.transpose(self.state_prob.copy())) * 0.5
 
+    @jit
+    def state_transaction_function_imu_ukf(self,
+                                       input: np.ndarray,
+                                       input_cov: np.ndarray):
+        Sigma_matrix = np.zeros([self.state_x.shape[0] + input.shape[0],
+                                 self.state_x.shape[0] + input.shape[0]])
+
+        Sigma_matrix[:self.state_x.shape[0],:self.state_x.shape[0]] = self.state_prob*1.0
+        Sigma_matrix[self.state_x.shape[0],self.state_x.shape[0]:] = input_cov
+        L = linalg.cholesky(Sigma_matrix)
+
+        print('L',L)
+
+
 
     @jit
-    def measurement_function(self, measurement, m_cov,H=None, measurement_function=None, state_update_function=None):
+    def measurement_function(self, measurement, m_cov, H=None, measurement_function=None, state_update_function=None):
         '''
         normal measurement function
         :param measurement:
@@ -105,5 +120,4 @@ class KalmanFilterBase:
             if state_update_function is None:
                 self.state_x = self.state_x + self.K.dot(self.y)
             else:
-                self.state_x = state_update_function(self.state_x,self.K.dot(self.y))
-
+                self.state_x = state_update_function(self.state_x, self.K.dot(self.y))
