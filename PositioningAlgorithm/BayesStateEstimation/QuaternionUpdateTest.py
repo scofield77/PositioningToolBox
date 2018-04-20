@@ -23,17 +23,7 @@
          佛祖保佑       永无BUG 
 '''
 
-import matplotlib.pyplot
-
-import numpy as np
-import scipy as sp
-
-from numba import jit
-
-from numba import cuda
-
-from PositioningAlgorithm.BayesStateEstimation.FootImu import *
-from numba.cuda.random import create_xoroshiro128p_states, xoroshiro128p_uniform_float32
+from PositioningAlgorithm.tester.FootImu import *
 
 
 def q_add(q,w,t):

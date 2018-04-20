@@ -136,7 +136,7 @@ def init_weight(q_weight):
 
 
 @cuda.jit
-def average_quaternion(q_array, q_weight, q_array_buffer, average_q):
+def average_quaternion_simple(q_array, q_weight, q_array_buffer, average_q):
     pos = cuda.grid(1)
     tid = cuda.threadIdx.x
 
@@ -270,7 +270,7 @@ if __name__ == '__main__':
     ave_q = cuda.to_device(np.zeros(4, dtype=q_state.dtype))
     ave_q_buffer = cuda.device_array([4, particle_num], dtype=q_state.dtype)
 
-    average_quaternion[block_num, thread_pre_block](q_state, q_weight, ave_q_buffer, ave_q)
+    average_quaternion_simple[block_num, thread_pre_block](q_state, q_weight, ave_q_buffer, ave_q)
 
     q_state_host = np.empty(shape=q_state.shape, dtype=q_state.dtype)
     q_weight_host = np.empty(shape=q_weight.shape, dtype=q_weight.dtype)
