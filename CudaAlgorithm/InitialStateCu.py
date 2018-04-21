@@ -39,7 +39,7 @@ from numba import float32, float64
 import math
 
 # import pyculib
-from pyculib import blas
+from pyculib import blas as cublas
 
 
 @cuda.jit
@@ -196,28 +196,21 @@ def average_quaternion_simple(q_array, q_weight, q_array_buffer, average_q):
             for i in range(4):
                 cuda.atomic.add(average_q, i, sdata[i, 0])
 
-        # t_dot = 0.0
-        # for i in range(4):
-        #     t_dot += average_q[i] * q_array[i, pos]
-        #
-        # if pos < 4:
-        #     average_q[i] = 0.0
-        # cuda.syncthreads()
-        # for i in range(4):
-        #     sdata[i,tid] = q_array[i, pos] * q_weight[pos] * t_dot / abs(t_dot)
-        # cuda.syncthreads()
-        #
-        # s = cuda.blockDim.x >> 1
-        # while s > 0:
-        #     if tid < s:
-        #         for i in range(4):
-        #             sdata[i, tid] = sdata[i, tid] + sdata[i, tid + s]
-        #     s = s >> 1
-        #     cuda.syncthreads()
-        #
-        # if tid == 0:
-        #     for i in range(4):
-        #         cuda.atomic.add(average_q, i, sdata[i, 0])
+
+# @cuda.jit
+def average_quaternion(q_array, q_weight, q_array_buffer, average_q):
+    # b = blas.Blas()
+    Q = cuda.device_array(shape=[4, 4], dtype=np.float64)
+    print("q_array shape:", q_array.shape)
+    rows = q_array.shape[0]
+    cols = q_array.shape[1]
+    # print(q_array.flags)
+    q_array.flags = {'F_CONTIGUOUS':'True'}
+    # Q = cublas.gemm('N', 'T', 1.0, q_array, q_array)
+    Q = q_array * q_array.transpose()
+
+    Q_host = Q.to_host()
+    print(Q_host)
 
 
 if __name__ == '__main__':
@@ -243,7 +236,10 @@ if __name__ == '__main__':
 
     rng_states = create_xoroshiro128p_states(block_num * thread_pre_block, seed=1)
 
-    q_state = cuda.device_array([4, particle_num], dtype=np.float64)
+    qt = np.zeros((4, particle_num))
+    q_state = cuda.device_array([4, particle_num],dtype=np.float64,order='F')
+
+    # q_state = cuda.devicearray.DeviceNDArray(shape=qt.shape, strides=qt.strides, dtype=qt.dtype,order)
     q_weight = cuda.device_array([particle_num], dtype=q_state.dtype)
 
     initial_unit_q[block_num, thread_pre_block](q_state)
@@ -256,11 +252,11 @@ if __name__ == '__main__':
 
     # sample from
     sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
-    # sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
-    # sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
-    # sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
-    # sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
-    # sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
+    sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
+    sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
+    sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
+    sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
+    sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
     # sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
     # sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
     # sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
@@ -271,6 +267,7 @@ if __name__ == '__main__':
     ave_q_buffer = cuda.device_array([4, particle_num], dtype=q_state.dtype)
 
     average_quaternion_simple[block_num, thread_pre_block](q_state, q_weight, ave_q_buffer, ave_q)
+    average_quaternion(q_state, q_weight, ave_q_buffer, ave_q)
 
     q_state_host = np.empty(shape=q_state.shape, dtype=q_state.dtype)
     q_weight_host = np.empty(shape=q_weight.shape, dtype=q_weight.dtype)
@@ -288,8 +285,11 @@ if __name__ == '__main__':
     print('sum:', q_state_host.sum())
     print('std q state host:', q_state_host.std(axis=1))
     print('sum of weight:', q_weight_host.sum())
-    print('cpu ave:', (q_state_host * q_weight_host).sum(axis=1))
+
     print('cpu ave q norm:', np.linalg.norm((q_state_host * q_weight_host).sum(axis=1)))
+    print('cpu ave:', (q_state_host * q_weight_host).sum(axis=1))
+    print('cpu ave normed:',
+          (q_state_host * q_weight_host).sum(axis=1) / np.linalg.norm((q_state_host * q_weight_host).sum(axis=1)))
 
     cuda.profile_stop()
 
