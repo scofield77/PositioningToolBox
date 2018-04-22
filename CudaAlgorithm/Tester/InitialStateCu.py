@@ -41,8 +41,7 @@ import math
 # import pyculib
 from pyculib import blas as cublas
 
-
-
+from CudaAlgorithm.ParticleFilter.InitialQuaternion import *
 
 
 

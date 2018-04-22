@@ -24,10 +24,24 @@
 '''
 
 
+import matplotlib.pyplot  as plt
+
+import numpy as np
+import scipy as sp
+
+from numba import jit
+
 from numba import cuda
 
-from PositioningAlgorithm.tester.FootImu import *
-from numba.cuda.random import create_xoroshiro128p_states, xoroshiro128p_uniform_float32
+from numba.cuda.random import create_xoroshiro128p_states, xoroshiro128p_uniform_float32, xoroshiro128p_normal_float64
+import numba
+
+from numba import float32, float64
+
+import math
+
+# import pyculib
+from pyculib import blas as cublas
 
 
 @cuda.jit
