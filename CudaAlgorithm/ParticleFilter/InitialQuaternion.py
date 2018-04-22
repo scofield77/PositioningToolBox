@@ -357,3 +357,5 @@ def gravity_error_function(q, acc):
 @cuda.jit
 def quaternion_evaluate(q_array, q_weight, q_array_buffer, acc):
     pos = cuda.grid(1)
+
+
