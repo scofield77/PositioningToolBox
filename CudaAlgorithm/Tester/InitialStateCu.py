@@ -43,8 +43,6 @@ from pyculib import blas as cublas
 
 from CudaAlgorithm.ParticleFilter.InitialQuaternion import *
 
-
-
 if __name__ == '__main__':
     print(cuda.devices._runtime.gpus)
     dir_name = '/home/steve/Data/NewFusingLocationData/0013/'

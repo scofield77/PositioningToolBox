@@ -23,7 +23,6 @@
          佛祖保佑       永无BUG 
 '''
 
-
 import matplotlib.pyplot  as plt
 
 import numpy as np
@@ -199,3 +198,162 @@ def average_quaternion_simple(q_array, q_weight, q_array_buffer, average_q):
             for i in range(4):
                 cuda.atomic.add(average_q, i, sdata[i, 0])
 
+
+@cuda.jit
+def normal_pdf(x, miu, sigma):
+    return (x - miu) * (x - miu) / sigma / sigma
+
+
+@cuda.jit
+def Rt2b(self, ang, R):
+    '''
+    :
+    :param ang:
+    :return:
+    '''
+    cr = math.cos(ang[0])
+    sr = math.sin(ang[0])
+
+    cp = math.cos(ang[1])
+    sp = math.sin(ang[1])
+
+    cy = math.cos(ang[2])
+    sy = math.sin(ang[2])
+
+    # R = np.array(
+    #     [[cy * cp, sy * cp, -sp],
+    #      [-sy * cr + cy * sp * sr, cy * cr + sy * sp * sr, cp * sr],
+    #      [sy * sr + cy * sp * cr, -cy * sr + sy * sp * cr, cp * cr]]
+    # )
+    # return R
+    R[0, 0] = cy * cp
+    R[0, 1] = sy * cp
+    R[0, 2] = -sp
+
+    R[1, 0] = -sy * cr + cy * sp * sr
+    R[1, 1] = cy * cr + sy * sp * sr
+    R[1, 2] = cp * sr
+
+    R[2, 0] = sy * sr + cy * sp * cr
+    R[2, 1] = -cy * sr + sy * sp * cr
+    R[2, 2] = cp * cr
+
+
+@cuda.jit
+def dcm2q(self, R, q):
+    """
+    http://www.ee.ucr.edu/~farrell/AidedNavigation/D_App_Quaternions/Rot2Quat.pdf
+    [1] Farrell J A. Computation of the Quaternion from a Rotation Matrix[J]. 2008.
+    Transform from rotation matrix to quanternions.
+    :param R:old rotation matrix
+    :param q: return value
+    """
+    T = 1.0 + R[0, 0] + R[1, 1] + R[2, 2]
+    # print (T)
+
+    # Really Big Change.
+    # ToDo:Why there are some value is smallter than zero.
+    if math.fabs(T) > 1e-3:
+        S = 0.5 / math.sqrt(math.fabs(T))
+
+        qw = 0.25 / S
+        qx = (R[2, 1] - R[1, 2]) * S
+        qy = (R[0, 2] - R[2, 0]) * S
+        qz = (R[1, 0] - R[0, 1]) * S
+
+    else:
+        if (R[0, 0] > R[1, 1]) and (R[0, 0] > R[2, 2]):
+            S = math.sqrt(1 + R[0, 0] - R[1, 1] - R[2, 2]) * 2.0
+
+            qw = (R[2, 1] - R[1, 2]) / S
+            qx = 0.25 * S
+            qy = (R[0, 1] + R[1, 0]) / S
+            qz = (R[0, 2] + R[2, 0]) / S
+
+        elif R[1, 1] > R[2, 2]:
+            S = math.sqrt(1 + R[1, 1] - R[0, 0] - R[2, 2]) * 2.0
+
+            qw = (R[0, 2] - R[2, 0]) / S
+            qx = (R[0, 1] + R[1, 0]) / S
+            qy = 0.25 * S
+            qz = (R[1, 2] + R[2, 1]) / S
+        else:
+            S = math.sqrt(1 + R[2, 2] - R[0, 0] - R[1, 1]) * 2.0
+
+            qw = (R[1, 0] - R[0, 1]) / S
+            qx = (R[0, 2] + R[2, 0]) / S
+            qy = (R[1, 2] + R[2, 1]) / S
+            qz = 0.25 * S
+
+    # quart = np.array(np.transpose([qx, qy, qz, qw]))
+
+    # quart /= np.linalg.norm(quart)
+    q[0] = qw
+    q[1] = qx
+    q[2] = qy
+    q[3] = qz
+
+@cuda.jit
+def q2dcm(self, q,R):
+    """
+    :param q:
+    :return:
+    """
+    # p = np.zeros([6, 1])
+    p=cuda.local.array(shape=(6,1),dtype=float64)
+
+
+    # p[0:4] = q.reshape(4, 1) ** 2.0
+    p[0] = q[1]
+    p[1] = q[2]
+    p[2] = q[3]
+    p[3] = q[0]
+
+    p[4] = p[1] + p[2]
+
+    if math.fabs(p[0] + p[3] + p[4]) > 1e-18:
+        p[5] = 2.0 / (p[0] + p[3] + p[4])
+    else:
+        p[5] = 0.0
+
+    R = np.zeros([3, 3])
+
+    R[0, 0] = 1 - p[5] * p[4]
+    R[1, 1] = 1 - p[5] * (p[0] + p[2])
+    R[2, 2] = 1 - p[5] * (p[0] + p[1])
+
+    p[0] = p[5] * q[0]
+    p[1] = p[5] * q[1]
+    p[4] = p[5] * q[2] * q[3]
+    p[5] = p[0] * q[1]
+
+    R[0, 1] = p[5] - p[4]
+    R[1, 0] = p[5] + p[4]
+
+    p[4] = p[1] * q[3]
+    p[5] = p[0] * q[2]
+
+    R[0, 2] = p[5] + p[4]
+    R[2, 0] = p[5] - p[4]
+
+    p[4] = p[0] * q[3]
+    p[5] = p[1] * q[2]
+
+    R[1, 2] = p[5] - p[4]
+    R[2, 1] = p[5] + p[4]
+
+
+
+@cuda.jit
+def gravity_error_function(q, acc):
+    R = cuda.local.array(shape=(3,3),dtype=float64)
+    q2dcm(q,R)
+
+    az = R[2,0] * acc[0]  + R[2,1] *acc[1] + R[2,2] * acc[2]
+    a_norm = (acc[0]*acc[0]+acc[1]*acc[1]+acc[2]*acc[2])
+    return az / a_norm
+
+
+@cuda.jit
+def quaternion_evaluate(q_array, q_weight, q_array_buffer, acc):
+    pos = cuda.grid(1)
