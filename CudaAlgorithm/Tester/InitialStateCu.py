@@ -53,8 +53,6 @@ if __name__ == '__main__':
 
     imu_data_device = cuda.device_array_like(imu_data)
 
-
-
     '''
     Prepare cuda parameters
     '''
@@ -88,13 +86,13 @@ if __name__ == '__main__':
     # sample from
     sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
     sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
-    sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
-    sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
-    sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
+    # sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
+    # sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
+    # sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
 
+    quaternion_evaluate[block_num, thread_pre_block](q_state, q_weight, imu_data_device[1, 1:4])
     quaternion_evaluate[block_num,thread_pre_block](q_state,q_weight,imu_data_device[1,1:4])
-    quaternion_evaluate[block_num,thread_pre_block](q_state,q_weight,imu_data_device[1,1:4])
-    print('acc:',imu_data[1,1:4])
+    print('acc:', imu_data[1, 1:4])
     # sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
     # sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
     # sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
@@ -143,8 +141,6 @@ if __name__ == '__main__':
     print('cpu ave:', (q_state_host * q_weight_host).sum(axis=1))
     print('cpu ave normed:',
           (q_state_host * q_weight_host).sum(axis=1) / np.linalg.norm((q_state_host * q_weight_host).sum(axis=1)))
-
-
 
     '''
     Test new quaternion weighte average method in cpu 

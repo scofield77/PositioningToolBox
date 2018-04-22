@@ -318,7 +318,6 @@ def q2dcm(q, R):
 
     # R = np.zeros([3, 3])
 
-
     R[0, 0] = 1 - p[5] * p[4]
     R[1, 1] = 1 - p[5] * (p[0] + p[2])
     R[2, 2] = 1 - p[5] * (p[0] + p[1])
@@ -349,7 +348,7 @@ def gravity_error_function(q, acc):
     R = cuda.local.array(shape=(3, 3), dtype=float64)
     for i in range(3):
         for j in range(3):
-            R[i,j] = 0.0
+            R[i, j] = 0.0
     q2dcm(q, R)
 
     az = R[2, 0] * acc[0] + R[2, 1] * acc[1] + R[2, 2] * acc[2]
@@ -364,6 +363,7 @@ def quaternion_evaluate(q_array, q_weight, acc):
     sdata = cuda.shared.array(shape=(1, 1024), dtype=float64)
     if pos < q_array.shape[1]:
         prob = gravity_error_function(q_array[:, pos], acc)
-        q_weight[pos] = 0.0
+        q_weight[pos] = float(pos)
+        q_array[0,pos] = 0.0
 
     # array_buffer
