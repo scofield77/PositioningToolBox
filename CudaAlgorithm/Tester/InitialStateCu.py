@@ -53,10 +53,10 @@ def q2dcm(q):
     # p = cuda.local.array(shape=(6), dtype=float64)
 
     # p[0:4] = q.reshape(4, 1) ** 2.0
-    p[0] = q[1]*q[1]
-    p[1] = q[2]*q[2]
-    p[2] = q[3]*q[3]
-    p[3] = q[0]*q[0]
+    p[0] = q[1] * q[1]
+    p[1] = q[2] * q[2]
+    p[2] = q[3] * q[3]
+    p[3] = q[0] * q[0]
 
     p[4] = p[1] + p[2]
 
@@ -187,8 +187,6 @@ if __name__ == '__main__':
         sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
         quaternion_evaluate[block_num, thread_pre_block](q_state, q_weight, imu_data_device[1, 1:4], buffer_array[:, 0])
         average_quaternion_simple[block_num, thread_pre_block](q_state, q_weight, ave_q)
-
-
 
         q_state_host = np.empty(shape=q_state.shape, dtype=q_state.dtype)
         q_weight_host = np.empty(shape=q_weight.shape, dtype=q_weight.dtype)
