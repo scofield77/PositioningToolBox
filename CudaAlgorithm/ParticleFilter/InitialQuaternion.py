@@ -413,6 +413,8 @@ def quaternion_evaluate(q_array, q_weight, acc, weight_sum):
 def rejection_resample(state_array, state_buffer, weight):
     pos = cuda.grid(0)
     tid = cuda.threadIdx.x
+    if pos == 0:
+        weight_sum_array = cuda.device_array(shape=(1), dtype=float64)
 
     sdata = cuda.shared.array(shape=(1024), dtype=float64)
     if pos < state_array.shape[1]:
@@ -426,4 +428,6 @@ def rejection_resample(state_array, state_buffer, weight):
             s = s >> 1
             cuda.syncthreads()
         if tid == 0:
-            cuda.atomic.compare_and_swap()
+            weight_sum_array[0] = cuda.atomic.max(weight_sum_array[0], sdata[0])
+
+
