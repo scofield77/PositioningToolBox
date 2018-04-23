@@ -124,7 +124,7 @@ def sample(q_array, input, sigma, rng):
         euler = cuda.local.array(shape=(3), dtype=float64)
         for i in range(euler.shape[0]):
             # euler[i] = input[i] + (xoroshiro128p_uniform_float32(rng, pos) - 0.5)
-            euler[i] = input[i] + (xoroshiro128p_normal_float64(rng, pos) * 0.1)
+            euler[i] = input[i] + (xoroshiro128p_normal_float64(rng, pos) * sigma)
         quaternion_add_euler(q_array[:, pos], euler)
     cuda.syncthreads()
 
@@ -197,15 +197,15 @@ def average_quaternion_simple(q_array, q_weight, average_q):
         if tid == 0:
             for i in range(4):
                 cuda.atomic.add(average_q, i, sdata[i, 0])
-            cuda.syncthreads()
-        if pos == 0:
-            q_norm = 0.0
-            for i in range(4):
-                q_norm += average_q[i] * average_q[i]
-            q_norm = math.sqrt(q_norm)
-            for i in range(4):
-                average_q[i] = average_q[i] / q_norm
-            cuda.syncthreads()
+    cuda.syncthreads()
+    if pos == 0:
+        q_norm = 0.0
+        for i in range(4):
+            q_norm += average_q[i] * average_q[i]
+        q_norm = math.sqrt(q_norm)
+        for i in range(4):
+            average_q[i] = average_q[i] / q_norm
+    cuda.syncthreads()
 
 
 @cuda.jit(device=True, inline=True)
@@ -410,11 +410,12 @@ def quaternion_evaluate(q_array, q_weight, acc, weight_sum):
 
 
 @cuda.jit
-def rejection_resample(state_array, state_buffer, weight):
+def rejection_resample(state_array, state_buffer, weight, rng):
     pos = cuda.grid(0)
     tid = cuda.threadIdx.x
     if pos == 0:
         weight_sum_array = cuda.device_array(shape=(1), dtype=float64)
+        weight_sum_array[0] = 0.0
 
     sdata = cuda.shared.array(shape=(1024), dtype=float64)
     if pos < state_array.shape[1]:
@@ -429,5 +430,3 @@ def rejection_resample(state_array, state_buffer, weight):
             cuda.syncthreads()
         if tid == 0:
             weight_sum_array[0] = cuda.atomic.max(weight_sum_array[0], sdata[0])
-
-
