@@ -72,7 +72,9 @@ def rejection_resample(state_array, state_buffer, weight, rng, weight_max_array)
 
         j = pos
         u = xoroshiro128p_uniform_float64(rng, pos)
-        while u > weight[j] / weight_max_array[0]:
+        counter = 0
+        while u > weight[j] / weight_max_array[0] and counter < 1000:
+            counter = counter +1
             j = int(math.ceil(xoroshiro128p_uniform_float64(rng, pos) * state_array.shape[1]))
             u = xoroshiro128p_uniform_float64(rng, pos)
         # state_array[:, pos] = state_buffer[:, j]
