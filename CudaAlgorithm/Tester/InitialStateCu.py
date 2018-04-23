@@ -53,10 +53,10 @@ def q2dcm(q):
     # p = cuda.local.array(shape=(6), dtype=float64)
 
     # p[0:4] = q.reshape(4, 1) ** 2.0
-    p[0] = q[1]
-    p[1] = q[2]
-    p[2] = q[3]
-    p[3] = q[0]
+    p[0] = q[1]*q[1]
+    p[1] = q[2]*q[2]
+    p[2] = q[3]*q[3]
+    p[3] = q[0]*q[0]
 
     p[4] = p[1] + p[2]
 
@@ -67,9 +67,9 @@ def q2dcm(q):
 
     R = np.zeros([3, 3])
 
-    R[0, 0] = 1 - p[5] * p[4]
-    R[1, 1] = 1 - p[5] * (p[0] + p[2])
-    R[2, 2] = 1 - p[5] * (p[0] + p[1])
+    R[0, 0] = 1.0 - p[5] * p[4]
+    R[1, 1] = 1.0 - p[5] * (p[0] + p[2])
+    R[2, 2] = 1.0 - p[5] * (p[0] + p[1])
 
     p[0] = p[5] * q[0]
     p[1] = p[5] * q[1]
@@ -183,10 +183,12 @@ if __name__ == '__main__':
     ave_q = cuda.to_device(np.zeros(4, dtype=q_state.dtype))
 
     # average_quaternion_simple[block_num, thread_pre_block](q_state, q_weight, buffer_array, ave_q)
-    for i in range(50):
+    for i in range(150):
         sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
         quaternion_evaluate[block_num, thread_pre_block](q_state, q_weight, imu_data_device[1, 1:4], buffer_array[:, 0])
         average_quaternion_simple[block_num, thread_pre_block](q_state, q_weight, ave_q)
+
+
 
         q_state_host = np.empty(shape=q_state.shape, dtype=q_state.dtype)
         q_weight_host = np.empty(shape=q_weight.shape, dtype=q_weight.dtype)
@@ -198,7 +200,7 @@ if __name__ == '__main__':
 
         ave_q_host = ave_q.copy_to_host()
 
-        out_acc = q2dcm(ave_q_host).dot(imu_data[1, 1:4])
+        out_acc = q2dcm(ave_q_host).dot(imu_data[1, 1:4].transpose())
         print('in acc:', imu_data[1, 1:4], 'out acc:', out_acc, "ave q hos:", ave_q_host, 'q norm:',
               np.linalg.norm(ave_q_host))
 
