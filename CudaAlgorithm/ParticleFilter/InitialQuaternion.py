@@ -414,16 +414,16 @@ def rejection_resample(state_array, state_buffer, weight):
     pos = cuda.grid(0)
     tid = cuda.threadIdx.x
 
-    sdata = cuda.shared.array(shape=(1024),dtype=float64)
+    sdata = cuda.shared.array(shape=(1024), dtype=float64)
     if pos < state_array.shape[1]:
         state_buffer[:, pos] = state_array[:, pos]
 
         sdata[tid] = weight[pos]
         s = cuda.blockDim.x >> 1
-        while s>0:
+        while s > 0:
             if tid < s:
-                sdata[tid] = max(sdata[tid],sdata[tid+s])
+                sdata[tid] = max(sdata[tid], sdata[tid + s])
             s = s >> 1
             cuda.syncthreads()
-        if tid==0:
+        if tid == 0:
             cuda.atomic.compare_and_swap()
