@@ -43,20 +43,80 @@ from pyculib import blas as cublas
 
 from CudaAlgorithm.ParticleFilter.InitialQuaternion import *
 
+
+def q2dcm(q):
+    """
+    :param q:
+    :return:
+    """
+    p = np.zeros([6, 1])
+    # p = cuda.local.array(shape=(6), dtype=float64)
+
+    # p[0:4] = q.reshape(4, 1) ** 2.0
+    p[0] = q[1]
+    p[1] = q[2]
+    p[2] = q[3]
+    p[3] = q[0]
+
+    p[4] = p[1] + p[2]
+
+    if math.fabs(p[0] + p[3] + p[4]) > 1e-18:
+        p[5] = 2.0 / (p[0] + p[3] + p[4])
+    else:
+        p[5] = 0.0
+
+    R = np.zeros([3, 3])
+
+    R[0, 0] = 1 - p[5] * p[4]
+    R[1, 1] = 1 - p[5] * (p[0] + p[2])
+    R[2, 2] = 1 - p[5] * (p[0] + p[1])
+
+    p[0] = p[5] * q[0]
+    p[1] = p[5] * q[1]
+    p[4] = p[5] * q[2] * q[3]
+    p[5] = p[0] * q[1]
+
+    R[0, 1] = p[5] - p[4]
+    R[1, 0] = p[5] + p[4]
+
+    p[4] = p[1] * q[3]
+    p[5] = p[0] * q[2]
+
+    R[0, 2] = p[5] + p[4]
+    R[2, 0] = p[5] - p[4]
+
+    p[4] = p[0] * q[3]
+    p[5] = p[1] * q[2]
+
+    R[1, 2] = p[5] - p[4]
+    R[2, 1] = p[5] + p[4]
+    return R
+
+
 if __name__ == '__main__':
+    print(numba.__version__)
     print(cuda.devices._runtime.gpus)
     dir_name = '/home/steve/Data/NewFusingLocationData/0013/'
     imu_data = np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=',')
     imu_data = imu_data[:, 1:]
     imu_data[:, 1:4] *= 9.81
     imu_data[:, 4:7] *= (np.pi / 180.0)
+    # imu_data = imu_data.as
+    imu_data = np.ascontiguousarray(imu_data)
 
     imu_data_device = cuda.device_array_like(imu_data)
+    stream = cuda.stream()
+    with stream.auto_synchronize():
+        imu_data_device = cuda.to_device(imu_data, stream=stream)
+
+    # imu_data_device = cuda.to_device(imu_data)
+    # cuda.to_device(imu_data,copy=True,to=imu_data_device)
+    # imu_data_device =
 
     '''
     Prepare cuda parameters
     '''
-    print(numba.__version__)
+
     block_num = 512
     thread_pre_block = 1024
 
@@ -71,7 +131,7 @@ if __name__ == '__main__':
 
     qt = np.zeros((4, particle_num))
     q_state = cuda.device_array([4, particle_num], dtype=np.float64)
-
+    buffer_array = cuda.device_array([4, particle_num], dtype=q_state.dtype)
     # q_state = cuda.devicearray.DeviceNDArray(shape=qt.shape, strides=qt.strides, dtype=qt.dtype,order)
     q_weight = cuda.device_array([particle_num], dtype=q_state.dtype)
 
@@ -84,15 +144,20 @@ if __name__ == '__main__':
     euler_array = cuda.device_array([3, particle_num], dtype=q_state.dtype)
 
     # sample from
-    sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
-    sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
-    sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
-    sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
-    sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
+    # sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
+    # sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
+    # sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
+    # sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
+    # sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
 
-    quaternion_evaluate[block_num, thread_pre_block](q_state, q_weight, imu_data_device[1, 1:4])
+    # quaternion_evaluate[block_num, thread_pre_block](q_state, q_weight, imu_data_device[1, 1:4],buffer_array[:,0])
     # quaternion_evaluate[block_num,thread_pre_block](q_state,q_weight,imu_data_device[1,1:4])
+
+    tbuffer = np.zeros(buffer_array.shape)
+    # tbuffer = buffer_array.to_host()
+    buffer_array.copy_to_host(tbuffer)
     print('acc:', imu_data[1, 1:4])
+    print(tbuffer[0, 0])
     # sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
     # sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
     # sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
@@ -116,31 +181,38 @@ if __name__ == '__main__':
 
     ave_q = cuda.device_array([4], dtype=q_state.dtype)
     ave_q = cuda.to_device(np.zeros(4, dtype=q_state.dtype))
-    ave_q_buffer = cuda.device_array([4, particle_num], dtype=q_state.dtype)
 
-    average_quaternion_simple[block_num, thread_pre_block](q_state, q_weight, ave_q_buffer, ave_q)
+    # average_quaternion_simple[block_num, thread_pre_block](q_state, q_weight, buffer_array, ave_q)
+    for i in range(50):
+        sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
+        quaternion_evaluate[block_num, thread_pre_block](q_state, q_weight, imu_data_device[1, 1:4], buffer_array[:, 0])
+        average_quaternion_simple[block_num, thread_pre_block](q_state, q_weight, ave_q)
 
-    q_state_host = np.empty(shape=q_state.shape, dtype=q_state.dtype)
-    q_weight_host = np.empty(shape=q_weight.shape, dtype=q_weight.dtype)
-    ave_q_buffer_host = np.empty(shape=ave_q_buffer.shape, dtype=ave_q_buffer.dtype)
+        q_state_host = np.empty(shape=q_state.shape, dtype=q_state.dtype)
+        q_weight_host = np.empty(shape=q_weight.shape, dtype=q_weight.dtype)
+        ave_q_buffer_host = np.empty(shape=buffer_array.shape, dtype=buffer_array.dtype)
+        #
+        # q_state.copy_to_host(q_state_host)
+        q_weight.copy_to_host(q_weight_host)
+        # buffer_array.copy_to_host(ave_q_buffer_host)
 
-    q_state.copy_to_host(q_state_host)
-    q_weight.copy_to_host(q_weight_host)
-    ave_q_buffer.copy_to_host(ave_q_buffer_host)
+        ave_q_host = ave_q.copy_to_host()
 
-    ave_q_host = ave_q.copy_to_host()
+        out_acc = q2dcm(ave_q_host).dot(imu_data[1, 1:4])
+        print('in acc:', imu_data[1, 1:4], 'out acc:', out_acc, "ave q hos:", ave_q_host, 'q norm:',
+              np.linalg.norm(ave_q_host))
 
-    print('ave q norm:', np.linalg.norm(ave_q_host))
-    print("ave q:", ave_q_host, "ave q normlized", ave_q_host / np.linalg.norm(ave_q_host))
-
-    print('sum:', q_state_host.sum())
-    print('std q state host:', q_state_host.std(axis=1))
-    print('sum of weight:', q_weight_host.sum())
-
-    print('cpu ave q norm:', np.linalg.norm((q_state_host * q_weight_host).sum(axis=1)))
-    print('cpu ave:', (q_state_host * q_weight_host).sum(axis=1))
-    print('cpu ave normed:',
-          (q_state_host * q_weight_host).sum(axis=1) / np.linalg.norm((q_state_host * q_weight_host).sum(axis=1)))
+        # print('ave q norm:', np.linalg.norm(ave_q_host))
+        # print("ave q:", ave_q_host, "ave q normlized", ave_q_host / np.linalg.norm(ave_q_host))
+        #
+        # print('sum:', q_state_host.sum())
+        # print('std q state host:', q_state_host.std(axis=1))
+        print('sum of weight:', q_weight_host.sum())
+        #
+        # print('cpu ave q norm:', np.linalg.norm((q_state_host * q_weight_host).sum(axis=1)))
+        # print('cpu ave:', (q_state_host * q_weight_host).sum(axis=1))
+        # print('cpu ave normed:',
+        #       (q_state_host * q_weight_host).sum(axis=1) / np.linalg.norm((q_state_host * q_weight_host).sum(axis=1)))
 
     '''
     Test new quaternion weighte average method in cpu 
@@ -164,9 +236,9 @@ if __name__ == '__main__':
 
     cuda.profile_stop()
 
-    plt.figure()
-    plt.plot(q_weight_host)
-    plt.grid()
+    # plt.figure()
+    # plt.plot(q_weight_host)
+    # plt.grid()
     #
     # plt.figure()
     # plt.plot(q_state_host.transpose(), label='q')

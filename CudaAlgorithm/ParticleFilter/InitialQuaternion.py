@@ -138,7 +138,7 @@ def init_weight(q_weight):
 
 
 @cuda.jit
-def average_quaternion_simple(q_array, q_weight, q_array_buffer, average_q):
+def average_quaternion_simple(q_array, q_weight, average_q):
     pos = cuda.grid(1)
     tid = cuda.threadIdx.x
 
@@ -197,9 +197,17 @@ def average_quaternion_simple(q_array, q_weight, q_array_buffer, average_q):
         if tid == 0:
             for i in range(4):
                 cuda.atomic.add(average_q, i, sdata[i, 0])
+            cuda.syncthreads()
+        if pos == 0:
+            q_norm = 0.0
+            for i in range(4):
+                q_norm += average_q[i] * average_q[i]
+            q_norm = math.sqrt(q_norm)
+            for i in range(4):
+                average_q[i] = average_q[i] / q_norm
 
 
-@cuda.jit
+@cuda.jit(device=True,inline=True)
 def normal_pdf(x, miu, sigma):
     return (x - miu) * (x - miu) / sigma / sigma
 
@@ -343,8 +351,8 @@ def q2dcm(q, R):
     R[2, 1] = p[5] + p[4]
 
 
-@cuda.jit
-def gravity_error_function(q, acc, prob):
+@cuda.jit(device=True, inline=True)
+def gravity_error_function(q, acc):
     R = cuda.local.array(shape=(3, 3), dtype=float64)
     for i in range(3):
         for j in range(3):
@@ -352,21 +360,44 @@ def gravity_error_function(q, acc, prob):
     q2dcm(q, R)
 
     az = R[2, 0] * acc[0] + R[2, 1] * acc[1] + R[2, 2] * acc[2]
-    az = 10000000.0
+    # az = 10000000.0
     a_norm = (acc[0] * acc[0] + acc[1] * acc[1] + acc[2] * acc[2])
-    # return az / a_norm
-    prob = az / a_norm
+    # return az*az / a_norm
+    return normal_pdf(az*az-a_norm,0.0,10.0)
+    # return acc[0]+acc[1]+acc[2]
+    # prob = az / a_norm
+    # prob=0.0
 
 
 @cuda.jit
-def quaternion_evaluate(q_array, q_weight, acc):
+def quaternion_evaluate(q_array, q_weight, acc, weight_sum):
     pos = cuda.grid(1)
+    tid = cuda.threadIdx.x
 
-    # sdata = cuda.shared.array(shape=(1, 1024), dtype=float64)
+    sdata = cuda.shared.array(shape=(1024), dtype=float64)
     if pos < q_array.shape[1]:
-        prob = 0.0
-        # prob = gravity_error_function(q_array[:, pos], acc)
-        gravity_error_function(q_array[:, pos], acc, prob)
-        q_weight[pos] = float(pos) * prob
+        if pos == 0:
+            weight_sum[0] = 0.0
+        # prob = 100.0
+        prob = gravity_error_function(q_array[:, pos], acc[:])
+
+        # compute new weight
+        q_weight[pos] = q_weight[pos] * prob
+
+        sdata[tid] = q_weight[pos]
+        # normalize weight
+        cuda.syncthreads()
+
+        s = cuda.blockDim.x >> 1
+        while s > 0:
+            if tid < s:
+                sdata[tid] = sdata[tid] + sdata[tid + s]
+            s = s >> 1
+            cuda.syncthreads()
+        if tid == 0:
+            cuda.atomic.add(weight_sum, 0, sdata[0])
+
+        cuda.syncthreads()
+        q_weight[pos] = q_weight[pos] / weight_sum[0]
 
     # array_buffer
