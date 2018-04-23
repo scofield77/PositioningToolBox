@@ -294,7 +294,7 @@ def dcm2q(self, R, q):
     q[3] = qz
 
 
-@cuda.jit(device=True)
+@cuda.jit(device=True, inline=True)
 def q2dcm(q, R):
     """
     :param q:
@@ -343,8 +343,8 @@ def q2dcm(q, R):
     R[2, 1] = p[5] + p[4]
 
 
-@cuda.jit(device=True)
-def gravity_error_function(q, acc):
+@cuda.jit
+def gravity_error_function(q, acc, prob):
     R = cuda.local.array(shape=(3, 3), dtype=float64)
     for i in range(3):
         for j in range(3):
@@ -352,18 +352,21 @@ def gravity_error_function(q, acc):
     q2dcm(q, R)
 
     az = R[2, 0] * acc[0] + R[2, 1] * acc[1] + R[2, 2] * acc[2]
+    az = 10000000.0
     a_norm = (acc[0] * acc[0] + acc[1] * acc[1] + acc[2] * acc[2])
-    return az / a_norm
+    # return az / a_norm
+    prob = az / a_norm
 
 
 @cuda.jit
 def quaternion_evaluate(q_array, q_weight, acc):
     pos = cuda.grid(1)
 
-    sdata = cuda.shared.array(shape=(1, 1024), dtype=float64)
+    # sdata = cuda.shared.array(shape=(1, 1024), dtype=float64)
     if pos < q_array.shape[1]:
-        prob = gravity_error_function(q_array[:, pos], acc)
-        q_weight[pos] = float(pos)
-        q_array[0,pos] = 0.0
+        prob = 0.0
+        # prob = gravity_error_function(q_array[:, pos], acc)
+        gravity_error_function(q_array[:, pos], acc, prob)
+        q_weight[pos] = float(pos) * prob
 
     # array_buffer

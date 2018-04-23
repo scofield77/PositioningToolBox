@@ -70,7 +70,7 @@ if __name__ == '__main__':
     # rng_states =
 
     qt = np.zeros((4, particle_num))
-    q_state = cuda.device_array([4, particle_num], dtype=np.float64)  # ,order='F')
+    q_state = cuda.device_array([4, particle_num], dtype=np.float64)
 
     # q_state = cuda.devicearray.DeviceNDArray(shape=qt.shape, strides=qt.strides, dtype=qt.dtype,order)
     q_weight = cuda.device_array([particle_num], dtype=q_state.dtype)
@@ -86,12 +86,12 @@ if __name__ == '__main__':
     # sample from
     sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
     sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
-    # sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
-    # sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
-    # sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
+    sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
+    sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
+    sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
 
     quaternion_evaluate[block_num, thread_pre_block](q_state, q_weight, imu_data_device[1, 1:4])
-    quaternion_evaluate[block_num,thread_pre_block](q_state,q_weight,imu_data_device[1,1:4])
+    # quaternion_evaluate[block_num,thread_pre_block](q_state,q_weight,imu_data_device[1,1:4])
     print('acc:', imu_data[1, 1:4])
     # sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
     # sample[block_num, thread_pre_block](q_state, input_array, 0.0, rng_states)
