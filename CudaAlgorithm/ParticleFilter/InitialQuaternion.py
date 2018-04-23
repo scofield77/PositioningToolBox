@@ -134,7 +134,7 @@ def init_weight(q_weight):
     pos = cuda.grid(1)
 
     if pos < q_weight.shape[0]:
-        q_weight[pos] = 1.0 / float32(q_weight.shape[0])
+        q_weight[pos] = 1.0 / float64(q_weight.shape[0])
 
 
 @cuda.jit
