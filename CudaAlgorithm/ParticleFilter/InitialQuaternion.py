@@ -32,7 +32,8 @@ from numba import jit
 
 from numba import cuda
 
-from numba.cuda.random import create_xoroshiro128p_states, xoroshiro128p_uniform_float32, xoroshiro128p_normal_float64
+from numba.cuda.random import create_xoroshiro128p_states, xoroshiro128p_uniform_float32, xoroshiro128p_normal_float64, \
+    xoroshiro128p_uniform_float64
 import numba
 
 from numba import float32, float64
@@ -410,16 +411,17 @@ def quaternion_evaluate(q_array, q_weight, acc, weight_sum):
 
 
 @cuda.jit
-def rejection_resample(state_array, state_buffer, weight, rng):
-    pos = cuda.grid(0)
+def rejection_resample(state_array, state_buffer, weight, rng, weight_max_array):
+    pos = cuda.grid(1)
     tid = cuda.threadIdx.x
-    if pos == 0:
-        weight_sum_array = cuda.device_array(shape=(1), dtype=float64)
-        weight_sum_array[0] = 0.0
 
     sdata = cuda.shared.array(shape=(1024), dtype=float64)
     if pos < state_array.shape[1]:
-        state_buffer[:, pos] = state_array[:, pos]
+        if pos == 0:
+            weight_max_array[0] = 0.0
+        # state_buffer[:, pos] = state_array[:, pos]
+        for i in range(state_buffer.shape[0]):
+            state_buffer[i, pos] = state_array[i, pos]
 
         sdata[tid] = weight[pos]
         s = cuda.blockDim.x >> 1
@@ -429,4 +431,15 @@ def rejection_resample(state_array, state_buffer, weight, rng):
             s = s >> 1
             cuda.syncthreads()
         if tid == 0:
-            weight_sum_array[0] = cuda.atomic.max(weight_sum_array[0], sdata[0])
+            cuda.atomic.max(weight_max_array, 0, sdata[0])
+
+        j = pos
+        u = xoroshiro128p_uniform_float64(rng, pos)
+        while u > weight[j] / weight_max_array[0]:
+            j = int(math.ceil(xoroshiro128p_uniform_float64(rng, pos) * state_array.shape[1]))
+            u = xoroshiro128p_uniform_float64(rng, pos)
+        # state_array[:, pos] = state_buffer[:, j]
+        for i in range(state_buffer.shape[0]):
+            state_array[i, pos] = state_buffer[i, j]
+        weight[pos] = 1.0 / float64(state_array.shape[1])
+        cuda.syncthreads()

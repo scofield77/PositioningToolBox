@@ -96,6 +96,7 @@ def q2dcm(q):
 if __name__ == '__main__':
     print(numba.__version__)
     print(cuda.devices._runtime.gpus)
+    cuda.profile_start()
     dir_name = '/home/steve/Data/NewFusingLocationData/0013/'
     imu_data = np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=',')
     imu_data = imu_data[:, 1:]
@@ -124,7 +125,7 @@ if __name__ == '__main__':
     print("particle num is", particle_num, 'block num:', block_num, 'thread pre block:', thread_pre_block)
     state_num = 10 + 6 + 6
     input_num = 6
-    cuda.profile_start()
+    # cuda.profile_start()
 
     rng_states = create_xoroshiro128p_states(block_num * thread_pre_block, seed=1)
     # rng_states =
@@ -182,11 +183,14 @@ if __name__ == '__main__':
     ave_q = cuda.device_array([4], dtype=q_state.dtype)
     ave_q = cuda.to_device(np.zeros(4, dtype=q_state.dtype))
 
+    weight_buff = cuda.device_array([1],dtype=q_state.dtype)
+
     # average_quaternion_simple[block_num, thread_pre_block](q_state, q_weight, buffer_array, ave_q)
     for i in range(150):
         sample[block_num, thread_pre_block](q_state, input_array, 1.0, rng_states)
         quaternion_evaluate[block_num, thread_pre_block](q_state, q_weight, imu_data_device[1, 1:4], buffer_array[:, 0])
         average_quaternion_simple[block_num, thread_pre_block](q_state, q_weight, ave_q)
+        rejection_resample[block_num,thread_pre_block](q_state,buffer_array,q_weight,rng_states,weight_buff)
 
         q_state_host = np.empty(shape=q_state.shape, dtype=q_state.dtype)
         q_weight_host = np.empty(shape=q_weight.shape, dtype=q_weight.dtype)
@@ -256,4 +260,4 @@ if __name__ == '__main__':
     # plt.plot(ave_q_buffer_host.transpose())
     # plt.grid()
     #
-    plt.show()
+    # plt.show()
