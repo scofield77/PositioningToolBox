@@ -175,7 +175,6 @@ def average_quaternion_simple(q_array, q_weight, average_q):
             t_dot = 1.0
         else:
             t_dot = -1.0
-        cuda.syncthreads()
         if pos < 4:
             average_q[i] = 0.0
         cuda.syncthreads()
@@ -211,7 +210,7 @@ def average_quaternion_simple(q_array, q_weight, average_q):
 
 @cuda.jit(device=True, inline=True)
 def normal_pdf(x, miu, sigma):
-    return (x - miu) * (x - miu) / sigma / sigma
+    return 1.0 /((x - miu) * (x - miu) / sigma / sigma)
 
 
 @cuda.jit
@@ -316,46 +315,62 @@ def q2dcm(q, R):
     :return:
     """
     # p = np.zeros([6, 1])
-    p = cuda.local.array(shape=(6), dtype=float64)
+    # p = cuda.local.array(shape=(6), dtype=float64)
 
     # p[0:4] = q.reshape(4, 1) ** 2.0
-    p[0] = q[1] * q[1]
-    p[1] = q[2] * q[2]
-    p[2] = q[3] * q[3]
-    p[3] = q[0] * q[0]
+    q_norm = q[0] * q[0] + q[1] * q[1] + q[2] * q[2] + q[3] * q[3]
+    q_norm = math.sqrt(q_norm)
+    for i in range(4):
+        q[i] = q[i] / q_norm
 
-    p[4] = p[1] + p[2]
+    # p[1] = q[1] * q[1]
+    # p[2] = q[2] * q[2]
+    # p[3] = q[3] * q[3]
+    # p[0] = q[0] * q[0]
+    #
+    # p[4] = p[1] + p[2]
+    #
+    # if math.fabs(p[0] + p[3] + p[4]) > 1e-18:
+    #     p[5] = 2.0 / (p[0] + p[3] + p[4])
+    # else:
+    #     p[5] = 0.0
+    #
+    # # R = np.zeros([3, 3])
+    #
+    # R[0, 0] = 1.0 - p[5] * p[4]
+    # R[1, 1] = 1.0 - p[5] * (p[0] + p[2])
+    # R[2, 2] = 1.0 - p[5] * (p[0] + p[1])
+    #
+    # p[0] = p[5] * q[0]
+    # p[1] = p[5] * q[1]
+    # p[4] = p[5] * q[2] * q[3]
+    # p[5] = p[0] * q[1]
+    #
+    # R[0, 1] = p[5] - p[4]
+    # R[1, 0] = p[5] + p[4]
+    #
+    # p[4] = p[1] * q[3]
+    # p[5] = p[0] * q[2]
+    #
+    # R[0, 2] = p[5] + p[4]
+    # R[2, 0] = p[5] - p[4]
+    #
+    # p[4] = p[0] * q[3]
+    # p[5] = p[1] * q[2]
+    #
+    # R[1, 2] = p[5] - p[4]
+    # R[2, 1] = p[5] + p[4]
+    R[0, 0] = (q[0] * q[0] + q[1] * q[1] - 0.5) * 2.0
+    R[0, 1] = (q[1] * q[2] - q[0] * q[3]) * 2.0
+    R[0, 2] = (q[0] * q[2] + q[1] * q[3]) * 2.0
 
-    if math.fabs(p[0] + p[3] + p[4]) > 1e-18:
-        p[5] = 2.0 / (p[0] + p[3] + p[4])
-    else:
-        p[5] = 0.0
+    R[1, 0] = (q[0] * q[3] + q[1] * q[2]) * 2.0
+    R[1, 1] = (q[0] * q[0] + q[2] * q[2] - 0.5) * 2.0
+    R[1, 2] = (q[2] * q[3] - q[0] * q[1]) * 2.0
 
-    # R = np.zeros([3, 3])
-
-    R[0, 0] = 1.0 - p[5] * p[4]
-    R[1, 1] = 1.0 - p[5] * (p[0] + p[2])
-    R[2, 2] = 1.0 - p[5] * (p[0] + p[1])
-
-    p[0] = p[5] * q[0]
-    p[1] = p[5] * q[1]
-    p[4] = p[5] * q[2] * q[3]
-    p[5] = p[0] * q[1]
-
-    R[0, 1] = p[5] - p[4]
-    R[1, 0] = p[5] + p[4]
-
-    p[4] = p[1] * q[3]
-    p[5] = p[0] * q[2]
-
-    R[0, 2] = p[5] + p[4]
-    R[2, 0] = p[5] - p[4]
-
-    p[4] = p[0] * q[3]
-    p[5] = p[1] * q[2]
-
-    R[1, 2] = p[5] - p[4]
-    R[2, 1] = p[5] + p[4]
+    R[2, 0] = (q[1] * q[3] - q[0] * q[2]) * 2.0
+    R[2, 1] = (q[0] * q[1] + q[2] * q[3]) * 2.0
+    R[2, 2] = (q[0] * q[0] + q[3] * q[3] - 0.5) * 2.0
 
 
 @cuda.jit(device=True, inline=True)
@@ -366,11 +381,14 @@ def gravity_error_function(q, acc):
     #         R[i, j] = 0.0
     q2dcm(q, R)
 
+    ax = R[0, 0] * acc[0] + R[0, 1] * acc[1] + R[0, 2] * acc[2]
+    ay = R[1, 0] * acc[0] + R[1, 1] * acc[1] + R[1, 2] * acc[2]
     az = R[2, 0] * acc[0] + R[2, 1] * acc[1] + R[2, 2] * acc[2]
     # az = 10000000.0
     a_norm = (acc[0] * acc[0] + acc[1] * acc[1] + acc[2] * acc[2])
-    # return az*az / a_norm
-    return normal_pdf(az * az, a_norm, 1.0)
+    a_norm = math.sqrt(a_norm)
+
+    return normal_pdf(ax, 0.0, 1.0) * normal_pdf(ay, 0.0, 1.0) * normal_pdf(az, a_norm, 1.0)
     # return acc[0]+acc[1]+acc[2]
     # prob = az / a_norm
     # prob=0.0
@@ -406,5 +424,6 @@ def quaternion_evaluate(q_array, q_weight, acc, weight_sum):
 
         cuda.syncthreads()
         q_weight[pos] = q_weight[pos] / weight_sum[0]
+        cuda.syncthreads()
 
     # array_buffer

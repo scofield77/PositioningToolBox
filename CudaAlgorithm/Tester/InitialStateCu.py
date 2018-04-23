@@ -50,47 +50,65 @@ def q2dcm(q):
     :param q:
     :return:
     """
-    p = np.zeros([6, 1])
-    # p = cuda.local.array(shape=(6), dtype=float64)
-
-    # p[0:4] = q.reshape(4, 1) ** 2.0
-    p[0] = q[1] * q[1]
-    p[1] = q[2] * q[2]
-    p[2] = q[3] * q[3]
-    p[3] = q[0] * q[0]
-
-    p[4] = p[1] + p[2]
-
-    if math.fabs(p[0] + p[3] + p[4]) > 1e-18:
-        p[5] = 2.0 / (p[0] + p[3] + p[4])
-    else:
-        p[5] = 0.0
-
+    q /= np.linalg.norm(q)
+    # p = np.zeros([6, 1])
+    # # p = cuda.local.array(shape=(6), dtype=float64)
+    #
+    # # p[0:4] = q.reshape(4, 1) ** 2.0
+    # p[0] = q[1] * q[1]
+    # p[1] = q[2] * q[2]
+    # p[2] = q[3] * q[3]
+    # p[3] = q[0] * q[0]
+    #
+    # p[4] = p[1] + p[2]
+    #
+    # if math.fabs(p[0] + p[3] + p[4]) > 1e-18:
+    #     p[5] = 2.0 / (p[0] + p[3] + p[4])
+    # else:
+    #     p[5] = 0.0
+    # #
     R = np.zeros([3, 3])
+    # #
+    # R[0, 0] = 1.0 - p[5] * p[4]
+    # R[1, 1] = 1.0 - p[5] * (p[0] + p[2])
+    # R[2, 2] = 1.0 - p[5] * (p[0] + p[1])
+    #
+    # p[0] = p[5] * q[0]
+    # p[1] = p[5] * q[1]
+    # p[4] = p[5] * q[2] * q[3]
+    # p[5] = p[0] * q[1]
+    #
+    # R[0, 1] = p[5] - p[4]
+    # R[1, 0] = p[5] + p[4]
+    #
+    # p[4] = p[1] * q[3]
+    # p[5] = p[0] * q[2]
+    #
+    # R[0, 2] = p[5] + p[4]
+    # R[2, 0] = p[5] - p[4]
+    #
+    # p[4] = p[0] * q[3]
+    # p[5] = p[1] * q[2]
+    #
+    # R[1, 2] = p[5] - p[4]
+    # R[2, 1] = p[5] + p[4]
 
-    R[0, 0] = 1.0 - p[5] * p[4]
-    R[1, 1] = 1.0 - p[5] * (p[0] + p[2])
-    R[2, 2] = 1.0 - p[5] * (p[0] + p[1])
+    ##################
+    R[0, 0] = (q[0] * q[0] + q[1] * q[1] - 0.5) * 2.0
+    R[0, 1] = (q[1] * q[2] - q[0] * q[3]) * 2.0
+    R[0, 2] = (q[0] * q[2] + q[1] * q[3]) * 2.0
 
-    p[0] = p[5] * q[0]
-    p[1] = p[5] * q[1]
-    p[4] = p[5] * q[2] * q[3]
-    p[5] = p[0] * q[1]
+    R[1, 0] = (q[0] * q[3] + q[1] * q[2]) * 2.0
+    R[1, 1] = (q[0] * q[0] + q[2] * q[2] - 0.5) * 2.0
+    R[1, 2] = (q[2] * q[3] - q[0] * q[1]) * 2.0
 
-    R[0, 1] = p[5] - p[4]
-    R[1, 0] = p[5] + p[4]
+    R[2, 0] = (q[1] * q[3] - q[0] * q[2]) * 2.0
+    R[2, 1] = (q[0] * q[1] + q[2] * q[3]) * 2.0
+    R[2, 2] = (q[0] * q[0] + q[3] * q[3] - 0.5) * 2.0
 
-    p[4] = p[1] * q[3]
-    p[5] = p[0] * q[2]
+    # R /= np.linalg.norm(q)
 
-    R[0, 2] = p[5] + p[4]
-    R[2, 0] = p[5] - p[4]
-
-    p[4] = p[0] * q[3]
-    p[5] = p[1] * q[2]
-
-    R[1, 2] = p[5] - p[4]
-    R[2, 1] = p[5] + p[4]
+    # print("R:",R,"R*R^T", R.dot(R.transpose()))
     return R
 
 
@@ -105,6 +123,9 @@ if __name__ == '__main__':
     imu_data[:, 4:7] *= (np.pi / 180.0)
     # imu_data = imu_data.as
     imu_data = np.ascontiguousarray(imu_data)
+
+    fist_line = imu_data[:100, :].mean(axis=0)
+    imu_data[0, :] = fist_line
 
     imu_data_device = cuda.device_array_like(imu_data)
     stream = cuda.stream()
@@ -184,26 +205,29 @@ if __name__ == '__main__':
     ave_q = cuda.device_array([4], dtype=q_state.dtype)
     ave_q = cuda.to_device(np.zeros(4, dtype=q_state.dtype))
 
-    weight_buff = cuda.device_array([1],dtype=q_state.dtype)
+    weight_buff = cuda.device_array([1], dtype=q_state.dtype)
+
+    out_acc_data = np.zeros([200, 3])
 
     # average_quaternion_simple[block_num, thread_pre_block](q_state, q_weight, buffer_array, ave_q)
-    for i in range(150):
+    for i in range(out_acc_data.shape[0]):
         sample[block_num, thread_pre_block](q_state, input_array, 10.0 * np.pi / 180.0, rng_states)
-        quaternion_evaluate[block_num, thread_pre_block](q_state, q_weight, imu_data_device[1, 1:4], buffer_array[:, 0])
+        quaternion_evaluate[block_num, thread_pre_block](q_state, q_weight, imu_data_device[0, 1:4], buffer_array[:, 0])
         average_quaternion_simple[block_num, thread_pre_block](q_state, q_weight, ave_q)
-        rejection_resample[block_num,thread_pre_block](q_state,buffer_array,q_weight,rng_states,weight_buff)
+        rejection_resample[block_num, thread_pre_block](q_state, buffer_array, q_weight, rng_states, weight_buff)
 
         q_state_host = np.empty(shape=q_state.shape, dtype=q_state.dtype)
         q_weight_host = np.empty(shape=q_weight.shape, dtype=q_weight.dtype)
         ave_q_buffer_host = np.empty(shape=buffer_array.shape, dtype=buffer_array.dtype)
         #
         # q_state.copy_to_host(q_state_host)
-        q_weight.copy_to_host(q_weight_host)
+        # q_weight.copy_to_host(q_weight_host)
         # buffer_array.copy_to_host(ave_q_buffer_host)
 
         ave_q_host = ave_q.copy_to_host()
 
         out_acc = q2dcm(ave_q_host).dot(imu_data[1, 1:4].transpose())
+        out_acc_data[i, :] = out_acc
         print('in acc:', imu_data[1, 1:4], 'out acc:', out_acc, "ave q hos:", ave_q_host, 'q norm:',
               np.linalg.norm(ave_q_host))
 
@@ -212,7 +236,7 @@ if __name__ == '__main__':
         #
         # print('sum:', q_state_host.sum())
         # print('std q state host:', q_state_host.std(axis=1))
-        print('sum of weight:', q_weight_host.sum())
+        # print('sum of weight:', q_weight_host.sum())
         #
         # print('cpu ave q norm:', np.linalg.norm((q_state_host * q_weight_host).sum(axis=1)))
         # print('cpu ave:', (q_state_host * q_weight_host).sum(axis=1))
@@ -262,3 +286,12 @@ if __name__ == '__main__':
     # plt.grid()
     #
     # plt.show()
+
+    plt.figure()
+    plt.title('out acc')
+    for i in range(3):
+        plt.plot(out_acc_data[:, i], label=str(i))
+    plt.plot(np.linalg.norm(out_acc_data, axis=1), label='norm')
+    plt.legend()
+    plt.grid()
+    plt.show()
