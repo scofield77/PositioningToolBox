@@ -408,38 +408,3 @@ def quaternion_evaluate(q_array, q_weight, acc, weight_sum):
         q_weight[pos] = q_weight[pos] / weight_sum[0]
 
     # array_buffer
-
-
-@cuda.jit
-def rejection_resample(state_array, state_buffer, weight, rng, weight_max_array):
-    pos = cuda.grid(1)
-    tid = cuda.threadIdx.x
-
-    sdata = cuda.shared.array(shape=(1024), dtype=float64)
-    if pos < state_array.shape[1]:
-        if pos == 0:
-            weight_max_array[0] = 0.0
-        # state_buffer[:, pos] = state_array[:, pos]
-        for i in range(state_buffer.shape[0]):
-            state_buffer[i, pos] = state_array[i, pos]
-
-        sdata[tid] = weight[pos]
-        s = cuda.blockDim.x >> 1
-        while s > 0:
-            if tid < s:
-                sdata[tid] = max(sdata[tid], sdata[tid + s])
-            s = s >> 1
-            cuda.syncthreads()
-        if tid == 0:
-            cuda.atomic.max(weight_max_array, 0, sdata[0])
-
-        j = pos
-        u = xoroshiro128p_uniform_float64(rng, pos)
-        while u > weight[j] / weight_max_array[0]:
-            j = int(math.ceil(xoroshiro128p_uniform_float64(rng, pos) * state_array.shape[1]))
-            u = xoroshiro128p_uniform_float64(rng, pos)
-        # state_array[:, pos] = state_buffer[:, j]
-        for i in range(state_buffer.shape[0]):
-            state_array[i, pos] = state_buffer[i, j]
-        weight[pos] = 1.0 / float64(state_array.shape[1])
-        cuda.syncthreads()

@@ -42,6 +42,7 @@ import math
 from pyculib import blas as cublas
 
 from CudaAlgorithm.ParticleFilter.InitialQuaternion import *
+from CudaAlgorithm.ParticleFilter.GeneralModel import *
 
 
 def q2dcm(q):
@@ -187,7 +188,7 @@ if __name__ == '__main__':
 
     # average_quaternion_simple[block_num, thread_pre_block](q_state, q_weight, buffer_array, ave_q)
     for i in range(150):
-        sample[block_num, thread_pre_block](q_state, input_array, 1.0, rng_states)
+        sample[block_num, thread_pre_block](q_state, input_array, 10.0 * np.pi / 180.0, rng_states)
         quaternion_evaluate[block_num, thread_pre_block](q_state, q_weight, imu_data_device[1, 1:4], buffer_array[:, 0])
         average_quaternion_simple[block_num, thread_pre_block](q_state, q_weight, ave_q)
         rejection_resample[block_num,thread_pre_block](q_state,buffer_array,q_weight,rng_states,weight_buff)
