@@ -37,6 +37,7 @@ from scipy.optimize import minimize
 
 from AlgorithmTool.ImuTools import settings, zero_velocity_tester
 
+
 # @jit
 def imu_state_update(state: np.ndarray,
                      input: np.ndarray,
@@ -66,8 +67,9 @@ def imu_state_update(state: np.ndarray,
 
     return state
 
+
 # @jit
-def zero_velocity_measurement(state: np.ndarray) -> np.ndarray:
+def zero_velocity_measurement(state):
     '''
     zero velocity measurement function.
     :param state:
@@ -75,9 +77,10 @@ def zero_velocity_measurement(state: np.ndarray) -> np.ndarray:
     '''
     return state[3:6]
 
+
 # @jit
-def update_function(state: np.ndarray,
-                    dx: np.ndarray) -> np.ndarray:
+def update_function(state,
+                    dx):
     '''
     update state according to delta x.
     :param state:
@@ -100,11 +103,13 @@ def update_function(state: np.ndarray,
 
     return state
 
-# @jit
-def get_initial_state(imu_data: np.ndarray,
-                      initial_pose: np.ndarray,
-                      initial_yaw: float,
-                      state_num: int) -> np.ndarray:
+
+# @jit("float[:](float[:],float[:],float,int)")
+@jit
+def get_initial_state(imu_data,
+                      initial_pose,
+                      initial_yaw,
+                      state_num):
     state = np.zeros(state_num)
     if state_num is 9:
         state[0:3] = initial_pose
@@ -118,7 +123,7 @@ def get_initial_state(imu_data: np.ndarray,
             return np.linalg.norm(quaternions.rotate_vector(acc, q) - np.asarray((0, 0, np.linalg.norm(acc))))
 
         result = minimize(error_func, np.asarray((0, 0)))
-        print(result)
+        # print(result)
         w = result.x
         state[6] = w[0]
         state[7] = w[1]
@@ -169,10 +174,10 @@ if __name__ == '__main__':
 
         # print(kf.state_x)
         # print( i /)
-        trace[i,:] = kf.state_x[0:3]
-        rate = i/imu_data.shape[0]
+        trace[i, :] = kf.state_x[0:3]
+        rate = i / imu_data.shape[0]
 
-        print('finished:',rate*100.0,"% ",i,imu_data.shape[0])
+        print('finished:', rate * 100.0, "% ", i, imu_data.shape[0])
 
 
     def aux_plot(data: np.ndarray, name: str):
