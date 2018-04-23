@@ -47,6 +47,7 @@ import math
 # import pyculib
 from pyculib import blas as cublas
 
+
 @cuda.jit
 def rejection_resample(state_array, state_buffer, weight, rng, weight_max_array):
     pos = cuda.grid(1)
@@ -74,7 +75,7 @@ def rejection_resample(state_array, state_buffer, weight, rng, weight_max_array)
         u = xoroshiro128p_uniform_float64(rng, pos)
         counter = 0
         while u > weight[j] / weight_max_array[0] and counter < 1000:
-            counter = counter +1
+            counter = counter + 1
             j = int(math.ceil(xoroshiro128p_uniform_float64(rng, pos) * state_array.shape[1]))
             u = xoroshiro128p_uniform_float64(rng, pos)
         # state_array[:, pos] = state_buffer[:, j]
@@ -82,4 +83,3 @@ def rejection_resample(state_array, state_buffer, weight, rng, weight_max_array)
             state_array[i, pos] = state_buffer[i, j]
         weight[pos] = 1.0 / float64(state_array.shape[1])
         cuda.syncthreads()
-
