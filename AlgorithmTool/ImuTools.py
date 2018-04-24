@@ -28,7 +28,7 @@ import scipy as sp
 
 import numdifftools
 
-from numba import jit,prange,float64,int32
+from numba import jit, prange, float64, int32
 
 import math
 
@@ -99,6 +99,7 @@ class settings:
 
 # @jit(cache=True)
 # @jit(float64[:](float64[:,:],float64,float64,float64,float64,int32),parallel=True)
+@jit(nopython=True, parallel=True)
 def GLRT_Detector(u,
                   sigma_a=0.4,
                   sigma_g=0.4 * np.pi / 180.0,
@@ -126,32 +127,49 @@ def GLRT_Detector(u,
     # W = u.
 
     N = u.shape[0]
-    T = np.zeros([N - W + 1, 1])
+    T = np.zeros((N - W + 1, 1))
 
     for k in prange(N - W + 1):
-        ya_m = np.mean(u[k:k + W - 1, 0:3], 0)
+        # ya_m = np.mean(u[k:k + W - 1, 0:3], 0)
+        ya_m = np.zeros(3)
+        count = 0
+        for j in range(k, k + W - 1):
+            # ya_m = ya_m + u[j, 0]
+            # ya_m = ya_m + u[j, 1]
+            # ya_m = ya_m + u[j, 2]
+            for d in range(3):
+                ya_m[d] = ya_m[d] + u[j, d]
+            count += 1
+        ya_m = ya_m / float(count)
         # print(ya_m.shape)
 
         for l in range(k, k + W - 1):
-            tmp = u[l, 0:3] - g * ya_m / np.linalg.norm(ya_m)
+            # tmp = u[l, 0:3] - g * ya_m / np.linalg.norm(ya_m)
+            tmp = np.zeros(3)
+            for j in range(3):
+                tmp[j] = u[l, j] - g * ya_m[j] / np.linalg.norm(ya_m)
+
             T[k] = T[k] + (np.linalg.norm(u[l, 3:6]) ** 2.0) / sigma2_g + \
                    (np.linalg.norm(tmp) ** 2.0) / sigma2_a
+
     T = T / W
 
-    zupt = np.zeros([u.shape[0], 1])
+    zupt = np.zeros(shape=(u.shape[0], 1))
     # import matplotlib.pyplot as plt
     # plt.figure(1)
     # plt.plot(T)
     # plt.show()
     for k in range(T.shape[0]):
-        if T[k] < gamma:
-            zupt[k:k + W] = np.ones([W, 1])
+        if T[k, 0] < gamma:
+            # zupt[k:k + W] = np.ones([W, 1])
+            for j in range(k, k + W):
+                zupt[j] = 1.0
 
     return zupt
 
 
 # @jit('float64[:](float64[:],float64[:],float64)')
-# @jit
+@jit(float64[:](float64[:], float64[:], float64), nopython=True)
 def quaternion_right_update(q, euler, rate):
     '''
     quaternion right update
@@ -162,7 +180,7 @@ def quaternion_right_update(q, euler, rate):
     eta = euler * rate * 0.5
     eta_norm = np.linalg.norm(eta)
 
-    mul_q = np.zeros([4])
+    mul_q = np.zeros(4)
     # qL = np.zeros_like([4, 4])
 
     if (eta_norm > 1e-18):
@@ -172,28 +190,34 @@ def quaternion_right_update(q, euler, rate):
         mul_q[0] = 1.0
         mul_q[1:4] = eta
 
-    qL = np.asarray((
-        mul_q[0], -mul_q[1], -mul_q[2], -mul_q[3],
-        mul_q[1], mul_q[0], mul_q[3], -mul_q[2],
-        mul_q[2], -mul_q[3], mul_q[0], mul_q[1],
-        mul_q[3], mul_q[2], -mul_q[1], mul_q[0]
-    )).reshape([4, 4])
+    # qL = np.asarray((
+    #     mul_q[0], -mul_q[1], -mul_q[2], -mul_q[3],
+    #     mul_q[1], mul_q[0], mul_q[3], -mul_q[2],
+    #     mul_q[2], -mul_q[3], mul_q[0], mul_q[1],
+    #     mul_q[3], mul_q[2], -mul_q[1], mul_q[0]
+    # )).reshape([4, 4])
 
-    tmp_q = qL.dot(q)
+    # tmp_q = qL.dot(q)
+    # for i in range(4)
+    tmp_q = np.zeros(4)
+    tmp_q[0] = mul_q[0] * q[0] - mul_q[1] * q[1] - mul_q[2] * q[2] - mul_q[3] * q[3]
+    tmp_q[1] = mul_q[1] * q[0] + mul_q[0] * q[1] + mul_q[3] * q[2] - mul_q[2] * q[3]
+    tmp_q[2] = mul_q[2] * q[0] - mul_q[3] * q[1] + mul_q[0] * q[2] + mul_q[1] * q[3]
+    tmp_q[3] = mul_q[3] * q[0] + mul_q[2] * q[1] - mul_q[1] * q[2] + mul_q[0] * q[3]
 
     tmp_q /= np.linalg.norm(tmp_q)
     return tmp_q
 
 
-
 # @jit('float64[:](float64[:],float64[:],float64)')
 # @jit
-def quaternion_left_update(q, euler, rate):
 
-    eta = euler * rate *0.5
+@jit(float64[:](float64[:], float64[:], float64), nopython=True)
+def quaternion_left_update(q, euler, rate):
+    eta = euler * rate * 0.5
     eta_norm = np.linalg.norm(eta)
 
-    mul_q = np.zeros([4])
+    mul_q = np.zeros(4)
     # qL = np.zeros_like([4, 4])
 
     if (eta_norm > 1e-18):
@@ -203,14 +227,19 @@ def quaternion_left_update(q, euler, rate):
         mul_q[0] = 1.0
         mul_q[1:4] = eta
 
-    qL = np.asarray((
-        mul_q[0], -mul_q[1], -mul_q[2], -mul_q[3],
-        mul_q[1], mul_q[0], -mul_q[3], mul_q[2],
-        mul_q[2], mul_q[3], mul_q[0], -mul_q[1],
-        mul_q[3], -mul_q[2], mul_q[1], mul_q[0]
-    )).reshape([4, 4])
-
-    tmp_q = qL.dot(q)
+    # qL = np.asarray((
+    #     mul_q[0], -mul_q[1], -mul_q[2], -mul_q[3],
+    #     mul_q[1], mul_q[0], -mul_q[3], mul_q[2],
+    #     mul_q[2], mul_q[3], mul_q[0], -mul_q[1],
+    #     mul_q[3], -mul_q[2], mul_q[1], mul_q[0]
+    # )).reshape([4, 4])
+    #
+    # tmp_q = qL.dot(q)
+    tmp_q = np.zeros(4)
+    tmp_q[0] = mul_q[0] * q[0] - mul_q[1] * q[1] - mul_q[2] * q[2] - mul_q[3] * q[3]
+    tmp_q[1] = mul_q[1] * q[0] + mul_q[0] * q[1] - mul_q[3] * q[2] + mul_q[2] * q[3]
+    tmp_q[2] = mul_q[2] * q[0] + mul_q[3] * q[1] + mul_q[0] * q[2] - mul_q[1] * q[3]
+    tmp_q[3] = mul_q[3] * q[0] - mul_q[2] * q[1] + mul_q[1] * q[2] + mul_q[0] * q[3]
 
     tmp_q /= np.linalg.norm(tmp_q)
     return tmp_q
@@ -233,7 +262,7 @@ def euler2R(ang):
     cy = math.cos(ang[2])
     sy = math.sin(ang[2])
 
-    R = np.zeros([3, 3])
+    R = np.zeros([3, 3] )
     # R = np.array(
     #     [[cy * cp, sy * cp, -sp],
     #      [-sy * cr + cy * sp * sr, cy * cr + sy * sp * sr, cp * sr],
@@ -316,7 +345,7 @@ def dcm2q(R):
     return q
 
 
-# @jit(float64[:,:](float64[:]))
+@jit(float64[:, :](float64[:]), nopython=True)
 def q2dcm(q_in):
     """
     :param q:
@@ -330,23 +359,25 @@ def q2dcm(q_in):
     # q_norm = math.sqrt(q_norm)
     # for i in range(4):
     #     q[i] = q[i] / q_norm
-    q = np.asarray((q_in[1], q_in[2], q_in[3], q_in[0]))
+    # q = np.asarray((q_in[1], q_in[2], q_in[3], q_in[0]))
+    q = np.zeros(4)
     # q = np.zeros([4])
-    # q[0] = q_in[1]
-    # q[1] = q_in[2]
-    # q[2] = q_in[3]
-    # q[3] = q_in[0]
+    q[0] = q_in[1]
+    q[1] = q_in[2]
+    q[2] = q_in[3]
+    q[3] = q_in[0]
 
     q = q / np.linalg.norm(q)
 
-    p = np.zeros([6])
+    p = np.zeros(6)
 
     # for i in range(4):
     #     p[i] = q[i] * q[i]
     # qdq = np.vectorize(lambda x:x*x)
     # p[0:4] = qdq(q)
-    p[0:4] = q * q
-
+    # p[0:4] = q * q
+    for i in range(4):
+        p[i] = q[i] * q[i]
 
     p[4] = p[1] + p[2]
 
@@ -355,11 +386,11 @@ def q2dcm(q_in):
     else:
         p[5] = 0.0
 
-    R = np.zeros([3, 3])
+    R = np.zeros(shape=(3, 3))
 
     R[0, 0] = 1.0 - p[5] * p[4]
     R[1, 1] = 1.0 - p[5] * (p[0] + p[2])
-    R[2, 2] = 1.0 - p[5] * (p[0]+p[1])
+    R[2, 2] = 1.0 - p[5] * (p[0] + p[1])
 
     p[0] = p[5] * q[0]
     p[1] = p[5] * q[1]

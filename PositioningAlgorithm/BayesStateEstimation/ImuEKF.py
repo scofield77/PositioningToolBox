@@ -68,7 +68,7 @@ class ImuEKFComplex:
 
         self.I  = np.identity(3)
 
-    # @jit(cache=True)
+    # @jit(nopython=True)
     def state_transaction_function(self, imu_data, noise_matrix):
         self.rotation_q = quaternion_right_update(self.rotation_q,
                                                   imu_data[3:6] + self.state[12:15],
