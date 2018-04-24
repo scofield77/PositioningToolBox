@@ -68,7 +68,7 @@ if __name__ == '__main__':
 
     iner_acc = np.zeros([imu_data.shape[0],3])
 
-    zv_state = np.zeros([imu_data.shape[0], 1])
+    zv_state = np.zeros([imu_data.shape[0]])
 
     # kf = KalmanFilterBase(9)
     # kf.state_x = initial_state
@@ -92,7 +92,11 @@ if __name__ == '__main__':
 
     kf.initial_state(imu_data[:50, 1:7])
 
-    zv_state = GLRT_Detector(imu_data[:, 1:7])
+    zv_state = GLRT_Detector(imu_data[:, 1:7],sigma_a=0.4,
+                  sigma_g=0.4 * np.pi / 180.0,
+                  gamma=280.0,
+                  gravity=9.8,
+                  time_Window_size=10)
 
     for i in range(imu_data.shape[0]):
         # print('i:',i)

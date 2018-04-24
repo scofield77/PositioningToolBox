@@ -98,8 +98,7 @@ class settings:
 
 
 # @jit(cache=True)
-# @jit(float64[:](float64[:,:],float64,float64,float64,float64,int32),parallel=True)
-@jit(nopython=True, parallel=True)
+@jit(float64[:](float64[:, :], float64, float64, float64, float64, int32), nopython=True, parallel=True,cache=True)
 def GLRT_Detector(u,
                   sigma_a=0.4,
                   sigma_g=0.4 * np.pi / 180.0,
@@ -154,7 +153,7 @@ def GLRT_Detector(u,
 
     T = T / W
 
-    zupt = np.zeros(shape=(u.shape[0], 1))
+    zupt = np.zeros(shape=(u.shape[0]))
     # import matplotlib.pyplot as plt
     # plt.figure(1)
     # plt.plot(T)
@@ -169,7 +168,7 @@ def GLRT_Detector(u,
 
 
 # @jit('float64[:](float64[:],float64[:],float64)')
-@jit(float64[:](float64[:], float64[:], float64), nopython=True,cache=True)
+@jit(float64[:](float64[:], float64[:], float64), nopython=True, cache=True)
 def quaternion_right_update(q, euler, rate):
     '''
     quaternion right update
@@ -209,8 +208,7 @@ def quaternion_right_update(q, euler, rate):
     return tmp_q
 
 
-
-@jit(float64[:](float64[:], float64[:], float64), nopython=True,cache=True)
+@jit(float64[:](float64[:], float64[:], float64), nopython=True, cache=True)
 def quaternion_left_update(q, euler, rate):
     eta = euler * rate * 0.5
     eta_norm = np.linalg.norm(eta)
