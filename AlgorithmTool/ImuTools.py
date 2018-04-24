@@ -97,13 +97,13 @@ class settings:
         self.pose_constraint = True
 
 
-# @jit
+@jit(cache=True)
 def GLRT_Detector(u,
-                  sigma_a=0.35,
-                  sigma_g=0.35 * np.pi / 180.0,
-                  gamma=200.0,
+                  sigma_a=0.4,
+                  sigma_g=0.4 * np.pi / 180.0,
+                  gamma=260.0,
                   gravity=9.8,
-                  time_Window_size=5):
+                  time_Window_size=10):
     '''
     zero-velocity detect function.
     :param u: imu data  acc(m/m^2) gyr(rad/s)
@@ -149,6 +149,7 @@ def GLRT_Detector(u,
     return zupt
 
 
+# @jit('float64[:](float64[:],float64[:],float64)')
 @jit
 def quaternion_right_update(q, euler, rate):
     '''
@@ -157,67 +158,42 @@ def quaternion_right_update(q, euler, rate):
     :param euler:
     :return:
     '''
-    # Theta = cuda.local.array(shape=(4, 4), dtype=float64)
-    Theta = np.zeros([4, 4])
-
-    euler = euler * rate
-    # delta_euler = (euler[0] * euler[0] + euler[1] * euler[1] + euler[2] + euler[2])
-    # delta_euler = math.sqrt(delta_euler)
-    delta_euler = np.linalg.norm(euler)
-
-    if delta_euler > 1e-19:
-        c = math.cos(delta_euler / 2.0)
-        sdiv = math.sin(delta_euler / 2.0) / delta_euler
-    else:
-        c = 1.0
-        sdiv = 0.0
-
-    Theta[0, 0] = c
-    Theta[0, 1] = -euler[0] * sdiv
-    Theta[0, 2] = -euler[1] * sdiv
-    Theta[0, 3] = -euler[2] * sdiv
-
-    Theta[1, 0] = euler[0] * sdiv
-    Theta[1, 1] = c
-    Theta[1, 2] = euler[2] * sdiv
-    Theta[1, 3] = -euler[1] * sdiv
-
-    Theta[2, 0] = euler[1] * sdiv
-    Theta[2, 1] = -euler[2] * sdiv
-    Theta[2, 2] = c
-    Theta[2, 3] = euler[0] * sdiv
-
-    Theta[3, 0] = euler[2] * sdiv
-    Theta[3, 1] = euler[1] * sdiv
-    Theta[3, 2] = -euler[0] * sdiv
-    Theta[3, 3] = c
-
-    # tq = cuda.local.array(shape=(4), dtype=float64)
-    # tq = q
-    tq = np.zeros_like(q)
-    for i in range(4):
-        tq[i] = q[i] * 1.0
-    norm_new_q = 0.0
-    for i in range(4):
-        q[i] = 0.0
-        for j in range(4):
-            q[i] += Theta[i, j] * tq[j]
-        norm_new_q = norm_new_q + q[i] * q[i]
-    norm_new_q = math.sqrt(norm_new_q)
-
-    for i in range(4):
-        q[i] = q[i] / norm_new_q
-
-    return q
-
-
-@jit
-def quaternion_left_update(q, euler, rate):
-    eta = euler * rate
+    eta = euler * rate * 0.5
     eta_norm = np.linalg.norm(eta)
 
     mul_q = np.zeros([4])
-    qL = np.zeros_like([4, 4])
+    # qL = np.zeros_like([4, 4])
+
+    if (eta_norm > 1e-18):
+        mul_q[0] = math.cos(eta_norm)
+        mul_q[1:4] = eta * math.sin(eta_norm) / eta_norm
+    else:
+        mul_q[0] = 1.0
+        mul_q[1:4] = eta
+
+    qL = np.asarray((
+        mul_q[0], -mul_q[1], -mul_q[2], -mul_q[3],
+        mul_q[1], mul_q[0], mul_q[3], -mul_q[2],
+        mul_q[2], -mul_q[3], mul_q[0], mul_q[1],
+        mul_q[3], mul_q[2], -mul_q[1], mul_q[0]
+    )).reshape([4, 4])
+
+    tmp_q = qL.dot(q)
+
+    tmp_q /= np.linalg.norm(tmp_q)
+    return tmp_q
+
+
+
+# @jit('float64[:](float64[:],float64[:],float64)')
+@jit
+def quaternion_left_update(q, euler, rate):
+
+    eta = euler * rate *0.5
+    eta_norm = np.linalg.norm(eta)
+
+    mul_q = np.zeros([4])
+    # qL = np.zeros_like([4, 4])
 
     if (eta_norm > 1e-18):
         mul_q[0] = math.cos(eta_norm)
@@ -364,7 +340,7 @@ def q2dcm(q_in):
 
     p[4] = p[1] + p[2]
 
-    if (math.fabs(p[0] + p[3] + p[4]) > 1e-10):
+    if (math.fabs(p[0] + p[3] + p[4]) > 1e-25):
         p[5] = 2.0 / (p[0] + p[3] + p[4])
     else:
         p[5] = 0.0
@@ -372,7 +348,7 @@ def q2dcm(q_in):
     R = np.zeros([3, 3])
 
     R[0, 0] = 1.0 - p[5] * p[4]
-    R[1, 1] = 1 - p[5] * (p[0] + p[2])
+    R[1, 1] = 1.0 - p[5] * (p[0] + p[2])
     R[2, 2] = 1.0 - p[5] * (p[0]+p[1])
 
     p[0] = p[5] * q[0]

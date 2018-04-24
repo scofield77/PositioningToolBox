@@ -28,10 +28,22 @@ import scipy as sp
 import matplotlib.pyplot as plt
 
 from numba import jit
+# from numba import float64,jitclass
 
 from AlgorithmTool.ImuTools import *
 
+# spec=[
+#     ('rotation_q',float64[:]),
+#     ('state',float64[:]),
+#     ('prob_state',float64[:,:]),
+#     ('local_g',float64),
+#     ('time_interval',float64),
+#     ('F',float64[:,:]),
+#     ('G',float64[:,:]),
+#     ('acc',float64[:])
+# ]
 
+# @jitclass(spec)
 class ImuEKFComplex:
     def __init__(self, initial_prob, local_g=-9.8, time_interval=0.01):
         self.rotation_q = np.zeros([4])
@@ -54,7 +66,7 @@ class ImuEKFComplex:
         self.state[6:9], self.rotation_q = get_initial_rotation(imu_data[:,0:3], ori)
         print('q:',self.rotation_q)
 
-    # @jit
+    # @jit(cache=True)
     def state_transaction_function(self, imu_data, noise_matrix):
         self.rotation_q = quaternion_right_update(self.rotation_q,
                                                   imu_data[3:6],# + self.state[12:15],
@@ -64,8 +76,8 @@ class ImuEKFComplex:
         # print('acc:',acc)
         self.acc = acc
 
-        self.state[0:3] += self.state[3:6] * self.time_interval
-        self.state[3:6] += acc * self.time_interval
+        self.state[0:3] = self.state[0:3] +  self.state[3:6] * self.time_interval
+        self.state[3:6] = self.state[3:6] + acc * self.time_interval
 
         self.state[6:9] = dcm2euler(q2dcm(self.rotation_q))
 
@@ -91,7 +103,7 @@ class ImuEKFComplex:
         # Fc[6:9, 12:15] = -1.0 * Rb2t
 
         Gc = np.zeros_like(self.G)
-        Gc[3:6, 0:3] = Rb2t;
+        Gc[3:6, 0:3] = Rb2t
         Gc[6:9, 3:6] = -1.0 * Rb2t
 
         self.F = np.identity(self.F.shape[0]) + Fc * self.time_interval
@@ -103,7 +115,7 @@ class ImuEKFComplex:
 
         self.prob_state = 0.5 * self.prob_state + 0.5 * self.prob_state.transpose()
 
-    # @jit
+    # @jit(cache=True)
     def measurement_function_zv(self, m, cov_matrix):
         H = np.zeros([3, self.state.shape[0]])
         H[0:3, 3:6] = np.identity(3)
@@ -120,9 +132,9 @@ class ImuEKFComplex:
         dx = K.dot(m - H.dot(self.state))
 
         self.state += dx
-
+        #
         self.rotation_q = quaternion_left_update(self.rotation_q, dx[6:9], -1.0)
-
-        self.state[6:9] = dcm2euler(q2dcm(self.rotation_q))
+        #
+        # self.state[6:9] = dcm2euler(q2dcm(self.rotation_q))
 
 

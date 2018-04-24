@@ -29,6 +29,7 @@ from numba import jit
 
 import math
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
 from transforms3d import euler, quaternions
 
@@ -52,8 +53,8 @@ if __name__ == '__main__':
 
     imu_data = np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=',')
     imu_data = imu_data[:, 1:]
-    imu_data[:, 1:4] *= 9.81
-    imu_data[:, 4:7] *= (np.pi / 180.0)
+    imu_data[:, 1:4] =imu_data[:,1:4] *  9.81
+    imu_data[:, 4:7] = imu_data[:,4:7] * (np.pi / 180.0)
 
     # initial_state = get_initial_state(imu_data[:40, 1:4], np.asarray((0, 0, 0)), 0.0, 9)
 
@@ -96,7 +97,7 @@ if __name__ == '__main__':
                                       np.diag((0.01, 0.01, 0.01,
                                                0.01 * np.pi / 180.0,
                                                0.01 * np.pi / 180.0,
-                                               0.02 * np.pi / 180.0))
+                                               0.01 * np.pi / 180.0))
                                       )
         if (i > 5) and (i < imu_data.shape[0] - 5):
             # print('i:',i)
@@ -147,4 +148,9 @@ if __name__ == '__main__':
     plt.grid()
 
     # plt.figure()
+    fig = plt.figure()
+    ax = fig.add_subplot(111,projection='3d')
+    ax.plot(trace[:,0],trace[:,1],trace[:,2],'-+',label='trace')
+    ax.grid()
+    ax.legend()
     plt.show()
