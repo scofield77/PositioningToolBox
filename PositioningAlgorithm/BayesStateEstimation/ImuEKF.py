@@ -37,6 +37,8 @@ class ImuEKF:
         self.state = np.zeros([15])
         self.prob_state = np.zeros([15,15])
 
+    # def initial_state(self, ):
+
 
 
 

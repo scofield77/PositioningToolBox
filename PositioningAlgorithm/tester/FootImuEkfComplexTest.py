@@ -37,10 +37,10 @@ from PositioningAlgorithm.BayesStateEstimation.KalmanFIlterBase import *
 
 from scipy.optimize import minimize
 
-from AlgorithmTool.ImuTools import settings, zero_velocity_tester
+from AlgorithmTool.ImuTools import *
 
 
-from AlgorithmTool
+# from AlgorithmTool
 
 
 if __name__ == '__main__':
