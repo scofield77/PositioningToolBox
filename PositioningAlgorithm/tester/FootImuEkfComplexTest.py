@@ -46,7 +46,9 @@ import time
 
 if __name__ == '__main__':
     import mkl
-    mkl.set_num_threads(12)
+    mkl.set_num_threads(6)
+    # print(np.show_config())
+    # print(mk)
 
     start_time = time.time()
     dir_name = '/home/steve/Data/FusingLocationData/0013/'

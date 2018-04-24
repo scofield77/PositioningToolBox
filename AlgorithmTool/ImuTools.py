@@ -28,7 +28,7 @@ import scipy as sp
 
 import numdifftools
 
-from numba import jit
+from numba import jit,prange,float64,int32
 
 import math
 
@@ -97,7 +97,8 @@ class settings:
         self.pose_constraint = True
 
 
-@jit(cache=True)
+# @jit(cache=True)
+# @jit(float64[:](float64[:,:],float64,float64,float64,float64,int32),parallel=True)
 def GLRT_Detector(u,
                   sigma_a=0.4,
                   sigma_g=0.4 * np.pi / 180.0,
@@ -127,7 +128,7 @@ def GLRT_Detector(u,
     N = u.shape[0]
     T = np.zeros([N - W + 1, 1])
 
-    for k in range(N - W + 1):
+    for k in prange(N - W + 1):
         ya_m = np.mean(u[k:k + W - 1, 0:3], 0)
         # print(ya_m.shape)
 
@@ -150,7 +151,7 @@ def GLRT_Detector(u,
 
 
 # @jit('float64[:](float64[:],float64[:],float64)')
-@jit
+# @jit
 def quaternion_right_update(q, euler, rate):
     '''
     quaternion right update
@@ -186,7 +187,7 @@ def quaternion_right_update(q, euler, rate):
 
 
 # @jit('float64[:](float64[:],float64[:],float64)')
-@jit
+# @jit
 def quaternion_left_update(q, euler, rate):
 
     eta = euler * rate *0.5
@@ -215,7 +216,7 @@ def quaternion_left_update(q, euler, rate):
     return tmp_q
 
 
-@jit
+# @jit
 def euler2R(ang):
     '''
     :
@@ -254,7 +255,7 @@ def euler2R(ang):
     return R
 
 
-@jit
+# @jit
 def dcm2q(R):
     """
     http://www.ee.ucr.edu/~farrell/AidedNavigation/D_App_Quaternions/Rot2Quat.pdf
@@ -315,7 +316,7 @@ def dcm2q(R):
     return q
 
 
-@jit
+# @jit(float64[:,:](float64[:]))
 def q2dcm(q_in):
     """
     :param q:
@@ -330,13 +331,22 @@ def q2dcm(q_in):
     # for i in range(4):
     #     q[i] = q[i] / q_norm
     q = np.asarray((q_in[1], q_in[2], q_in[3], q_in[0]))
+    # q = np.zeros([4])
+    # q[0] = q_in[1]
+    # q[1] = q_in[2]
+    # q[2] = q_in[3]
+    # q[3] = q_in[0]
 
     q = q / np.linalg.norm(q)
 
     p = np.zeros([6])
 
-    for i in range(4):
-        p[i] = q[i] * q[i]
+    # for i in range(4):
+    #     p[i] = q[i] * q[i]
+    # qdq = np.vectorize(lambda x:x*x)
+    # p[0:4] = qdq(q)
+    p[0:4] = q * q
+
 
     p[4] = p[1] + p[2]
 
@@ -374,7 +384,7 @@ def q2dcm(q_in):
     return R
 
 
-@jit
+# @jit
 def dcm2euler(R):
     euler = np.zeros(3)
     euler[0] = math.atan2(R[2, 1], R[2, 2])
