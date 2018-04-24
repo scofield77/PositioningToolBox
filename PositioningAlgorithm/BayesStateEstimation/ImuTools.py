@@ -43,7 +43,7 @@ def quaternion_right_update(q, euler, rate):
     # Theta = cuda.local.array(shape=(4, 4), dtype=float64)
     Theta = np.zeros([4, 4])
 
-    euler = euler * 0.5 * rate
+    euler = euler * rate
     delta_euler = (euler[0] * euler[0] + euler[1] * euler[1] + euler[2] + euler[2])
     delta_euler = math.sqrt(delta_euler)
 
@@ -275,7 +275,7 @@ if __name__ == '__main__':
 
     # quaternion right update
 
-    step_len = 1.0 * np.pi / 180.0
+    step_len = 0.1 * np.pi / 180.0
 
     # qx = np.zeros([4])
     # qy = np.zeros([4])
@@ -287,7 +287,7 @@ if __name__ == '__main__':
     euler_all = np.zeros([3, 3])
     q_all[0, :] += 1.0
 
-    counter = math.floor(6.0 * np.pi / step_len)
+    counter = math.floor(2.0 * np.pi / step_len)
     result_q_all = np.zeros([4, 3, counter])
     result_angle = np.zeros([3, 3, counter])
     for i in range(result_q_all.shape[2]):
