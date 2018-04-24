@@ -133,7 +133,7 @@ if __name__ == '__main__':
         plt.grid()
         plt.legend()
 
-    #
+    # #
     # aux_plot(imu_data[:, 1:4], 'acc')
     # aux_plot(imu_data[:, 4:7], 'gyr')
     # aux_plot(imu_data[:, 7:10], 'mag')

@@ -169,7 +169,7 @@ def GLRT_Detector(u,
 
 
 # @jit('float64[:](float64[:],float64[:],float64)')
-@jit(float64[:](float64[:], float64[:], float64), nopython=True)
+@jit(float64[:](float64[:], float64[:], float64), nopython=True,cache=True)
 def quaternion_right_update(q, euler, rate):
     '''
     quaternion right update
@@ -209,10 +209,8 @@ def quaternion_right_update(q, euler, rate):
     return tmp_q
 
 
-# @jit('float64[:](float64[:],float64[:],float64)')
-# @jit
 
-@jit(float64[:](float64[:], float64[:], float64), nopython=True)
+@jit(float64[:](float64[:], float64[:], float64), nopython=True,cache=True)
 def quaternion_left_update(q, euler, rate):
     eta = euler * rate * 0.5
     eta_norm = np.linalg.norm(eta)
@@ -262,7 +260,7 @@ def euler2R(ang):
     cy = math.cos(ang[2])
     sy = math.sin(ang[2])
 
-    R = np.zeros([3, 3] )
+    R = np.zeros([3, 3])
     # R = np.array(
     #     [[cy * cp, sy * cp, -sp],
     #      [-sy * cr + cy * sp * sr, cy * cr + sy * sp * sr, cp * sr],
@@ -415,7 +413,7 @@ def q2dcm(q_in):
     return R
 
 
-# @jit
+@jit(nopython=True)
 def dcm2euler(R):
     euler = np.zeros(3)
     euler[0] = math.atan2(R[2, 1], R[2, 2])

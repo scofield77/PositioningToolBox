@@ -32,6 +32,7 @@ from numba import jit
 
 from AlgorithmTool.ImuTools import *
 
+
 # spec=[
 #     ('rotation_q',float64[:]),
 #     ('state',float64[:]),
@@ -63,10 +64,10 @@ class ImuEKFComplex:
             self.state *= 0.0
         self.state[0:3] = pos
 
-        self.state[6:9], self.rotation_q = get_initial_rotation(imu_data[:,0:3], ori)
-        print('q:',self.rotation_q)
+        self.state[6:9], self.rotation_q = get_initial_rotation(imu_data[:, 0:3], ori)
+        print('q:', self.rotation_q)
 
-        self.I  = np.identity(3)
+        self.I = np.identity(3)
 
     # @jit(nopython=True)
     def state_transaction_function(self, imu_data, noise_matrix):
@@ -75,15 +76,14 @@ class ImuEKFComplex:
                                                   self.time_interval)
 
         Rb2t = q2dcm(self.rotation_q)
-        acc = Rb2t.dot(imu_data[0:3]+self.state[9:12] )+np.asarray((0.0,0.0,self.local_g))#+ self.state[9:12])
+        acc = Rb2t.dot(imu_data[0:3] + self.state[9:12]) + np.asarray((0.0, 0.0, self.local_g))  # + self.state[9:12])
         # print('acc:',acc)
         self.acc = acc
 
-        self.state[0:3] = self.state[0:3] +  self.state[3:6] * self.time_interval
+        self.state[0:3] = self.state[0:3] + self.state[3:6] * self.time_interval
         self.state[3:6] = self.state[3:6] + acc * self.time_interval
 
         self.state[6:9] = dcm2euler(q2dcm(self.rotation_q))
-
 
         f_t = Rb2t.dot(imu_data[0:3])
 
@@ -91,31 +91,40 @@ class ImuEKFComplex:
             0.0, -f_t[2], f_t[1],
             f_t[2], 0.0, -f_t[0],
             -f_t[1], f_t[0], 0.0
-        )).reshape([3,3])
+        )).reshape([3, 3])
 
         # O = np.diag((0.0, 0.0, 0.0))
         # I = np.diag((1.0, 1.0, 1.0))
+        #
+        # Fc = np.zeros_like(self.F)
+        # Fc[0:3, 3:6] = self.I
+        #
+        # Fc[3:6, 6:9] = St
+        # Fc[3:6, 9:12] = Rb2t
+        #
+        # Fc[6:9, 12:15] = -1.0 * Rb2t
+        #
+        # Gc = np.zeros_like(self.G)
+        # Gc[3:6, 0:3] = Rb2t
+        # Gc[6:9, 3:6] = -1.0 * Rb2t
+        #
+        # # self.F = np.identity(self.F.shape[0]) + Fc * self.time_interval
+        #
+        # # self.G = Gc * self.time_interval
+        # tF = np.identity(self.F.shape[0]) + Fc * self.time_interval
+        # tG = Gc * self.time_interval
 
-        Fc = np.zeros_like(self.F)
-        Fc[0:3, 3:6] = self.I
-
-        Fc[3:6, 6:9] = St
-        Fc[3:6, 9:12] = Rb2t
-
-        Fc[6:9, 12:15] = -1.0 * Rb2t
-
-        Gc = np.zeros_like(self.G)
-        Gc[3:6, 0:3] = Rb2t
-        Gc[6:9, 3:6] = -1.0 * Rb2t
-
-        self.F = np.identity(self.F.shape[0]) + Fc * self.time_interval
-
-        self.G = Gc * self.time_interval
+        # self.F, self.G = aux_build_F_G(St, Rb2t, self.time_interval)
+        # self.G = np.zeros_like(self.G)
+        # self.F = np.identity(self.F.shape[0])
+        aux_build_F_G(self.F, self.G, St, q2dcm(self.rotation_q), self.time_interval)
 
         self.prob_state = (self.F.dot(self.prob_state)).dot(np.transpose(self.F)) + (self.G.dot(noise_matrix)).dot(
             np.transpose(self.G))
 
         self.prob_state = 0.5 * self.prob_state + 0.5 * self.prob_state.transpose()
+        # print('F:\n', tF - self.F)
+        # print('G:\n', tG - self.G)
 
     # @jit(cache=True)
     def measurement_function_zv(self, m, cov_matrix):
@@ -142,3 +151,37 @@ class ImuEKFComplex:
 
         self.state[9:15] = self.state[9:15] + dx[9:15]
 
+
+@jit((float64[:, :], float64[:, :], float64[:, :], float64[:, :], float64), nopython=True,parallel=True)
+def aux_build_F_G(F, G, St, Rb2t, time_interval):
+    '''
+    Build up Jacbian matrix for compute probability update
+    :param F:
+    :param G:
+    :param St:
+    :param Rb2t: rotation matrix represent
+    :param time_interval:
+    :return:
+    '''
+    # F = np.identity(15)
+    # F = np.identity(15)
+    # G = np.zeros(shape=(15, 6))
+
+    # G = np.zeros(shape=(15, 6))
+    for k in range(F.shape[0]):
+        F[k, k] = 1.0
+
+    for i in range(3):
+
+        F[i, 3 + i] = time_interval
+        for j in range(3):
+            # F[i, 3 + j] = 1.0 * time_interval
+
+            F[3 + i, 6 + j] = St[i, j] * time_interval
+            F[3 + i, 9 + j] = Rb2t[i, j] * time_interval
+
+            F[6 + i, 12 + j] = -1.0 * Rb2t[i, j] * time_interval
+
+            G[3 + i, 0 + j] = Rb2t[i, j] * time_interval
+            G[6 + i, 3 + j] = -1.0 * time_interval * Rb2t[i, j]
+    # return F, G
