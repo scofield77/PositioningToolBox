@@ -81,12 +81,10 @@ if __name__ == '__main__':
         0.001, 0.001, 0.001,
         0.001, 0.001, 0.001,
         0.001 * np.pi / 180.0, 0.001 * np.pi / 180.0, 0.0001 * np.pi / 180.0,
-        0.0001,
-        0.0001,
-        0.0001,
+        0.0001, 0.0001, 0.0001,
         0.0001 * np.pi / 180.0,
-        0.0001 * np.pi / 180.0,
-        0.0001 * np.pi / 180.0
+        0.000000001 * np.pi / 180.0,
+        0.00000001 * np.pi / 180.0
     )),
         local_g=-9.81, time_interval=average_time_interval)
 
@@ -135,26 +133,26 @@ if __name__ == '__main__':
         plt.grid()
         plt.legend()
 
-    # #
-    # aux_plot(imu_data[:, 1:4], 'acc')
-    # aux_plot(imu_data[:, 4:7], 'gyr')
-    # aux_plot(imu_data[:, 7:10], 'mag')
-    # aux_plot(trace, 'trace')
-    # aux_plot(vel, 'vel')
-    # aux_plot(ang, 'ang')
-    # aux_plot(ba, 'ba')
-    # aux_plot(bg, 'bg')
-    #
-    # aux_plot(iner_acc,'inner acc')
-    #
+
+    aux_plot(imu_data[:, 1:4], 'acc')
+    aux_plot(imu_data[:, 4:7], 'gyr')
+    aux_plot(imu_data[:, 7:10], 'mag')
+    aux_plot(trace, 'trace')
+    aux_plot(vel, 'vel')
+    aux_plot(ang, 'ang')
+    aux_plot(ba, 'ba')
+    aux_plot(bg, 'bg')
+
+    aux_plot(iner_acc,'inner acc')
+
+    plt.figure()
+    plt.plot(trace[:, 0], trace[:, 1], '-+')
+    plt.grid()
+
     # plt.figure()
-    # plt.plot(trace[:, 0], trace[:, 1], '-+')
-    # plt.grid()
-    #
-    # # plt.figure()
-    # fig = plt.figure()
-    # ax = fig.add_subplot(111,projection='3d')
-    # ax.plot(trace[:,0],trace[:,1],trace[:,2],'-+',label='trace')
-    # ax.grid()
-    # ax.legend()
-    # plt.show()
+    fig = plt.figure()
+    ax = fig.add_subplot(111,projection='3d')
+    ax.plot(trace[:,0],trace[:,1],trace[:,2],'-+',label='trace')
+    ax.grid()
+    ax.legend()
+    plt.show()
