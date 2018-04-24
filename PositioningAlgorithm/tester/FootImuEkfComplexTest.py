@@ -44,6 +44,8 @@ from PositioningAlgorithm.BayesStateEstimation.ImuEKF import *
 import time
 
 if __name__ == '__main__':
+    import mkl
+    mkl.set_num_threads(12)
 
     start_time = time.time()
     dir_name = '/home/steve/Data/NewFusingLocationData/0013/'

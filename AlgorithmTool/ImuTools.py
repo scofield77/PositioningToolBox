@@ -160,7 +160,7 @@ def quaternion_right_update(q, euler, rate):
     # Theta = cuda.local.array(shape=(4, 4), dtype=float64)
     Theta = np.zeros([4, 4])
 
-    euler = euler * rate * 0.5
+    euler = euler * rate
     # delta_euler = (euler[0] * euler[0] + euler[1] * euler[1] + euler[2] + euler[2])
     # delta_euler = math.sqrt(delta_euler)
     delta_euler = np.linalg.norm(euler)
@@ -213,7 +213,7 @@ def quaternion_right_update(q, euler, rate):
 
 @jit
 def quaternion_left_update(q, euler, rate):
-    eta = euler * rate * 0.5
+    eta = euler * rate
     eta_norm = np.linalg.norm(eta)
 
     mul_q = np.zeros([4])
@@ -326,7 +326,7 @@ def dcm2q(R):
     # quart = np.array(np.transpose([qx, qy, qz, qw]))
 
     # quart /= np.linalg.norm(quart)
-    q_norm = 0.0
+    # q_norm = 0.0
     # for i in range(4):
     #     q_norm =
     q_norm = qw * qw + qx * qx + qy * qy + qz * qz
@@ -354,8 +354,8 @@ def q2dcm(q_in):
     # for i in range(4):
     #     q[i] = q[i] / q_norm
     q = np.asarray((q_in[1], q_in[2], q_in[3], q_in[0]))
-    if __name__ == '__main__':
-        q = q / np.linalg.norm(q)
+
+    q = q / np.linalg.norm(q)
 
     p = np.zeros([6])
 
