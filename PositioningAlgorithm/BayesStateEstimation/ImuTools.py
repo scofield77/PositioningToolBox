@@ -32,6 +32,8 @@ import math
 from numba import jit
 
 
+
+
 @jit
 def quaternion_add_euler(q, euler, rate):
     '''
@@ -78,19 +80,21 @@ def quaternion_add_euler(q, euler, rate):
     # tq = q
     tq = np.zeros_like(q)
     for i in range(4):
-        tq[i] = q[i]
+        tq[i] = q[i] * 1.0
     norm_new_q = 0.0
     for i in range(4):
         q[i] = 0.0
         for j in range(4):
             q[i] += Theta[i, j] * tq[j]
-        norm_new_q += q[i] * q[i]
+        norm_new_q = norm_new_q + q[i] * q[i]
     norm_new_q = math.sqrt(norm_new_q)
 
     for i in range(4):
         q[i] = q[i] / norm_new_q
 
     return q
+
+
 
 
 if __name__ == '__main__':
@@ -100,7 +104,7 @@ if __name__ == '__main__':
 
     # quaternion right update
 
-    step_len = 0.1 * np.pi / 180.0
+    step_len = 1.0 * np.pi / 180.0
 
     # qx = np.zeros([4])
     # qy = np.zeros([4])
@@ -108,14 +112,24 @@ if __name__ == '__main__':
     # qx[0] = 1.0
     # qy[0] = 1.0
     # qz[0] = 1.0
-    q_all = np.zeros([4,3])
+    q_all = np.zeros([4, 3])
+    q_all[0, :] += 1.0
 
-    counter = math.floor(4.0 * np.pi / step_len)
-    result_q_all = np.zeros([4,3,counter])
+    counter = math.floor(6.0 * np.pi / step_len)
+    result_q_all = np.zeros([4, 3, counter])
     for i in range(result_q_all.shape[2]):
         for k in range(3):
             euler = np.zeros([3])
             euler[k] = step_len
+            q_all[:, k] = quaternion_add_euler(q_all[:, k], euler, 1.0)
 
+        result_q_all[:, :, i] = q_all * 1.0
 
-
+    plt.figure()
+    for i in range(3):
+        plt.subplot(310 + i + 1)
+        plt.title('ax:' + str(i))
+        plt.plot(result_q_all[:, i, :].transpose())
+        plt.legend()
+        plt.grid()
+    plt.show()
