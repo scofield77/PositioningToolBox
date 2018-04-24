@@ -49,7 +49,7 @@ if __name__ == '__main__':
     mkl.set_num_threads(12)
 
     start_time = time.time()
-    dir_name = '/home/steve/Data/NewFusingLocationData/0013/'
+    dir_name = '/home/steve/Data/FusingLocationData/0013/'
 
     imu_data = np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=',')
     imu_data = imu_data[:, 1:]

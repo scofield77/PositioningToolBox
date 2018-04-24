@@ -69,10 +69,10 @@ class ImuEKFComplex:
     # @jit(cache=True)
     def state_transaction_function(self, imu_data, noise_matrix):
         self.rotation_q = quaternion_right_update(self.rotation_q,
-                                                  imu_data[3:6],# + self.state[12:15],
+                                                  imu_data[3:6] + self.state[12:15],
                                                   self.time_interval)
 
-        acc = q2dcm(self.rotation_q).dot(imu_data[0:3] )+np.asarray((0.0,0.0,self.local_g))#+ self.state[9:12])
+        acc = q2dcm(self.rotation_q).dot(imu_data[0:3]+self.state[9:12] )+np.asarray((0.0,0.0,self.local_g))#+ self.state[9:12])
         # print('acc:',acc)
         self.acc = acc
 
@@ -98,9 +98,9 @@ class ImuEKFComplex:
         Fc[0:3, 3:6] = I
 
         Fc[3:6, 6:9] = St
-        # Fc[3:6, 9:12] = Rb2t
+        Fc[3:6, 9:12] = Rb2t
 
-        # Fc[6:9, 12:15] = -1.0 * Rb2t
+        Fc[6:9, 12:15] = -1.0 * Rb2t
 
         Gc = np.zeros_like(self.G)
         Gc[3:6, 0:3] = Rb2t
@@ -131,10 +131,11 @@ class ImuEKFComplex:
 
         dx = K.dot(m - H.dot(self.state))
 
-        self.state += dx
+        self.state[0:6] = self.state[0:6] + dx[0:6]
         #
         self.rotation_q = quaternion_left_update(self.rotation_q, dx[6:9], -1.0)
         #
-        # self.state[6:9] = dcm2euler(q2dcm(self.rotation_q))
+        self.state[6:9] = dcm2euler(q2dcm(self.rotation_q))
 
+        self.state[9:15] = self.state[9:15] + dx[9:15]
 

@@ -101,7 +101,7 @@ class settings:
 def GLRT_Detector(u,
                   sigma_a=0.4,
                   sigma_g=0.4 * np.pi / 180.0,
-                  gamma=260.0,
+                  gamma=280.0,
                   gravity=9.8,
                   time_Window_size=10):
     '''
