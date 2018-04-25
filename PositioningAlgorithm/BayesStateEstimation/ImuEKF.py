@@ -152,6 +152,29 @@ class ImuEKFComplex:
         self.state[9:15] = self.state[9:15] + dx[9:15]
 
 
+    def measurement_uwb(self, measurement, cov_m, beacon_pos):
+        z = np.zeros(1)
+        y = np.zeros(1)
+
+        z = measurement
+        y[0] = np.linalg.norm(self.state[0:3]-beacon_pos)
+
+        self.H = np.zeros(shape=(1,self.state.shape[0]))
+        self.H[0,0:3] = (self.state[0:3]-beacon_pos).transpose()/y[0]
+
+        self.K = (self.prob_state.dot(np.transpose(self.H))).dot(
+            np.linalg.inv((self.H.dot(self.prob_state)).dot(np.transpose(self.H))+cov_m)
+        )
+
+        dx = self.K.dot(z-y)
+
+        self.state = self.state + dx
+
+        self.rotation_q = quaternion_left_update(self.rotation_q,dx[6:9],-1.0)
+
+        self.state[6:9] = dcm2euler(q2dcm(self.rotation_q))
+
+
 @jit((float64[:, :], float64[:, :], float64[:, :], float64[:, :], float64), nopython=True,parallel=True)
 def aux_build_F_G(F, G, St, Rb2t, time_interval):
     '''

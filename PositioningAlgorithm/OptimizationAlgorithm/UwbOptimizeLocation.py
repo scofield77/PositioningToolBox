@@ -47,7 +47,7 @@ class UwbOptimizeLocation:
         '''
         dis_to_beacon = np.linalg.norm(pose - self.beacon_set, axis=1)
         return np.linalg.norm((dis_to_beacon - self.measurements)[
-                                  np.where(np.logical_and(self.measurements > 0.0, self.measurements < 15.0))])
+                                  np.where(np.logical_and(self.measurements > 0.0, self.measurements < 550.0))])
 
     def positioning_fucntion(self, initial_pose, measurements):
         '''
@@ -93,6 +93,11 @@ if __name__ == '__main__':
 
     plt.figure()
     plt.plot(res_error)
+    plt.grid()
+
+    plt.figure()
+    plt.title('uwb source data')
+    plt.plot(uwb_data[:,1:])
     plt.grid()
 
     plt.show()

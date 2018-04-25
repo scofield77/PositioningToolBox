@@ -46,13 +46,12 @@ from PositioningAlgorithm.BayesStateEstimation.ImuEKF import *
 # from AlgorithmTool
 import time
 
+from PositioningAlgorithm.OptimizationAlgorithm.UwbOptimizeLocation import UwbOptimizeLocation
+
 # from mayavi import mlab
 
 if __name__ == '__main__':
-    import mkl
 
-    mkl.set_num_threads(6)
-    # print(np.show_config())
     # print(mk)
     matplotlib.use('Qt5Agg')
     # matplotlib.rcParams['toolbar'] = 'toolmanager'
@@ -64,6 +63,22 @@ if __name__ == '__main__':
     imu_data = imu_data[:, 1:]
     imu_data[:, 1:4] = imu_data[:, 1:4] * 9.81
     imu_data[:, 4:7] = imu_data[:, 4:7] * (np.pi / 180.0)
+
+    uwb_data = np.loadtxt(dir_name + 'uwb_result.csv', delimiter=',')
+    beacon_set = np.loadtxt(dir_name + 'beaconSet.csv', delimiter=',')
+
+    uol = UwbOptimizeLocation(beacon_set)
+    uwb_trace = np.zeros([uwb_data.shape[0], 3])
+    uwb_opt_res = np.zeros([uwb_data.shape[0]])
+    for i in range(uwb_data.shape[0]):
+        if i is 0:
+            uwb_trace[i, :], uwb_opt_res[i] = \
+                uol.positioning_fucntion((0, 0, 0),
+                                            uwb_data[i, 1:])
+        else:
+            uwb_trace[i, :], uwb_opt_res[i] = \
+                uol.positioning_fucntion(uwb_trace[i - 1, :],
+                                            uwb_data[i, 1:])
 
     # initial_state = get_initial_state(imu_data[:40, 1:4], np.asarray((0, 0, 0)), 0.0, 9)
 
@@ -97,13 +112,17 @@ if __name__ == '__main__':
     )),
         local_g=-9.81, time_interval=average_time_interval)
 
-    kf.initial_state(imu_data[:50, 1:7])
+    kf.initial_state(imu_data[:50, 1:7],
+                     pos=np.mean(uwb_trace[0:3, :],axis=0),
+                     ori = -90.0 /180.0 * np.pi)
 
     zv_state = GLRT_Detector(imu_data[:, 1:7], sigma_a=0.4,
                              sigma_g=0.4 * np.pi / 180.0,
                              gamma=280.0,
                              gravity=9.8,
                              time_Window_size=10)
+
+    uwb_index = 0
 
     for i in range(imu_data.shape[0]):
         # print('i:',i)
@@ -120,6 +139,15 @@ if __name__ == '__main__':
             if zv_state[i] > 0.5:
                 kf.measurement_function_zv(np.asarray((0, 0, 0)),
                                            np.diag((0.0001, 0.0001, 0.0001)))
+
+            if uwb_data[uwb_index, 0] < imu_data[i, 0]:
+                if uwb_index < uwb_data.shape[0] - 1:
+                    uwb_index += 1
+                    for j in range(1, uwb_data.shape[1]):
+                        if uwb_data[uwb_index, j] > 0.0 and uwb_data[uwb_index, j] < 1000.0:
+                            kf.measurement_uwb(np.asarray(uwb_data[uwb_index, j]),
+                                               np.ones(1) * 5,
+                                               np.transpose(beacon_set[j - 1, :]))
 
         # print(kf.state_x)
         # print( i /)
@@ -160,13 +188,25 @@ if __name__ == '__main__':
     aux_plot(iner_acc, 'inner acc')
 
     plt.figure()
-    plt.plot(trace[:, 0], trace[:, 1], '-+')
+    plt.plot(trace[:, 0], trace[:, 1], '-+', label='fusing')
+    plt.plot(uwb_trace[:, 0], uwb_trace[:, 1], '-+', label='uwb')
+    plt.legend()
     plt.grid()
 
     # plt.figure()
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
     ax.plot(trace[:, 0], trace[:, 1], trace[:, 2], '-+', label='trace')
+    ax.plot(uwb_trace[:, 0], uwb_trace[:, 1], uwb_trace[:, 2], '-+', label='uwb')
     ax.grid()
     ax.legend()
+
+    plt.figure()
+    plt.title('uwb')
+    for i in range(1, uwb_data.shape[1]):
+        plt.plot(uwb_data[:, 0], uwb_data[:, i], '+-', label=str(i))
+    plt.plot(uwb_data[:,0],uwb_opt_res,'+-',label='res error')
+    plt.grid()
+    plt.legend()
+
     plt.show()
