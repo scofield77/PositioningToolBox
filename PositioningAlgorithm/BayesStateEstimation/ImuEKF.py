@@ -93,30 +93,6 @@ class ImuEKFComplex:
             -f_t[1], f_t[0], 0.0
         )).reshape([3, 3])
 
-        # O = np.diag((0.0, 0.0, 0.0))
-        # I = np.diag((1.0, 1.0, 1.0))
-        #
-        # Fc = np.zeros_like(self.F)
-        # Fc[0:3, 3:6] = self.I
-        #
-        # Fc[3:6, 6:9] = St
-        # Fc[3:6, 9:12] = Rb2t
-        #
-        # Fc[6:9, 12:15] = -1.0 * Rb2t
-        #
-        # Gc = np.zeros_like(self.G)
-        # Gc[3:6, 0:3] = Rb2t
-        # Gc[6:9, 3:6] = -1.0 * Rb2t
-        #
-        # # self.F = np.identity(self.F.shape[0]) + Fc * self.time_interval
-        #
-        # # self.G = Gc * self.time_interval
-        # tF = np.identity(self.F.shape[0]) + Fc * self.time_interval
-        # tG = Gc * self.time_interval
-
-        # self.F, self.G = aux_build_F_G(St, Rb2t, self.time_interval)
-        # self.G = np.zeros_like(self.G)
-        # self.F = np.identity(self.F.shape[0])
         aux_build_F_G(self.F, self.G, St, q2dcm(self.rotation_q), self.time_interval)
 
         self.prob_state = (self.F.dot(self.prob_state)).dot(np.transpose(self.F)) + (self.G.dot(noise_matrix)).dot(
@@ -151,34 +127,57 @@ class ImuEKFComplex:
 
         self.state[9:15] = self.state[9:15] + dx[9:15]
 
-
     def measurement_uwb(self, measurement, cov_m, beacon_pos):
         z = np.zeros(1)
         y = np.zeros(1)
 
         z = measurement
-        y[0] = np.linalg.norm(self.state[0:3]-beacon_pos)
+        y[0] = np.linalg.norm(self.state[0:3] - beacon_pos)
 
-        self.H = np.zeros(shape=(1,self.state.shape[0]))
-        self.H[0,0:3] = (self.state[0:3]-beacon_pos).transpose()/y[0]
+        self.H = np.zeros(shape=(1, self.state.shape[0]))
+        self.H[0, 0:3] = (self.state[0:3] - beacon_pos).transpose() / y[0]
 
         self.K = (self.prob_state.dot(np.transpose(self.H))).dot(
-            np.linalg.inv((self.H.dot(self.prob_state)).dot(np.transpose(self.H))+cov_m)
+            np.linalg.inv((self.H.dot(self.prob_state)).dot(np.transpose(self.H)) + cov_m)
         )
 
-        dx = self.K.dot(z-y)
+        dx = self.K.dot(z - y)
 
         self.state = self.state + dx
 
-        self.rotation_q = quaternion_left_update(self.rotation_q,dx[6:9],-1.0)
+        self.rotation_q = quaternion_left_update(self.rotation_q, dx[6:9], -1.0)
 
         self.state[6:9] = dcm2euler(q2dcm(self.rotation_q))
 
 
-@jit((float64[:, :], float64[:, :], float64[:, :], float64[:, :], float64), nopython=True,parallel=True)
+@jit((float64[:, :], float64[:, :], float64[:, :], float64[:, :], float64), nopython=True, parallel=True)
 def aux_build_F_G(F, G, St, Rb2t, time_interval):
     '''
     Build up Jacbian matrix for compute probability update
+    # O = np.diag((0.0, 0.0, 0.0))
+    # I = np.diag((1.0, 1.0, 1.0))
+    #
+    # Fc = np.zeros_like(self.F)
+    # Fc[0:3, 3:6] = self.I
+    #
+    # Fc[3:6, 6:9] = St
+    # Fc[3:6, 9:12] = Rb2t
+    #
+    # Fc[6:9, 12:15] = -1.0 * Rb2t
+    #
+    # Gc = np.zeros_like(self.G)
+    # Gc[3:6, 0:3] = Rb2t
+    # Gc[6:9, 3:6] = -1.0 * Rb2t
+    #
+    # # self.F = np.identity(self.F.shape[0]) + Fc * self.time_interval
+    #
+    # # self.G = Gc * self.time_interval
+    # tF = np.identity(self.F.shape[0]) + Fc * self.time_interval
+    # tG = Gc * self.time_interval
+
+    # self.F, self.G = aux_build_F_G(St, Rb2t, self.time_interval)
+    # self.G = np.zeros_like(self.G)
+    # self.F = np.identity(self.F.shape[0])
     :param F:
     :param G:
     :param St:

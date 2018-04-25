@@ -30,6 +30,7 @@ from scipy.optimize import minimize
 import matplotlib.pyplot as plt
 
 
+from numba import jit
 class UwbOptimizeLocation:
     def __init__(self, beacon_set):
         '''
@@ -38,6 +39,7 @@ class UwbOptimizeLocation:
         '''
         self.beacon_set = beacon_set
         self.measurements = np.zeros(beacon_set.shape[0])
+
 
     def position_error_function(self, pose):
         '''
