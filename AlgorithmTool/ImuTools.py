@@ -258,6 +258,7 @@ def euler2R(ang):
     cy = math.cos(ang[2])
     sy = math.sin(ang[2])
 
+
     R = np.zeros([3, 3])
     # R = np.array(
     #     [[cy * cp, sy * cp, -sp],
