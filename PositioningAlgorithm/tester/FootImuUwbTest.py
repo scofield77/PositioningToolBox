@@ -1,5 +1,5 @@
 # -*- coding:utf-8 -*-
-# carete by steve at  2018 / 04 / 23　下午9:18
+# carete by steve at  2018 / 04 / 25　下午3:51
 '''
                    _ooOoo_ 
                   o8888888o 
@@ -46,13 +46,11 @@ from PositioningAlgorithm.BayesStateEstimation.ImuEKF import *
 # from AlgorithmTool
 import time
 
-
-
-
 # from mayavi import mlab
 
 if __name__ == '__main__':
     import mkl
+
     mkl.set_num_threads(6)
     # print(np.show_config())
     # print(mk)
@@ -64,8 +62,8 @@ if __name__ == '__main__':
 
     imu_data = np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=',')
     imu_data = imu_data[:, 1:]
-    imu_data[:, 1:4] =imu_data[:,1:4] *  9.81
-    imu_data[:, 4:7] = imu_data[:,4:7] * (np.pi / 180.0)
+    imu_data[:, 1:4] = imu_data[:, 1:4] * 9.81
+    imu_data[:, 4:7] = imu_data[:, 4:7] * (np.pi / 180.0)
 
     # initial_state = get_initial_state(imu_data[:40, 1:4], np.asarray((0, 0, 0)), 0.0, 9)
 
@@ -75,7 +73,7 @@ if __name__ == '__main__':
     ba = np.zeros([imu_data.shape[0], 3])
     bg = np.zeros([imu_data.shape[0], 3])
 
-    iner_acc = np.zeros([imu_data.shape[0],3])
+    iner_acc = np.zeros([imu_data.shape[0], 3])
 
     zv_state = np.zeros([imu_data.shape[0]])
 
@@ -101,11 +99,11 @@ if __name__ == '__main__':
 
     kf.initial_state(imu_data[:50, 1:7])
 
-    zv_state = GLRT_Detector(imu_data[:, 1:7],sigma_a=0.4,
-                  sigma_g=0.4 * np.pi / 180.0,
-                  gamma=280.0,
-                  gravity=9.8,
-                  time_Window_size=10)
+    zv_state = GLRT_Detector(imu_data[:, 1:7], sigma_a=0.4,
+                             sigma_g=0.4 * np.pi / 180.0,
+                             gamma=280.0,
+                             gravity=9.8,
+                             time_Window_size=10)
 
     for i in range(imu_data.shape[0]):
         # print('i:',i)
@@ -131,22 +129,23 @@ if __name__ == '__main__':
         ba[i, :] = kf.state[9:12]
         bg[i, :] = kf.state[12:15]
         rate = i / imu_data.shape[0]
-        iner_acc[i,:] = kf.acc
-
+        iner_acc[i, :] = kf.acc
 
         # print('finished:', rate * 100.0, "% ", i, imu_data.shape[0])
 
-
     end_time = time.time()
-    print('totally time:',end_time-start_time,'data time:',imu_data[-1,0]-imu_data[0,0])
+    print('totally time:', end_time - start_time, 'data time:', imu_data[-1, 0] - imu_data[0, 0])
+
+
     def aux_plot(data: np.ndarray, name: str):
         plt.figure()
         plt.title(name)
-        plt.plot(zv_state*data.max()*1.1, 'r-', label='zv state')
+        plt.plot(zv_state * data.max() * 1.1, 'r-', label='zv state')
         for i in range(data.shape[1]):
             plt.plot(data[:, i], label=str(i))
         plt.grid()
         plt.legend()
+
 
     # #
     aux_plot(imu_data[:, 1:4], 'acc')
@@ -158,7 +157,7 @@ if __name__ == '__main__':
     aux_plot(ba, 'ba')
     aux_plot(bg, 'bg')
 
-    aux_plot(iner_acc,'inner acc')
+    aux_plot(iner_acc, 'inner acc')
 
     plt.figure()
     plt.plot(trace[:, 0], trace[:, 1], '-+')
@@ -166,8 +165,8 @@ if __name__ == '__main__':
 
     # plt.figure()
     fig = plt.figure()
-    ax = fig.add_subplot(111,projection='3d')
-    ax.plot(trace[:,0],trace[:,1],trace[:,2],'-+',label='trace')
+    ax = fig.add_subplot(111, projection='3d')
+    ax.plot(trace[:, 0], trace[:, 1], trace[:, 2], '-+', label='trace')
     ax.grid()
     ax.legend()
     plt.show()
