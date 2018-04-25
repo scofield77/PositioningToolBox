@@ -30,8 +30,9 @@ from numba import jit
 import math
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+import matplotlib
 
-from transforms3d import euler, quaternions
+# from transforms3d import euler, quaternions
 
 from PositioningAlgorithm.BayesStateEstimation.KalmanFIlterBase import *
 
@@ -40,18 +41,26 @@ from scipy.optimize import minimize
 from AlgorithmTool.ImuTools import *
 
 from PositioningAlgorithm.BayesStateEstimation.ImuEKF import *
+# from gr import pygr
 
 # from AlgorithmTool
 import time
+
+
+
+
+# from mayavi import mlab
 
 if __name__ == '__main__':
     import mkl
     mkl.set_num_threads(6)
     # print(np.show_config())
     # print(mk)
-
+    matplotlib.use('Qt5Agg')
+    # matplotlib.rcParams['toolbar'] = 'toolmanager'
     start_time = time.time()
-    dir_name = '/home/steve/Data/FusingLocationData/0013/'
+    dir_name = '/home/steve/Data/FusingLocationData/0017/'
+    # dir_name = '/home/steve/Data/FusingLocationData/0013/'
 
     imu_data = np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=',')
     imu_data = imu_data[:, 1:]
