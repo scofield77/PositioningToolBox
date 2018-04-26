@@ -56,8 +56,8 @@ if __name__ == '__main__':
     matplotlib.use('Qt5Agg')
     # matplotlib.rcParams['toolbar'] = 'toolmanager'
     start_time = time.time()
-    dir_name = '/home/steve/Data/FusingLocationData/0017/'
-    # dir_name = '/home/steve/Data/FusingLocationData/0013/'
+    # dir_name = '/home/steve/Data/FusingLocationData/0017/'
+    dir_name = '/home/steve/Data/FusingLocationData/0013/'
 
     imu_data = np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=',')
     # imu_data = np.loadtxt(dir_name + 'HEAD.data', delimiter=',')
@@ -172,12 +172,12 @@ if __name__ == '__main__':
                     for j in range(1, uwb_data.shape[1]):
                         if uwb_data[uwb_index, j] > 0.0 and uwb_data[uwb_index, j] < 1000.0:
                             kf.measurement_uwb(np.asarray(uwb_data[uwb_index, j]),
-                                               np.ones(1) * 0.5,
+                                               np.ones(1) * 0.01,
                                                np.transpose(beacon_set[j - 1, :]))
                             rkf.measurement_uwb_robust(np.asarray(uwb_data[uwb_index, j]),
-                                                       np.ones(1) * 0.5,
+                                                       np.ones(1) * 0.01,
                                                        np.transpose(beacon_set[j - 1, :]),
-                                                       j, 11.0, 5.0)
+                                                       j, 1.0, 1.0e-100)
 
         # print(kf.state_x)
         # print( i /)
@@ -208,16 +208,16 @@ if __name__ == '__main__':
 
 
     # #
-    aux_plot(imu_data[:, 1:4], 'acc')
-    aux_plot(imu_data[:, 4:7], 'gyr')
-    aux_plot(imu_data[:, 7:10], 'mag')
-    aux_plot(trace, 'trace')
-    aux_plot(vel, 'vel')
-    aux_plot(ang, 'ang')
-    aux_plot(ba, 'ba')
-    aux_plot(bg, 'bg')
+    # aux_plot(imu_data[:, 1:4], 'acc')
+    # aux_plot(imu_data[:, 4:7], 'gyr')
+    # aux_plot(imu_data[:, 7:10], 'mag')
+    # aux_plot(trace, 'trace')
+    # aux_plot(vel, 'vel')
+    # aux_plot(ang, 'ang')
+    # aux_plot(ba, 'ba')
+    # aux_plot(bg, 'bg')
 
-    aux_plot(iner_acc, 'inner acc')
+    # aux_plot(iner_acc, 'inner acc')
 
     plt.figure()
     plt.plot(trace[:, 0], trace[:, 1], '-+', label='fusing')
@@ -227,20 +227,20 @@ if __name__ == '__main__':
     plt.grid()
 
     # plt.figure()
-    fig = plt.figure()
-    ax = fig.add_subplot(111, projection='3d')
-    ax.plot(trace[:, 0], trace[:, 1], trace[:, 2], '-+', label='trace')
-    ax.plot(rtrace[:, 0], rtrace[:, 1], rtrace[:, 2], '-+', label='robust')
-    ax.plot(uwb_trace[:, 0], uwb_trace[:, 1], uwb_trace[:, 2], '+', label='uwb')
-    ax.grid()
-    ax.legend()
+    # fig = plt.figure()
+    # ax = fig.add_subplot(111, projection='3d')
+    # ax.plot(trace[:, 0], trace[:, 1], trace[:, 2], '-+', label='trace')
+    # ax.plot(rtrace[:, 0], rtrace[:, 1], rtrace[:, 2], '-+', label='robust')
+    # ax.plot(uwb_trace[:, 0], uwb_trace[:, 1], uwb_trace[:, 2], '+', label='uwb')
+    # ax.grid()
+    # ax.legend()
 
-    plt.figure()
-    plt.title('uwb')
-    for i in range(1, uwb_data.shape[1]):
-        plt.plot(uwb_data[:, 0], uwb_data[:, i], '+-', label=str(i))
-    plt.plot(uwb_data[:, 0], uwb_opt_res, '+-', label='res error')
-    plt.grid()
-    plt.legend()
+    # plt.figure()
+    # plt.title('uwb')
+    # for i in range(1, uwb_data.shape[1]):
+    #     plt.plot(uwb_data[:, 0], uwb_data[:, i], '+-', label=str(i))
+    # plt.plot(uwb_data[:, 0], uwb_opt_res, '+-', label='res error')
+    # plt.grid()
+    # plt.legend()
 
     plt.show()

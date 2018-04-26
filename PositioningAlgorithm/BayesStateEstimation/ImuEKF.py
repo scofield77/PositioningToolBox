@@ -213,36 +213,33 @@ class ImuEKFComplex:
         self.H = np.zeros(shape=(1, self.state.shape[0]))
         self.H[0, 0:3] = (self.state[0:3] - beacon_pos).transpose() / y[0]
 
-        R_k = cov_m*1.0
-        P_v = (self.H.dot(self.prob_state)).dot(np.transpose(self.H))+R_k;
-        v_k = z-y
+        R_k = cov_m * 1.0
+        P_v = (self.H.dot(self.prob_state)).dot(np.transpose(self.H)) + R_k;
+        v_k = z - y
         eta_k = np.zeros(1)
         self.uwb_eta_dict[beacon_id].append(eta_k[0])
 
-
         robust_loop_flag = True
         while robust_loop_flag:
-            robust_loop_flag=False
+            robust_loop_flag = False
 
-
-            P_v = (self.H.dot(self.prob_state)).dot(np.transpose(self.H))+R_k;
+            P_v = (self.H.dot(self.prob_state)).dot(np.transpose(self.H)) + R_k;
 
             eta_k[0] = (np.transpose(v_k).dot(P_v)).dot(v_k)
 
             # if eta_k[0] > 10.0:
             #     return
 
-            if(eta_k[0]>ka_squard):
+            if (eta_k[0] > ka_squard):
                 self.uwb_eta_dict[beacon_id][-1] = eta_k[0]
                 # np.std()
                 serial_length = 5
                 if len(self.uwb_eta_dict[beacon_id]) > serial_length:
                     lambda_k = np.std(np.asarray(self.uwb_eta_dict[beacon_id][-5:]))
                     if lambda_k > T_d:
-                        robust_loop_flag=True
+                        robust_loop_flag = True
                         R_k = eta_k / ka_squard * R_k
         cov_m = R_k
-
 
         self.K = (self.prob_state.dot(np.transpose(self.H))).dot(
             np.linalg.inv((self.H.dot(self.prob_state)).dot(np.transpose(self.H)) + cov_m)
@@ -255,7 +252,6 @@ class ImuEKFComplex:
         self.rotation_q = quaternion_left_update(self.rotation_q, dx[6:9], -1.0)
 
         self.state[6:9] = dcm2euler(q2dcm(self.rotation_q))
-
 
 
 @jit((float64[:, :], float64[:, :], float64[:, :], float64[:, :], float64), nopython=True, parallel=True)
