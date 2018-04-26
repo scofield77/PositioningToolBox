@@ -47,6 +47,12 @@ from AlgorithmTool.ImuTools import *
 # @jitclass(spec)
 class ImuEKFComplex:
     def __init__(self, initial_prob, local_g=-9.8, time_interval=0.01):
+        '''
+
+        :param initial_prob:
+        :param local_g:
+        :param time_interval:
+        '''
         self.rotation_q = np.zeros([4])
         self.state = np.zeros([15])
         self.prob_state = initial_prob
@@ -186,6 +192,16 @@ class ImuEKFComplex:
                                beacon_id,
                                ka_squard=18.0,
                                T_d=15.0):
+        '''
+        Robust EKF .
+        :param measurement:
+        :param cov_m:
+        :param beacon_pos:
+        :param beacon_id:
+        :param ka_squard:
+        :param T_d:
+        :return:
+        '''
         if self.uwb_eta_dict.get(beacon_id) is None:
             self.uwb_eta_dict[beacon_id] = list()
         z = np.zeros(1)
