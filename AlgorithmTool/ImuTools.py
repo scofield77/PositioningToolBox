@@ -98,7 +98,7 @@ class settings:
 
 
 # @jit(cache=True)
-@jit(float64[:](float64[:, :], float64, float64, float64, float64, int32), nopython=True, parallel=True,cache=True)
+@jit(float64[:](float64[:, :], float64, float64, float64, float64, int32), nopython=True, parallel=True, cache=True)
 def GLRT_Detector(u,
                   sigma_a=0.4,
                   sigma_g=0.4 * np.pi / 180.0,
@@ -257,7 +257,6 @@ def euler2R(ang):
 
     cy = math.cos(ang[2])
     sy = math.sin(ang[2])
-
 
     R = np.zeros([3, 3])
     # R = np.array(
