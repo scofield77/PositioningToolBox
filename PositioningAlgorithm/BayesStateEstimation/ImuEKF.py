@@ -56,6 +56,8 @@ class ImuEKFComplex:
         self.F = np.zeros([15, 15])
         self.G = np.zeros([15, 6])
 
+        self.uwb_eta_dict = dict()
+
     def initial_state(self, imu_data: np.ndarray,
                       pos=np.asarray((0.0, 0.0, 0.0)),
                       ori: float = 0.0):
@@ -177,6 +179,59 @@ class ImuEKFComplex:
         self.rotation_q = quaternion_left_update(self.rotation_q, dx[6:9], -1.0)
 
         self.state[6:9] = dcm2euler(q2dcm(self.rotation_q))
+
+    def measurement_uwb_robust(self, measurement,
+                               cov_m,
+                               beacon_pos,
+                               beacon_id,
+                               ka_squard=18.0,
+                               T_d=15.0):
+        if self.uwb_eta_dict.get(beacon_id) is None:
+            self.uwb_eta_dict[beacon_id] = list()
+         z = np.zeros(1)
+        y = np.zeros(1)
+
+        z = measurement
+        y[0] = np.linalg.norm(self.state[0:3] - beacon_pos)
+
+        self.H = np.zeros(shape=(1, self.state.shape[0]))
+        self.H[0, 0:3] = (self.state[0:3] - beacon_pos).transpose() / y[0]
+
+        R_k = cov_m*1.0
+        P_v = (self.H.dot(self.prob_state)).dot(np.transpose(self.H))+R_k;
+        v_k = z-y
+        eta_k = np.zeros(1)
+
+
+        robust_loop_flag = True
+        while robust_loop_flag:
+            robust_loop_flag=False
+
+
+            P_v = (self.H.dot(self.prob_state)).dot(np.transpose(self.H))+R_k;
+
+            eta_k = (np.transpose(v_k).dot(P_v)).dot(v_k)
+
+            if(eta_k[0,0]>ka_squard):
+                self.uwb_eta_dict[beacon_id].append(eta_k[0,0])
+
+        print(self.uwb_eta_dict)
+
+
+
+
+        self.K = (self.prob_state.dot(np.transpose(self.H))).dot(
+            np.linalg.inv((self.H.dot(self.prob_state)).dot(np.transpose(self.H)) + cov_m)
+        )
+
+        dx = self.K.dot(z - y)
+
+        self.state = self.state + dx
+
+        self.rotation_q = quaternion_left_update(self.rotation_q, dx[6:9], -1.0)
+
+        self.state[6:9] = dcm2euler(q2dcm(self.rotation_q))
+
 
 
 @jit((float64[:, :], float64[:, :], float64[:, :], float64[:, :], float64), nopython=True, parallel=True)
