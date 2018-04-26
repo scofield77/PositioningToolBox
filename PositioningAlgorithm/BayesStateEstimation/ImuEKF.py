@@ -229,7 +229,7 @@ class ImuEKFComplex:
 
             eta_k[0] = (np.transpose(v_k).dot(P_v)).dot(v_k)
 
-            if eta_k[0] > 10.0:
+            if eta_k[0] > 5.0:
                 return
 
             if(eta_k[0]>ka_squard):
