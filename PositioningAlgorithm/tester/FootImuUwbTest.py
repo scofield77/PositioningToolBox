@@ -144,7 +144,7 @@ if __name__ == '__main__':
                 if uwb_index < uwb_data.shape[0] - 1:
                     uwb_index += 1
                     for j in range(1, uwb_data.shape[1]):
-                        if uwb_data[uwb_index, j] > 1110.0 and uwb_data[uwb_index, j] < 10.0:
+                        if uwb_data[uwb_index, j] > 0.0 and uwb_data[uwb_index, j] < 10.0:
                             # kf.measurement_uwb(np.asarray(uwb_data[uwb_index, j]),
                             #                    np.ones(1) * 20,
                             #                    np.transpose(beacon_set[j - 1, :]))

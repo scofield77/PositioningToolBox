@@ -188,7 +188,7 @@ class ImuEKFComplex:
                                T_d=15.0):
         if self.uwb_eta_dict.get(beacon_id) is None:
             self.uwb_eta_dict[beacon_id] = list()
-         z = np.zeros(1)
+        z = np.zeros(1)
         y = np.zeros(1)
 
         z = measurement
@@ -201,6 +201,7 @@ class ImuEKFComplex:
         P_v = (self.H.dot(self.prob_state)).dot(np.transpose(self.H))+R_k;
         v_k = z-y
         eta_k = np.zeros(1)
+        self.uwb_eta_dict[beacon_id].append(eta_k[0])
 
 
         robust_loop_flag = True
@@ -210,12 +211,21 @@ class ImuEKFComplex:
 
             P_v = (self.H.dot(self.prob_state)).dot(np.transpose(self.H))+R_k;
 
-            eta_k = (np.transpose(v_k).dot(P_v)).dot(v_k)
+            eta_k[0] = (np.transpose(v_k).dot(P_v)).dot(v_k)
 
-            if(eta_k[0,0]>ka_squard):
-                self.uwb_eta_dict[beacon_id].append(eta_k[0,0])
+            if(eta_k[0]>ka_squard):
+                self.uwb_eta_dict[beacon_id][-1] = eta_k[0]
+                # np.std()
+                serial_length = 5
+                if len(self.uwb_eta_dict[beacon_id]) > serial_length:
+                    lambda_k = np.std(self.uwb_eta_dict[-5:])
+                    if lambda_k > T_d:
+                        robust_loop_flag=True
+                        R_k = eta_k / ka_squard * R_k
+        cov_m = R_k
 
-        print(self.uwb_eta_dict)
+
+        # print(self.uwb_eta_dict)
 
 
 
