@@ -254,10 +254,10 @@ if __name__ == '__main__':
 
     # @jit(parallel=True, )
     # def p():
-    offset_ka = 200
-    offset_Td = 200
-    for i in prange(offset_ka+1,offset_ka+ 200, 5):
-        for j in range(offset_Td+1,offset_Td+ 200, 5):
+    offset_ka = 0
+    offset_Td = 0
+    for i in prange(offset_ka+1,offset_ka + 1000, 20):
+        for j in range(offset_Td+1,offset_Td+ 1000, 50):
             para_dict['ka'] = float(i) / 10.0
             para_dict['Td'] = float(j) / 10.0
             stest_and_output(para_dict, zv_state)
