@@ -53,8 +53,8 @@ from PositioningAlgorithm.OptimizationAlgorithm.UwbOptimizeLocation import UwbOp
 
 
 def stest_and_output(para_dict,
-                    zv_state,
-                    save_dir='/home/steve/SourceData/ParameterSearchResult/RoustEKF/'):
+                     zv_state,
+                     save_dir='/home/steve/SourceData/ParameterSearchResult/RoustEKF/'):
     kf = ImuEKFComplex(np.diag((
         0.001, 0.001, 0.001,
         0.001, 0.001, 0.001,
@@ -125,7 +125,7 @@ def stest_and_output(para_dict,
                             rkf.measurement_uwb_robust(np.asarray(uwb_data[uwb_index, j]),
                                                        np.ones(1) * 2,
                                                        np.transpose(beacon_set[j - 1, :]),
-                                                       j, para_dict['ka'],para_dict['Td'])
+                                                       j, para_dict['ka'], para_dict['Td'])
 
         # print(kf.state_x)
         # print( i /)
@@ -171,7 +171,8 @@ def stest_and_output(para_dict,
     plt.plot(uwb_trace[:, 0], uwb_trace[:, 1], '-+', label='uwb')
     plt.legend()
     plt.grid()
-    plt.savefig(dir_name+'img'+str(para_dict)+'.jpg')
+    plt.savefig(save_dir + 'img' + str(para_dict) + '.png')
+    print('dic:', para_dict)
 
     # plt.figure()
     # fig = plt.figure()
@@ -249,4 +250,15 @@ if __name__ == '__main__':
                              time_Window_size=10)
 
     para_dict = {'ka': 10.0, 'Td': 10.0}
-    stest_and_output(para_dict, zv_state)
+
+
+    @jit(parallel=True, )
+    def p():
+        for i in prange(1, 200, 5):
+            for j in range(1, 200, 5):
+                para_dict['ka'] = float(i) / 10.0
+                para_dict['Td'] = float(j) / 10.0
+                stest_and_output(para_dict, zv_state)
+
+
+    p()
