@@ -56,10 +56,11 @@ if __name__ == '__main__':
     matplotlib.use('Qt5Agg')
     # matplotlib.rcParams['toolbar'] = 'toolmanager'
     start_time = time.time()
-    # dir_name = '/home/steve/Data/FusingLocationData/0017/'
-    dir_name = '/home/steve/Data/FusingLocationData/0013/'
+    dir_name = '/home/steve/Data/FusingLocationData/0017/'
+    # dir_name = '/home/steve/Data/FusingLocationData/0013/'
 
     imu_data = np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=',')
+    # imu_data = np.loadtxt(dir_name + 'HEAD.data', delimiter=',')
     imu_data = imu_data[:, 1:]
     imu_data[:, 1:4] = imu_data[:, 1:4] * 9.81
     imu_data[:, 4:7] = imu_data[:, 4:7] * (np.pi / 180.0)
@@ -130,9 +131,8 @@ if __name__ == '__main__':
         local_g=-9.81, time_interval=average_time_interval)
 
     rkf.initial_state(imu_data[:50, 1:7],
-                     pos=np.mean(uwb_trace[0:3, :], axis=0),
-                     ori=-90.0 / 180.0 * np.pi)
-
+                      pos=np.mean(uwb_trace[0:3, :], axis=0),
+                      ori=-90.0 / 180.0 * np.pi)
 
     zv_state = GLRT_Detector(imu_data[:, 1:7], sigma_a=0.4,
                              sigma_g=0.4 * np.pi / 180.0,
@@ -152,11 +152,11 @@ if __name__ == '__main__':
                                                0.01 * np.pi / 180.0))
                                       )
         rkf.state_transaction_function(imu_data[i, 1:7],
-                                      np.diag((0.01, 0.01, 0.01,
-                                               0.01 * np.pi / 180.0,
-                                               0.01 * np.pi / 180.0,
-                                               0.01 * np.pi / 180.0))
-                                      )
+                                       np.diag((0.01, 0.01, 0.01,
+                                                0.01 * np.pi / 180.0,
+                                                0.01 * np.pi / 180.0,
+                                                0.01 * np.pi / 180.0))
+                                       )
         if (i > 5) and (i < imu_data.shape[0] - 5):
             # print('i:',i)
             # zv_state[i] = z_tester.GLRT_Detector(imu_data[i - 4:i + 4, 1:8])
@@ -164,21 +164,20 @@ if __name__ == '__main__':
                 kf.measurement_function_zv(np.asarray((0, 0, 0)),
                                            np.diag((0.0001, 0.0001, 0.0001)))
                 rkf.measurement_function_zv(np.asarray((0, 0, 0)),
-                                           np.diag((0.0001, 0.0001, 0.0001)))
-
+                                            np.diag((0.0001, 0.0001, 0.0001)))
 
             if uwb_data[uwb_index, 0] < imu_data[i, 0]:
                 if uwb_index < uwb_data.shape[0] - 1:
                     uwb_index += 1
                     for j in range(1, uwb_data.shape[1]):
-                        if uwb_data[uwb_index, j] > 0.0 and uwb_data[uwb_index, j] < 100.0:
+                        if uwb_data[uwb_index, j] > 0.0 and uwb_data[uwb_index, j] < 1000.0:
                             kf.measurement_uwb(np.asarray(uwb_data[uwb_index, j]),
-                                               np.ones(1) * 20,
+                                               np.ones(1) * 0.5,
                                                np.transpose(beacon_set[j - 1, :]))
                             rkf.measurement_uwb_robust(np.asarray(uwb_data[uwb_index, j]),
-                                                      np.ones(1) * 2,
-                                                      np.transpose(beacon_set[j - 1, :]),
-                                                      j, 8.0, 5.0)
+                                                       np.ones(1) * 0.5,
+                                                       np.transpose(beacon_set[j - 1, :]),
+                                                       j, 11.0, 5.0)
 
         # print(kf.state_x)
         # print( i /)
@@ -190,7 +189,7 @@ if __name__ == '__main__':
         rate = i / imu_data.shape[0]
         iner_acc[i, :] = kf.acc
 
-        rtrace[i,:]=rkf.state[0:3]
+        rtrace[i, :] = rkf.state[0:3]
 
         # print('finished:', rate * 100.0, "% ", i, imu_data.shape[0])
 
@@ -223,7 +222,7 @@ if __name__ == '__main__':
     plt.figure()
     plt.plot(trace[:, 0], trace[:, 1], '-+', label='fusing')
     plt.plot(rtrace[:, 0], rtrace[:, 1], '-+', label='robust')
-    plt.plot(uwb_trace[:, 0], uwb_trace[:, 1], '-+', label='uwb')
+    plt.plot(uwb_trace[:, 0], uwb_trace[:, 1], '+', label='uwb')
     plt.legend()
     plt.grid()
 
@@ -232,7 +231,7 @@ if __name__ == '__main__':
     ax = fig.add_subplot(111, projection='3d')
     ax.plot(trace[:, 0], trace[:, 1], trace[:, 2], '-+', label='trace')
     ax.plot(rtrace[:, 0], rtrace[:, 1], rtrace[:, 2], '-+', label='robust')
-    ax.plot(uwb_trace[:, 0], uwb_trace[:, 1], uwb_trace[:, 2], '-+', label='uwb')
+    ax.plot(uwb_trace[:, 0], uwb_trace[:, 1], uwb_trace[:, 2], '+', label='uwb')
     ax.grid()
     ax.legend()
 
