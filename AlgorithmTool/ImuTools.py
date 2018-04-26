@@ -423,9 +423,15 @@ def dcm2euler(R):
 # @jit
 def get_initial_rotation(imu_data,
                          initial_yaw):
+    '''
+    keep acc_z of static stage equal to norm of acc.
+    :param imu_data: imu data contain at list ten times of measurements(recommend)
+    :param initial_yaw: initial orientation
+    :return: euler angle in three axis, quaternion represented the rotation.
+    '''
     acc = imu_data.mean(axis=0)
 
-    @jit
+    # @jit(nopython=True)
     def error_func(w: np.ndarray) -> float:
         # q = euler.euler2quat(w[0], w[1], initial_yaw)
         R = euler2R(np.asarray((w[0], w[1], initial_yaw)))

@@ -58,8 +58,15 @@ class ImuEKFComplex:
 
     def initial_state(self, imu_data: np.ndarray,
                       pos=np.asarray((0.0, 0.0, 0.0)),
-                      ori=0.0):
-        assert imu_data.shape[1] is 6
+                      ori: float = 0.0):
+        '''
+        Initial state based on given position and orientation(angle of z-axis)
+        :param imu_data:
+        :param pos:
+        :param ori: float orientation
+        :return:
+        '''
+        assert imu_data.shape[1] >= 6
         if np.linalg.norm(self.state) > 1e-19:
             self.state *= 0.0
         self.state[0:3] = pos
@@ -70,7 +77,15 @@ class ImuEKFComplex:
         self.I = np.identity(3)
 
     # @jit(nopython=True)
-    def state_transaction_function(self, imu_data, noise_matrix):
+    def state_transaction_function(self,
+                                   imu_data,
+                                   noise_matrix):
+        '''
+        State transaction function. 15 state, with bias of acc and gyr
+        :param imu_data: acc(m/s^2), gyr(rad /s)
+        :param noise_matrix: (noise matrix)
+        :return:
+        '''
         self.rotation_q = quaternion_right_update(self.rotation_q,
                                                   imu_data[3:6] + self.state[12:15],
                                                   self.time_interval)
@@ -104,6 +119,13 @@ class ImuEKFComplex:
 
     # @jit(cache=True)
     def measurement_function_zv(self, m, cov_matrix):
+        '''
+        Zero-velocity measurement.
+        Suitable for ekf with more than 15 state model.
+        :param m: actually is Vector3d(0,0,0)
+        :param cov_matrix:
+        :return:
+        '''
         H = np.zeros([3, self.state.shape[0]])
         H[0:3, 3:6] = np.identity(3)
 
@@ -125,9 +147,16 @@ class ImuEKFComplex:
         #
         self.state[6:9] = dcm2euler(q2dcm(self.rotation_q))
 
-        self.state[9:15] = self.state[9:15] + dx[9:15]
+        self.state[9:] = self.state[9:] + dx[9:]
 
     def measurement_uwb(self, measurement, cov_m, beacon_pos):
+        '''
+        correct system state based on UWB measurements.
+        :param measurement:
+        :param cov_m:
+        :param beacon_pos:
+        :return:
+        '''
         z = np.zeros(1)
         y = np.zeros(1)
 
