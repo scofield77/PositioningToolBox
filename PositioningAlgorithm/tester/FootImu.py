@@ -29,7 +29,6 @@ from numba import jit
 import math
 import matplotlib.pyplot as plt
 
-from transforms3d import euler, quaternions
 
 from PositioningAlgorithm.BayesStateEstimation.KalmanFIlterBase import *
 

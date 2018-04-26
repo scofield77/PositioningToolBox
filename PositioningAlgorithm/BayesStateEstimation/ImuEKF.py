@@ -225,11 +225,6 @@ class ImuEKFComplex:
         cov_m = R_k
 
 
-        # print(self.uwb_eta_dict)
-
-
-
-
         self.K = (self.prob_state.dot(np.transpose(self.H))).dot(
             np.linalg.inv((self.H.dot(self.prob_state)).dot(np.transpose(self.H)) + cov_m)
         )
