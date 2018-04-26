@@ -223,7 +223,8 @@ if __name__ == '__main__':
     plt.figure()
     plt.title('dx')
     for i in range(dx_matrix.shape[0]):
-        plt.plot(dx_matrix[i,:,0],dx_matrix[i,:,1],'-.',label=str(i))
+        # plt.plot(dx_matrix[i,:,0],dx_matrix[i,:,1],'-.',label=str(i))
+        plt.plot(np.linalg.norm(dx_matrix[i,:,0:3],axis=1),'-+',label=str(i))
     plt.grid()
     plt.legend()
 
@@ -257,12 +258,12 @@ if __name__ == '__main__':
     # ax.grid()
     # ax.legend()
 
-    # plt.figure()
-    # plt.title('uwb')
-    # for i in range(1, uwb_data.shape[1]):
-    #     plt.plot(uwb_data[:, 0], uwb_data[:, i], '+-', label=str(i))
-    # plt.plot(uwb_data[:, 0], uwb_opt_res, '+-', label='res error')
-    # plt.grid()
-    # plt.legend()
+    plt.figure()
+    plt.title('uwb')
+    for i in range(1, uwb_data.shape[1]):
+        plt.plot(uwb_data[:, 0], uwb_data[:, i], '+-', label=str(i))
+    plt.plot(uwb_data[:, 0], uwb_opt_res, '+-', label='res error')
+    plt.grid()
+    plt.legend()
 
     plt.show()
