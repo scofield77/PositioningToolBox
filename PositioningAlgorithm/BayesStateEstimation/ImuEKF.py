@@ -218,7 +218,7 @@ class ImuEKFComplex:
                 # np.std()
                 serial_length = 5
                 if len(self.uwb_eta_dict[beacon_id]) > serial_length:
-                    lambda_k = np.std(self.uwb_eta_dict[-5:])
+                    lambda_k = np.std(np.asarray(self.uwb_eta_dict[beacon_id][-5:]))
                     if lambda_k > T_d:
                         robust_loop_flag=True
                         R_k = eta_k / ka_squard * R_k
