@@ -101,9 +101,9 @@ if __name__ == '__main__':
 
     kf.initial_state(imu_data[:50, 1:7])
 
-    zv_state = GLRT_Detector(imu_data[:, 1:7],sigma_a=0.4,
-                  sigma_g=0.4 * np.pi / 180.0,
-                  gamma=280.0,
+    zv_state = GLRT_Detector(imu_data[:, 1:7],sigma_a=0.5,
+                  sigma_g=0.5 * np.pi / 180.0,
+                  gamma=320.0,
                   gravity=9.8,
                   time_Window_size=10)
 
