@@ -60,7 +60,7 @@ if __name__ == '__main__':
     # matplotlib.rcParams['toolbar'] = 'toolmanager'
     start_time = time.time()
     # dir_name = '/home/steve/Data/FusingLocationData/0017/'
-    dir_name = '/home/steve/Data/FusingLocationData/0013/'
+    dir_name = '/home/steve/Data/FusingLocationData/0012/'
 
     imu_data = np.loadtxt(dir_name + 'LEFT_FOOT.data', delimiter=',')
     imu_data = imu_data[:, 1:]
