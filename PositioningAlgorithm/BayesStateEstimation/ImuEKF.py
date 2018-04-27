@@ -256,7 +256,7 @@ class ImuEKFComplex:
 
     def measurement_uwb_robust_multi(self, measurement, cov_m, beacon_set, ka_squard):
         # @jit(nopython=True)
-        def get_vk_eta(measurement, beacon_pos, state, cov,P):
+        def get_vk_eta(measurement, beacon_pos, state, cov, P):
             z = np.zeros(1)
             y = np.zeros(1)
             z[0] = measurement
@@ -280,9 +280,9 @@ class ImuEKFComplex:
                 if (eta_k[0] > ka_squard):
                     R_k = eta_k / ka_squard * R_k
             K = (P.dot(np.transpose(H))).dot(
-                np.linalg.inv(((H.dot(P)).dot(np.transpose(H))+R_k))
+                np.linalg.inv(((H.dot(P)).dot(np.transpose(H)) + R_k))
             )
-            dx =  K.dot(z-y)
+            dx = K.dot(z - y)
             return v_k[0], R_k[0], H, K, dx
 
         v_k_list = list()
@@ -295,12 +295,12 @@ class ImuEKFComplex:
 
         for i in range(measurement.shape[0]):
             if self.dx_dict.get(i) is None:
-                self.dx_dict[i]=list()
+                self.dx_dict[i] = list()
             if measurement[i] > 0.0:
-                tvk, trk, th,tk,tdx = get_vk_eta(measurement[i],
-                                          beacon_set[i, :].transpose(),
-                                          self.state, cov_m,
-                                          self.prob_state)
+                tvk, trk, th, tk, tdx = get_vk_eta(measurement[i],
+                                                   beacon_set[i, :].transpose(),
+                                                   self.state, cov_m,
+                                                   self.prob_state)
                 # if tvk < 0.5 or tvk > 10.0:
                 v_k_list.append(tvk)
                 R_k_list.append(trk)
@@ -319,8 +319,6 @@ class ImuEKFComplex:
         self.H = np.zeros(shape=(len(v_k_list), self.state.shape[0]))
         V = np.zeros(shape=(len(v_k_list), 1))
 
-
-
         for i in range(len(v_k_list)):
             R_matrix[i, i] = R_k_list[i]
             self.H[i, :] = H_list[i]
@@ -331,7 +329,6 @@ class ImuEKFComplex:
         )
 
         dx = self.K.dot(V).reshape(-1)
-
 
         self.state = self.state + dx
 
