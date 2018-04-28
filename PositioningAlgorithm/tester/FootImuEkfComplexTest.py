@@ -59,9 +59,10 @@ if __name__ == '__main__':
     start_time = time.time()
     # dir_name = '/home/steve/Data/FusingLocationData/0017/'
     dir_name = '/home/steve/Data/FusingLocationData/0012/'
-    dir_name = '/home/steve/Data/NewFusingLocationData/0016/'
+    dir_name = 'D:\\NewFusingLocationData\\0035\\'
 
-    imu_data = np.loadtxt(dir_name + 'LEFT_FOOT.data', delimiter=',')
+    # imu_data = np.loadtxt(dir_name + 'LEFT_FOOT.data', delimiter=',')
+    imu_data = np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=',')
     imu_data = imu_data[:, 1:]
     imu_data[:, 1:4] = imu_data[:, 1:4] * 9.81
     imu_data[:, 4:7] = imu_data[:, 4:7] * (np.pi / 180.0)
@@ -100,11 +101,11 @@ if __name__ == '__main__':
 
     kf.initial_state(imu_data[:50, 1:7])
 
-    zv_state = GLRT_Detector(imu_data[:, 1:7], sigma_a=0.5,
-                             sigma_g=0.5 * np.pi / 180.0,
-                             gamma=320.0,
+    zv_state = GLRT_Detector(imu_data[:, 1:7], sigma_a=1.0,
+                             sigma_g=1.0 * np.pi / 180.0,
+                             gamma=380,
                              gravity=9.8,
-                             time_Window_size=10)
+                             time_Window_size=5)
 
     for i in range(imu_data.shape[0]):
         # print('i:',i)
