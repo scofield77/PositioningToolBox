@@ -58,7 +58,7 @@ if __name__ == '__main__':
     start_time = time.time()
     # dir_name = '/home/steve/Data/FusingLocationData/0017/'
     # dir_name = '/home/steve/Data/FusingLocationData/0013/'
-    dir_name = '/home/steve/Data/NewFusingLocationData/0035/'
+    dir_name = '/home/steve/Data/NewFusingLocationData/0034/'
 
     imu_data = np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=',')
     # imu_data = np.loadtxt(dir_name + 'HEAD.data', delimiter=',')
@@ -104,6 +104,8 @@ if __name__ == '__main__':
     average_time_interval = (imu_data[-1, 0] - imu_data[0, 0]) / float(imu_data.shape[0])
     print('average time interval ', average_time_interval)
 
+    initial_orientation = 200.0 / 180.0 * np.pi
+
     kf = ImuEKFComplex(np.diag((
         0.001, 0.001, 0.001,
         0.001, 0.001, 0.001,
@@ -119,7 +121,7 @@ if __name__ == '__main__':
 
     kf.initial_state(imu_data[:50, 1:7],
                      pos=np.mean(uwb_trace[0:3, :], axis=0),
-                     ori=-90.0 / 180.0 * np.pi)
+                     ori=initial_orientation)
     rkf = ImuEKFComplex(np.diag((
         0.001, 0.001, 0.001,
         0.001, 0.001, 0.001,
@@ -135,11 +137,12 @@ if __name__ == '__main__':
 
     rkf.initial_state(imu_data[:50, 1:7],
                       pos=np.mean(uwb_trace[0:3, :], axis=0),
-                      ori=-90.0 / 180.0 * np.pi)
+                      ori=initial_orientation)
 
-    zv_state = GLRT_Detector(imu_data[:, 1:7], sigma_a=0.4,
-                             sigma_g=0.4 * np.pi / 180.0,
-                             gamma=280.0,
+    zv_state = GLRT_Detector(imu_data[:, 1:7],
+                             sigma_a=1.0,
+                             sigma_g=1.0 * np.pi / 180.0,
+                             gamma=200.0,
                              gravity=9.8,
                              time_Window_size=10)
 
@@ -172,20 +175,21 @@ if __name__ == '__main__':
                 if uwb_data[uwb_index, 0] < imu_data[i, 0]:
 
                     if uwb_index < uwb_data.shape[0] - 1:
-                        rkf.measurement_uwb_robust_multi(np.asarray(uwb_data[uwb_index, 1:]),
-                                                         np.ones(1) * 0.1,
-                                                         beacon_set,
-                                                         6.0)
+                        # rkf.measurement_uwb_robust_multi(np.asarray(uwb_data[uwb_index, 1:]),
+                        #                                  np.ones(1) * 0.1,
+                        #                                  beacon_set,
+                        #                                  6.0)
                         uwb_index += 1
                         for j in range(1, uwb_data.shape[1]):
-                            if uwb_data[uwb_index, j] > 0.0 and uwb_data[uwb_index, j] < 1000.0 and beacon_set[j-1,0] < 1000.0:
+                            if uwb_data[uwb_index, j] > 0.0 and uwb_data[uwb_index, j] < 1000.0 and beacon_set[
+                                j - 1, 0] < 1000.0:
                                 kf.measurement_uwb(np.asarray(uwb_data[uwb_index, j]),
                                                    np.ones(1) * 0.1,
                                                    np.transpose(beacon_set[j - 1, :]))
-                                # rkf.measurement_uwb_robust(np.asarray(uwb_data[uwb_index, j]),
-                                #                            np.ones(1) * 0.1,
-                                #                            np.transpose(beacon_set[j - 1, :]),
-                                #                            j, 1.0, 1.0e-100)
+                                rkf.measurement_uwb_robust(np.asarray(uwb_data[uwb_index, j]),
+                                                           np.ones(1) * 0.1,
+                                                           np.transpose(beacon_set[j - 1, :]),
+                                                           j, 1.0, 1.0e-100)
 
         # print(kf.state_x)
         # print( i /)
@@ -215,23 +219,22 @@ if __name__ == '__main__':
         plt.legend()
 
 
-    #plot dx list
+    # plot dx list
 
-    dx_matrix = np.zeros(shape=(len(rkf.dx_dict),len(rkf.dx_dict[1]),15))
+    if len(rkf.dx_dict) > 0:
+        dx_matrix = np.zeros(shape=(len(rkf.dx_dict), len(rkf.dx_dict[1]), 15))
 
-    for i in range(dx_matrix.shape[0]):
-        for j in range(dx_matrix.shape[1]):
-            dx_matrix[i,j,:] = rkf.dx_dict[i][j]
+        for i in range(dx_matrix.shape[0]):
+            for j in range(dx_matrix.shape[1]):
+                dx_matrix[i, j, :] = rkf.dx_dict[i][j]
 
-    plt.figure()
-    plt.title('dx')
-    for i in range(dx_matrix.shape[0]):
-        # plt.plot(dx_matrix[i,:,0],dx_matrix[i,:,1],'-.',label=str(i))
-        plt.plot(np.linalg.norm(dx_matrix[i,:,0:3],axis=1),'-+',label=str(i))
-    plt.grid()
-    plt.legend()
-
-
+        plt.figure()
+        plt.title('dx')
+        for i in range(dx_matrix.shape[0]):
+            # plt.plot(dx_matrix[i,:,0],dx_matrix[i,:,1],'-.',label=str(i))
+            plt.plot(np.linalg.norm(dx_matrix[i, :, 0:3], axis=1), '-+', label=str(i))
+        plt.grid()
+        plt.legend()
 
     # #
     # aux_plot(imu_data[:, 1:4], 'acc')
