@@ -27,7 +27,7 @@ import numpy as np
 from numpy import linalg
 import scipy as sp
 
-import numdifftools as nd
+# import numdifftools as nd
 
 from numba import jit
 
