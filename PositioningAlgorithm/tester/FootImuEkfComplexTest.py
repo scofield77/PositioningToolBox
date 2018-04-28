@@ -58,8 +58,8 @@ if __name__ == '__main__':
     # matplotlib.rcParams['toolbar'] = 'toolmanager'
     start_time = time.time()
     # dir_name = '/home/steve/Data/FusingLocationData/0017/'
-    dir_name = '/home/steve/Data/FusingLocationData/0012/'
-    dir_name = 'D:\\NewFusingLocationData\\0035\\'
+    dir_name = '/home/steve/Data/NewFusingLocationData/0035/'
+    # dir_name = 'D:\\NewFusingLocationData\\0035\\'
 
     # imu_data = np.loadtxt(dir_name + 'LEFT_FOOT.data', delimiter=',')
     imu_data = np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=',')
@@ -103,7 +103,7 @@ if __name__ == '__main__':
 
     zv_state = GLRT_Detector(imu_data[:, 1:7], sigma_a=1.0,
                              sigma_g=1.0 * np.pi / 180.0,
-                             gamma=380,
+                             gamma=200,
                              gravity=9.8,
                              time_Window_size=5)
 
