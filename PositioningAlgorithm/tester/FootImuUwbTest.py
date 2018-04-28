@@ -57,7 +57,8 @@ if __name__ == '__main__':
     # matplotlib.rcParams['toolbar'] = 'toolmanager'
     start_time = time.time()
     # dir_name = '/home/steve/Data/FusingLocationData/0017/'
-    dir_name = '/home/steve/Data/FusingLocationData/0013/'
+    # dir_name = '/home/steve/Data/FusingLocationData/0013/'
+    dir_name = '/home/steve/Data/NewFusingLocationData/0035/'
 
     imu_data = np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=',')
     # imu_data = np.loadtxt(dir_name + 'HEAD.data', delimiter=',')
@@ -65,8 +66,10 @@ if __name__ == '__main__':
     imu_data[:, 1:4] = imu_data[:, 1:4] * 9.81
     imu_data[:, 4:7] = imu_data[:, 4:7] * (np.pi / 180.0)
 
-    uwb_data = np.loadtxt(dir_name + 'uwb_result.csv', delimiter=',')
-    beacon_set = np.loadtxt(dir_name + 'beaconSet.csv', delimiter=',')
+    # uwb_data = np.loadtxt(dir_name + 'uwb_result.csv', delimiter=',')
+    # beacon_set = np.loadtxt(dir_name + 'beaconSet.csv', delimiter=',')
+    uwb_data = np.loadtxt(dir_name + 'uwb_data.csv', delimiter=',')
+    beacon_set = np.loadtxt(dir_name + 'beaconset_no_mac.csv', delimiter=',')
 
     uol = UwbOptimizeLocation(beacon_set)
     uwb_trace = np.zeros([uwb_data.shape[0], 3])
@@ -175,7 +178,7 @@ if __name__ == '__main__':
                                                          6.0)
                         uwb_index += 1
                         for j in range(1, uwb_data.shape[1]):
-                            if uwb_data[uwb_index, j] > 0.0 and uwb_data[uwb_index, j] < 1000.0:
+                            if uwb_data[uwb_index, j] > 0.0 and uwb_data[uwb_index, j] < 1000.0 and beacon_set[j-1,0] < 1000.0:
                                 kf.measurement_uwb(np.asarray(uwb_data[uwb_index, j]),
                                                    np.ones(1) * 0.1,
                                                    np.transpose(beacon_set[j - 1, :]))
