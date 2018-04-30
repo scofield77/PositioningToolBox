@@ -184,7 +184,7 @@ if __name__ == '__main__':
                         if uwb_data[uwb_index, j] > 0.0 and uwb_data[uwb_index, j] < 1000.0 and beacon_set[
                             j - 1, 0] < 1000.0:
                             kf.measurement_uwb(np.asarray(uwb_data[uwb_index, j]),
-                                               np.ones(1) * 0.001,
+                                               np.ones(1) * 0.0000001,
                                                np.transpose(beacon_set[j - 1, :]))
                             rkf.measurement_uwb_robust(np.asarray(uwb_data[uwb_index, j]),
                                                        np.ones(1) * 0.5,
@@ -255,7 +255,7 @@ if __name__ == '__main__':
     plt.legend()
     plt.grid()
 
-    plt.figure()
+
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
     # ax.plot(trace[:, 0], trace[:, 1], trace[:, 2], '-+', label='trace')
