@@ -56,8 +56,8 @@ if __name__ == '__main__':
     # matplotlib.rcParams['toolbar'] = 'toolmanager'
     start_time = time.time()
     # dir_name = '/home/steve/Data/FusingLocationData/0017/'
-    # dir_name = '/home/steve/Data/FusingLocationData/0013/'
-    dir_name = '/home/steve/Data/NewFusingLocationData/0034/'
+    dir_name = '/home/steve/Data/FusingLocationData/0013/'
+    # dir_name = '/home/steve/Data/NewFusingLocationData/0034/'
 
     imu_data = np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=',')
     # imu_data = np.loadtxt(dir_name + 'HEAD.data', delimiter=',')
@@ -65,10 +65,10 @@ if __name__ == '__main__':
     imu_data[:, 1:4] = imu_data[:, 1:4] * 9.81
     imu_data[:, 4:7] = imu_data[:, 4:7] * (np.pi / 180.0)
 
-    # uwb_data = np.loadtxt(dir_name + 'uwb_result.csv', delimiter=',')
-    # beacon_set = np.loadtxt(dir_name + 'beaconSet.csv', delimiter=',')
-    uwb_data = np.loadtxt(dir_name + 'uwb_data.csv', delimiter=',')
-    beacon_set = np.loadtxt(dir_name + 'beaconset_no_mac.csv', delimiter=',')
+    uwb_data = np.loadtxt(dir_name + 'uwb_result.csv', delimiter=',')
+    beacon_set = np.loadtxt(dir_name + 'beaconSet.csv', delimiter=',')
+    # uwb_data = np.loadtxt(dir_name + 'uwb_data.csv', delimiter=',')
+    # beacon_set = np.loadtxt(dir_name + 'beaconset_no_mac.csv', delimiter=',')
 
     uol = UwbOptimizeLocation(beacon_set)
     uwb_trace = np.zeros([uwb_data.shape[0], 3])
@@ -104,6 +104,7 @@ if __name__ == '__main__':
     print('average time interval ', average_time_interval)
 
     initial_orientation = 200.0 / 180.0 * np.pi
+    initial_pos = np.asarray((61.0,20.0))
 
     kf = ImuEKFComplex(np.diag((
         0.001, 0.001, 0.001,
@@ -183,10 +184,10 @@ if __name__ == '__main__':
                         if uwb_data[uwb_index, j] > 0.0 and uwb_data[uwb_index, j] < 1000.0 and beacon_set[
                             j - 1, 0] < 1000.0:
                             kf.measurement_uwb(np.asarray(uwb_data[uwb_index, j]),
-                                               np.ones(1) * 0.05,
+                                               np.ones(1) * 2,
                                                np.transpose(beacon_set[j - 1, :]))
                             rkf.measurement_uwb_robust(np.asarray(uwb_data[uwb_index, j]),
-                                                       np.ones(1) * 0.05,
+                                                       np.ones(1) * 2.0,
                                                        np.transpose(beacon_set[j - 1, :]),
                                                        j, 1.0, 1.0e-100)
 
@@ -249,19 +250,19 @@ if __name__ == '__main__':
 
     plt.figure()
     plt.plot(trace[:, 0], trace[:, 1], '-+', label='fusing')
-    # plt.plot(rtrace[:, 0], rtrace[:, 1], '-+', label='robust')
+    plt.plot(rtrace[:, 0], rtrace[:, 1], '-+', label='robust')
     plt.plot(uwb_trace[:, 0], uwb_trace[:, 1], '+', label='uwb')
     plt.legend()
     plt.grid()
 
-    # plt.figure()
-    # fig = plt.figure()
-    # ax = fig.add_subplot(111, projection='3d')
-    # ax.plot(trace[:, 0], trace[:, 1], trace[:, 2], '-+', label='trace')
+    plt.figure()
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    ax.plot(trace[:, 0], trace[:, 1], trace[:, 2], '-+', label='trace')
     # ax.plot(rtrace[:, 0], rtrace[:, 1], rtrace[:, 2], '-+', label='robust')
-    # ax.plot(uwb_trace[:, 0], uwb_trace[:, 1], uwb_trace[:, 2], '+', label='uwb')
-    # ax.grid()
-    # ax.legend()
+    ax.plot(uwb_trace[:, 0], uwb_trace[:, 1], uwb_trace[:, 2], '+', label='uwb')
+    ax.grid()
+    ax.legend()
 
     plt.figure()
     plt.title('uwb')
