@@ -104,7 +104,7 @@ if __name__ == '__main__':
     print('average time interval ', average_time_interval)
 
     initial_orientation = 200.0 / 180.0 * np.pi
-    initial_pos = np.asarray((61.0,20.0))
+    initial_pos = np.asarray((60.6,20.0, 2.21))
 
     kf = ImuEKFComplex(np.diag((
         0.001, 0.001, 0.001,
@@ -120,7 +120,7 @@ if __name__ == '__main__':
         local_g=-9.81, time_interval=average_time_interval)
 
     kf.initial_state(imu_data[:50, 1:7],
-                     pos=np.mean(uwb_trace[0:3, :], axis=0),
+                     pos= initial_pos ,#.mean(uwb_trace[0:3, :], axis=0),
                      ori=initial_orientation)
     rkf = ImuEKFComplex(np.diag((
         0.001, 0.001, 0.001,
@@ -136,7 +136,7 @@ if __name__ == '__main__':
         local_g=-9.81, time_interval=average_time_interval)
 
     rkf.initial_state(imu_data[:50, 1:7],
-                      pos=np.mean(uwb_trace[0:3, :], axis=0),
+                      pos= initial_pos,  #np.mean(uwb_trace[0:3, :], axis=0),
                       ori=initial_orientation)
 
     zv_state = GLRT_Detector(imu_data[:, 1:7],
@@ -184,12 +184,12 @@ if __name__ == '__main__':
                         if uwb_data[uwb_index, j] > 0.0 and uwb_data[uwb_index, j] < 1000.0 and beacon_set[
                             j - 1, 0] < 1000.0:
                             kf.measurement_uwb(np.asarray(uwb_data[uwb_index, j]),
-                                               np.ones(1) * 2,
+                                               np.ones(1) * 0.1,
                                                np.transpose(beacon_set[j - 1, :]))
                             rkf.measurement_uwb_robust(np.asarray(uwb_data[uwb_index, j]),
-                                                       np.ones(1) * 2.0,
+                                                       np.ones(1) * 0.5,
                                                        np.transpose(beacon_set[j - 1, :]),
-                                                       j, 1.0, 1.0e-100)
+                                                       j, 7.0,10.0e100)
 
         # print(kf.state_x)
         # print( i /)
@@ -258,7 +258,7 @@ if __name__ == '__main__':
     plt.figure()
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
-    ax.plot(trace[:, 0], trace[:, 1], trace[:, 2], '-+', label='trace')
+    # ax.plot(trace[:, 0], trace[:, 1], trace[:, 2], '-+', label='trace')
     # ax.plot(rtrace[:, 0], rtrace[:, 1], rtrace[:, 2], '-+', label='robust')
     ax.plot(uwb_trace[:, 0], uwb_trace[:, 1], uwb_trace[:, 2], '+', label='uwb')
     ax.grid()
