@@ -59,8 +59,8 @@ if __name__ == '__main__':
     # dir_name = '/home/steve/Data/FusingLocationData/0013/'
     dir_name = '/home/steve/Data/NewFusingLocationData/0034/'
 
-    # imu_data = np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=',')
-    imu_data = np.loadtxt(dir_name + 'HEAD.data', delimiter=',')
+    imu_data = np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=',')
+    # imu_data = np.loadtxt(dir_name + 'HEAD.data', delimiter=',')
     imu_data = imu_data[:, 1:]
     imu_data[:, 1:4] = imu_data[:, 1:4] * 9.81
     imu_data[:, 4:7] = imu_data[:, 4:7] * (np.pi / 180.0)
@@ -183,10 +183,10 @@ if __name__ == '__main__':
                         if uwb_data[uwb_index, j] > 0.0 and uwb_data[uwb_index, j] < 1000.0 and beacon_set[
                             j - 1, 0] < 1000.0:
                             kf.measurement_uwb(np.asarray(uwb_data[uwb_index, j]),
-                                               np.ones(1) * 0.1,
+                                               np.ones(1) * 0.05,
                                                np.transpose(beacon_set[j - 1, :]))
                             rkf.measurement_uwb_robust(np.asarray(uwb_data[uwb_index, j]),
-                                                       np.ones(1) * 0.1,
+                                                       np.ones(1) * 0.05,
                                                        np.transpose(beacon_set[j - 1, :]),
                                                        j, 1.0, 1.0e-100)
 
@@ -249,7 +249,7 @@ if __name__ == '__main__':
 
     plt.figure()
     plt.plot(trace[:, 0], trace[:, 1], '-+', label='fusing')
-    plt.plot(rtrace[:, 0], rtrace[:, 1], '-+', label='robust')
+    # plt.plot(rtrace[:, 0], rtrace[:, 1], '-+', label='robust')
     plt.plot(uwb_trace[:, 0], uwb_trace[:, 1], '+', label='uwb')
     plt.legend()
     plt.grid()
