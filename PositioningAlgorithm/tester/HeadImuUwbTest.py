@@ -189,7 +189,7 @@ if __name__ == '__main__':
                             rkf.measurement_uwb_robust(np.asarray(uwb_data[uwb_index, j]),
                                                        np.ones(1) * 0.5,
                                                        np.transpose(beacon_set[j - 1, :]),
-                                                       j, 7.0,10.0e100)
+                                                       j, 7000000.0,10.0e100)
 
         # print(kf.state_x)
         # print( i /)
