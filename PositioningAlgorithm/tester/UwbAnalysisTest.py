@@ -69,20 +69,23 @@ if __name__ == '__main__':
     plt.plot(uwb_trace[:, 0], uwb_trace[:, 1], '-+', label='uwb')
     plt.grid()
 
-    # ref_t_f = interpolate.interp2d(ref_trace[:,0],ref_trace[:,1],ref_trace[:,2])
-    ref_t_fx = interpolate.interp1d(ref_trace[:,0],ref_trace[:,1])
-    ref_t_fy = interpolate.interp1d(ref_trace[:,0],ref_trace[:,2])
+    print('uwb data:',uwb_data[:,0].min(),uwb_data[:,0].max())
+    print('ref data:',ref_trace[:,0].min(),ref_trace[:,0].max())
 
-    ref_t_trace = np.zeros(shape=(uwb_data.shape[0],2))
-    ref_t_trace[:,0] = ref_t_fx(uwb_data[:,0])
-    ref_t_trace[:,1] = ref_t_fy(uwb_data[:,0])
+    # ref_t_f = interpolate.interp2d(ref_trace[:,0],ref_trace[:,1],ref_trace[:,2])
+    # ref_t_fx = interpolate.interp1d(ref_trace[:, 0], ref_trace[:, 1])
+    # ref_t_fy = interpolate.interp1d(ref_trace[:, 0], ref_trace[:, 2])
+    ref_t_fx = interpolate.UnivariateSpline(ref_trace[:, 0], ref_trace[:, 1],s=0)
+    ref_t_fy = interpolate.UnivariateSpline(ref_trace[:, 0], ref_trace[:, 2],s=0)
+
+    ref_t_trace = np.zeros(shape=(uwb_data.shape[0], 2))
+    ref_t_trace[:, 0] = ref_t_fx(uwb_data[:, 0])
+    ref_t_trace[:, 1] = ref_t_fy(uwb_data[:, 0])
 
     plt.figure()
-    plt.plot(ref_t_trace[:,0],ref_t_trace[:,1])
+    plt.plot(ref_t_trace[:, 0], ref_t_trace[:, 1])
     plt.grid()
-    print(ref_t_trace.shape,uwb_trace.shape)
-
-
+    print(ref_t_trace.shape, uwb_trace.shape)
 
     # plt.figure()
     # plt.title('error')
