@@ -67,6 +67,12 @@ if __name__ == '__main__':
     plt.figure()
     plt.plot(ref_trace[:, 1], ref_trace[:, 2], '-+', label='ref')
     plt.plot(uwb_trace[:, 0], uwb_trace[:, 1], '-+', label='uwb')
+
+    for i in range(1, uwb_data.shape[1]):
+        # plt.plot(ref_range[:, 0], ref_range[:, i], label=str(i))
+        if np.max(uwb_data[:, i] > 0.0) and beacon_set[i - 1, 0] < 5000.0:
+            plt.text(beacon_set[i-1,0],beacon_set[i-1,1],str(i))
+
     plt.grid()
 
     print('uwb data:', uwb_data[:, 0].min(), uwb_data[:, 0].max())
