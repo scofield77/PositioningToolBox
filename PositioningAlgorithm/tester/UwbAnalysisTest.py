@@ -69,35 +69,17 @@ if __name__ == '__main__':
     plt.plot(uwb_trace[:, 0], uwb_trace[:, 1], '-+', label='uwb')
     plt.grid()
 
-    print('uwb data:',uwb_data[:,0].min(),uwb_data[:,0].max())
-    print('ref data:',ref_trace[:,0].min(),ref_trace[:,0].max())
+    print('uwb data:', uwb_data[:, 0].min(), uwb_data[:, 0].max())
+    print('ref data:', ref_trace[:, 0].min(), ref_trace[:, 0].max())
 
-    # ref_t_f = interpolate.interp2d(ref_trace[:,0],ref_trace[:,1],ref_trace[:,2])
-    # ref_t_fx = interpolate.interp1d(ref_trace[:, 0], ref_trace[:, 1])
-    # ref_t_fy = interpolate.interp1d(ref_trace[:, 0], ref_trace[:, 2])
-    ref_t_fx = interpolate.UnivariateSpline(ref_trace[:, 0], ref_trace[:, 1],s=0)
-    ref_t_fy = interpolate.UnivariateSpline(ref_trace[:, 0], ref_trace[:, 2],s=0)
-
-    ref_t_trace = np.zeros(shape=(uwb_data.shape[0], 2))
-    ref_t_trace[:, 0] = ref_t_fx(uwb_data[:, 0])
-    ref_t_trace[:, 1] = ref_t_fy(uwb_data[:, 0])
-
-    plt.figure()
-    plt.plot(ref_t_trace[:, 0], ref_t_trace[:, 1])
-    plt.grid()
-    print(ref_t_trace.shape, uwb_trace.shape)
+    ref_range = np.zeros(shape=(ref_trace.shape[0], uwb_data.shape[1]))
 
 
-    # ref_m = np.linalg.norm(ref_trace[:,1:] - beacon_set,axis=0)
-    # ref_m = np.zeros
+    def compute_ref_range(ref_range,beacon_set,ref_trace):
+
+        for i in range(ref_trace.shape[0]):
 
 
-    # plt.figure()
-    # plt.plot(ref_m)
 
-    # plt.figure()
-    # plt.title('error')
-    # plt.plot(np.linalg.norm(ref_trace-uwb_trace,axis=0),)
-    # plt.grid()
 
     plt.show()
