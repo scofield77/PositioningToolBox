@@ -87,6 +87,14 @@ if __name__ == '__main__':
     plt.grid()
     print(ref_t_trace.shape, uwb_trace.shape)
 
+
+    # ref_m = np.linalg.norm(ref_trace[:,1:] - beacon_set,axis=0)
+    # ref_m = np.zeros
+
+
+    # plt.figure()
+    # plt.plot(ref_m)
+
     # plt.figure()
     # plt.title('error')
     # plt.plot(np.linalg.norm(ref_trace-uwb_trace,axis=0),)
