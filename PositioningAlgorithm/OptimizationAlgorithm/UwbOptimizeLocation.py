@@ -55,19 +55,7 @@ class UwbOptimizeLocation:
         dis_to_beacon = np.linalg.norm(pose - self.beacon_set, axis=1)
         return np.linalg.norm((dis_to_beacon - self.measurements)[
                                   np.where(np.logical_and(self.measurements > 0.0, self.measurements < 550.0))])
-        # @jit(float64(float64[:],float64[:,:],float64[:]),nopython=True)
-        # def compute_func(pose, beacon_set, measurement):
-        #     dis_sum = 0.0
-        #     for i in range(beacon_set.shape[0]):
-        #         the_norm = 0.0
-        #         if beacon_set[i, 0] + beacon_set[i, 1] < 10000 and measurement[i] > 0.0:
-        #             for j in range(beacon_set.shape[1]):
-        #                 the_norm += (pose[j] - beacon_set[i, j]) * (pose[j] - beacon_set[i, j])
-        #             the_norm = math.sqrt(the_norm)
-        # dis_sum +=math.sqrt(math.pow(measurement[i]- math.sqrt(the_norm),2.0))
-        # return dis_sum
 
-        # return compute_func(pose,self.beacon_set,self.measurements)
 
     def positioning_fucntion(self, initial_pose, measurements):
         '''
@@ -84,10 +72,7 @@ class UwbOptimizeLocation:
         result = minimize(self.position_error_function,
                           initial_pose, method='BFGS')
 
-        # pose = result.x
-        # res = result.fun
-        # print(pose, res)
-        # return pose, res
+
         return result.x, result.fun
 
 

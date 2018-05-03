@@ -162,7 +162,7 @@ if __name__ == '__main__':
     cal_error(r_error, ref_cal_range, uwb_data)
 
     plt.figure()
-    plt.title('uwb range')
+    plt.title('uwb range error')
     for i in range(1, ref_range.shape[1]):
         # plt.plot(ref_range[:, 0], ref_range[:, i], label=str(i))
         if np.max(uwb_data[:, i] > 0.0) and beacon_set[i - 1, 0] < 5000.0:
