@@ -75,11 +75,24 @@ if __name__ == '__main__':
     ref_range = np.zeros(shape=(ref_trace.shape[0], uwb_data.shape[1]))
 
 
-    def compute_ref_range(ref_range,beacon_set,ref_trace):
+    @jit
+    def compute_ref_range(ref_range, beacon_set, ref_trace):
 
         for i in range(ref_trace.shape[0]):
+            ref_range[i, 0] = ref_trace[i, 0]
+            for j in range(1, uwb_data.shape[1]):
+                ref_range[i, j] = np.linalg.norm(ref_trace[i, 1:] - beacon_set[i, :])
+                if ref_range[i, j] > 1000.0:
+                    ref_range[i, j] = 0.0
 
 
+    compute_ref_range(ref_range, beacon_set, ref_trace)
 
+    plt.figure()
+    plt.title('uwb range')
+    for i in range(1, ref_range.shape[1]):
+        plt.plot(ref_range[:, 0], ref_range[:, i], label=str(i))
+    plt.grid()
+    plt.legend()
 
     plt.show()
