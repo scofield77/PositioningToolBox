@@ -81,17 +81,32 @@ if __name__ == '__main__':
         for i in range(ref_trace.shape[0]):
             ref_range[i, 0] = ref_trace[i, 0]
             for j in range(1, uwb_data.shape[1]):
-                ref_range[i, j] = np.linalg.norm(ref_trace[i, 1:] - beacon_set[j-1, :])
+                ref_range[i, j] = np.linalg.norm(ref_trace[i, 1:] - beacon_set[j - 1, :])
                 if ref_range[i, j] > 1000.0:
                     ref_range[i, j] = 0.0
 
 
     compute_ref_range(ref_range, beacon_set, ref_trace)
 
+    ref_range_f = list()
+    ref_cal_range = np.zeros_like(uwb_data)
+    ref_cal_range[:, 0] = uwb_data[:, 0]
+    for i in range(1, ref_range.shape[1]):
+        print(i)
+        f = interpolate.UnivariateSpline(ref_range[:, 0], ref_range_f[:, i])
+        # ref_range_f.append(f)
+        ref_cal_range[:, i] = f(uwb_data[:, 0])
+
+    # @jit
+    # def process
+
     plt.figure()
     plt.title('uwb range')
     for i in range(1, ref_range.shape[1]):
-        plt.plot(ref_range[:, 0], ref_range[:, i], label=str(i))
+        # plt.plot(ref_range[:, 0], ref_range[:, i], label=str(i))
+        if np.max(uwb_data[:, i] > 0.0):
+            plt.plot(ref_cal_range[:, 0], ref_cal_range[:, 1], label=str(i))
+            plt.plot(uwb_data[:, 0], uwb_data[:, i], '*', label=str(i))
     plt.grid()
     plt.legend()
 
