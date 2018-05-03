@@ -71,7 +71,7 @@ if __name__ == '__main__':
     for i in range(1, uwb_data.shape[1]):
         # plt.plot(ref_range[:, 0], ref_range[:, i], label=str(i))
         if np.max(uwb_data[:, i] > 0.0) and beacon_set[i - 1, 0] < 5000.0:
-            plt.text(beacon_set[i-1,0],beacon_set[i-1,1],str(i))
+            plt.text(beacon_set[i - 1, 0], beacon_set[i - 1, 1], str(i))
 
     plt.grid()
 
@@ -143,8 +143,7 @@ if __name__ == '__main__':
     r_error[:, 0] = ref_cal_range[:, 0]
 
 
-
-    @jit(nopython=True,cache=True)
+    @jit(nopython=True, cache=True)
     def cal_error(r_error, ref_cal_range, uwb_data):
         '''
         calculate error of each beacon.
@@ -169,6 +168,7 @@ if __name__ == '__main__':
             # plt.plot(ref_cal_range[:, 0], ref_cal_range[:, i], label=str(i))
             # plt.plot(uwb_data[:, 0], uwb_data[:, i], '*', label=str(i))
             plt.plot(r_error[:, 0], r_error[:, i], label=str(i))
+    plt.plot(r_error[:, 0], uwb_opt_res[:], label='res error')
     plt.grid()
     plt.legend()
 
@@ -178,5 +178,8 @@ if __name__ == '__main__':
     plt.plot(ref_trace[:, 0], ref_trace[:, 2], label='y')
     plt.grid()
     plt.legend()
+
+    # plt.figure()
+    # plt.plot(r_error[:,0],r_error)
 
     plt.show()

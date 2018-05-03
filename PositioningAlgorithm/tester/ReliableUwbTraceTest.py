@@ -62,18 +62,56 @@ if __name__ == '__main__':
                 uol.positioning_fucntion(uwb_trace[i - 1, :],
                                          uwb_data[i, 1:])
 
+
+    @jit(nopython=True, cache=True)
+    def compute_z_ave(uwb_trace, low_b=2.0, high_b=3.0):
+        counter = 0
+        the_sum = 0.0
+        for i in range(uwb_trace.shape[0]):
+            if low_b < uwb_trace[i, 2] < high_b:
+                counter += 1
+                the_sum += uwb_trace[i, 2]
+
+        return float(the_sum) / float(counter)
+
+
+    average_high = compute_z_ave(uwb_trace)
+    print(average_high)
+
+    t_trace = np.zeros_like(uwb_trace)
+    for i in range(uwb_trace.shape[0]):
+        if (uwb_opt_res[i] > 0.5 or abs(uwb_trace[i,2]-average_high)>0.1)and i > -1:
+            # t_trace[i,:] =
+            t_trace[i, 0] = t_trace[i, 0]
+        else:
+            t_trace[i, :] = uwb_trace[i, :]
+
+    plt.figure()
+    plt.title('measuremment & res')
+    for i in range(1, uwb_data.shape[1]):
+        if uwb_data[:, i].max() > 0.0:
+            plt.plot(uwb_data[:, 0], uwb_data[:, i], '+', label=str(i))
+    plt.plot(uwb_data[:, 0], uwb_opt_res, '-*', label='res')
+    plt.legend()
+    plt.grid()
+
+    plt.figure()
+    plt.title('z value')
+    plt.hist(uwb_trace[:, 2], bins=100)
+    plt.grid()
+
     plt.figure()
     plt.title('uwb trace')
-
     plt.plot(uwb_trace[:, 0], uwb_trace[:, 1], label='source uwb')
+    plt.plot(t_trace[:, 0], t_trace[:, 1], '*', label='t trace')
     plt.grid()
     plt.legend()
 
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
-
-
-    ax.plot(uwb_trace[:,0],uwb_trace[:,1],uwb_trace[:,2],'-+',label='source uwb')
+    ax.set_title("trace 3d")
+    ax.plot(uwb_trace[:, 0], uwb_trace[:, 1], uwb_trace[:, 2], '-+', label='source uwb')
+    ax.plot(t_trace[:, 0], t_trace[:, 1], t_trace[:, 2], '*', label='t trace\\beta')
     ax.grid()
     ax.legend()
 
