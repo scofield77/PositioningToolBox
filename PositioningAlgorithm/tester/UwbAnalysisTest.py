@@ -42,7 +42,7 @@ if __name__ == '__main__':
     start_time = time.time()
     # dir_name = '/home/steve/Data/FusingLocationData/0017/'
     # dir_name = '/home/steve/Data/FusingLocationData/0013/'
-    dir_name = '/home/steve/Data/NewFusingLocationData/0032/'
+    dir_name = '/home/steve/Data/NewFusingLocationData/0033/'
 
     # uwb_data = np.loadtxt(dir_name + 'uwb_result.csv', delimiter=',')
     # beacon_set = np.loadtxt(dir_name + 'beaconSet.csv', delimiter=',')
@@ -81,7 +81,7 @@ if __name__ == '__main__':
     ref_range = np.zeros(shape=(ref_trace.shape[0], uwb_data.shape[1]))
 
 
-    @jit
+    # @jit
     def compute_ref_range(ref_range, beacon_set, ref_trace):
         '''
         compute ref range based on ref trace and beaconset.
