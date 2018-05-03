@@ -92,21 +92,62 @@ if __name__ == '__main__':
     ref_cal_range = np.zeros_like(uwb_data)
     ref_cal_range[:, 0] = uwb_data[:, 0]
     for i in range(1, ref_range.shape[1]):
-        print(i)
-        f = interpolate.UnivariateSpline(ref_range[:, 0], ref_range_f[:, i])
+        # print(i)
+        f = interpolate.UnivariateSpline(ref_range[:, 0], ref_range[:, i], s=1.0)
         # ref_range_f.append(f)
-        ref_cal_range[:, i] = f(uwb_data[:, 0])
+        ref_cal_range[:, i] = f(uwb_data[:, 0]) * 1.0
 
-    # @jit
-    # def process
+
+    @jit(nopython=True)
+    def process_ref_cal_range(ref_cal_range, ref_range):
+        for i in range(1, ref_cal_range.shape[1]):
+            for j in range(0, ref_cal_range.shape[0]):
+                if ref_cal_range[j, 0] < ref_range[1, 0]:
+                    ref_cal_range[j, i] = ref_range[1, i]
+                if ref_cal_range[j, 0] > ref_range[-1, 0]:
+                    ref_cal_range[j, i] = ref_range[-1, i]
+
+
+    process_ref_cal_range(ref_cal_range, ref_range)
 
     plt.figure()
     plt.title('uwb range')
     for i in range(1, ref_range.shape[1]):
         # plt.plot(ref_range[:, 0], ref_range[:, i], label=str(i))
-        if np.max(uwb_data[:, i] > 0.0):
-            plt.plot(ref_cal_range[:, 0], ref_cal_range[:, 1], label=str(i))
+        if np.max(uwb_data[:, i] > 0.0) and beacon_set[i - 1, 0] < 5000.0:
+            plt.plot(ref_cal_range[:, 0], ref_cal_range[:, i], label=str(i))
             plt.plot(uwb_data[:, 0], uwb_data[:, i], '*', label=str(i))
+    plt.grid()
+    plt.legend()
+
+    r_error = np.zeros_like(ref_cal_range)
+    r_error[:, 0] = ref_cal_range[:, 0]
+
+
+    def cal_error(r_error, ref_cal_range, uwb_data):
+        for i in range(uwb_data.shape[0]):
+            for j in range(1, uwb_data.shape[1]):
+                if uwb_data[i, j] > 0.0 and abs(uwb_data[i, j] - ref_cal_range[i, j]) < 1000.0:
+                    r_error[i, j] = uwb_data[i, j] - ref_cal_range[i, j]
+
+
+    cal_error(r_error, ref_cal_range, uwb_data)
+
+    plt.figure()
+    plt.title('uwb range')
+    for i in range(1, ref_range.shape[1]):
+        # plt.plot(ref_range[:, 0], ref_range[:, i], label=str(i))
+        if np.max(uwb_data[:, i] > 0.0) and beacon_set[i - 1, 0] < 5000.0:
+            # plt.plot(ref_cal_range[:, 0], ref_cal_range[:, i], label=str(i))
+            # plt.plot(uwb_data[:, 0], uwb_data[:, i], '*', label=str(i))
+            plt.plot(r_error[:, 0], r_error[:, i], label=str(i))
+    plt.grid()
+    plt.legend()
+
+    plt.figure()
+    plt.title('trace')
+    plt.plot(ref_trace[:, 0], ref_trace[:, 1], label='x')
+    plt.plot(ref_trace[:, 0], ref_trace[:, 2], label='y')
     plt.grid()
     plt.legend()
 
