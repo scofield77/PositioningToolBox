@@ -81,7 +81,7 @@ if __name__ == '__main__':
         for i in range(ref_trace.shape[0]):
             ref_range[i, 0] = ref_trace[i, 0]
             for j in range(1, uwb_data.shape[1]):
-                ref_range[i, j] = np.linalg.norm(ref_trace[i, 1:] - beacon_set[i, :])
+                ref_range[i, j] = np.linalg.norm(ref_trace[i, 1:] - beacon_set[j-1, :])
                 if ref_range[i, j] > 1000.0:
                     ref_range[i, j] = 0.0
 
