@@ -83,6 +83,13 @@ if __name__ == '__main__':
 
     @jit
     def compute_ref_range(ref_range, beacon_set, ref_trace):
+        '''
+        compute ref range based on ref trace and beaconset.
+        :param ref_range:
+        :param beacon_set:
+        :param ref_trace:
+        :return:
+        '''
 
         for i in range(ref_trace.shape[0]):
             ref_range[i, 0] = ref_trace[i, 0]
@@ -106,6 +113,12 @@ if __name__ == '__main__':
 
     @jit(nopython=True)
     def process_ref_cal_range(ref_cal_range, ref_range):
+        '''
+        process ref calibrated range, set the first and last several measurements be right.
+        :param ref_cal_range:
+        :param ref_range:
+        :return:
+        '''
         for i in range(1, ref_cal_range.shape[1]):
             for j in range(0, ref_cal_range.shape[0]):
                 if ref_cal_range[j, 0] < ref_range[1, 0]:
@@ -130,7 +143,16 @@ if __name__ == '__main__':
     r_error[:, 0] = ref_cal_range[:, 0]
 
 
+
+    @jit(nopython=True,cache=True)
     def cal_error(r_error, ref_cal_range, uwb_data):
+        '''
+        calculate error of each beacon.
+        :param r_error:
+        :param ref_cal_range:
+        :param uwb_data:
+        :return:
+        '''
         for i in range(uwb_data.shape[0]):
             for j in range(1, uwb_data.shape[1]):
                 if uwb_data[i, j] > 0.0 and abs(uwb_data[i, j] - ref_cal_range[i, j]) < 1000.0:
