@@ -85,6 +85,8 @@ class UwbOptimizeLocation:
             else:
                 return 2.0 * u2 /(1.0+u2)-0.5
 
+        # self.measurements = measurements[self.use_index]
+        # self.beacon_set = self.beacon_set[self.use_index]
         rou = np.vectorize(rou)
         dis_to_beacon = np.linalg.norm(pose - self.beacon_set, axis=1)
 
@@ -127,10 +129,26 @@ class UwbOptimizeLocation:
 
         best_result = minimize(self.position_error_function,
                                initial_pose,method='BFGS')
-        # best_result.fun=100000.0
+        best_result.fun=100000.0
         min_index = 1000
+        # if measurements.shape[0] <= 4:
+        #     self.beacon_set = self.beacon_set[np.where(
+        #         np.logical_and(measurements>0.0 , measurements<550.0)
+        #     )]
+        #     measurements = measurements[
+        #         np.where(
+        #             np.logical_and(measurements>0.0 , measurements<550)
+        #         )
+        #     ]
+        #     self.beacon_set = beacon_backup
+        #         # self.measurements = measurements*1.0
+        #
+        #     best_result = minimize(self.position_error_robust_function,
+        #                            initial_pose,method='BFGS')
+        #     print('out')
+        #     return best_result.x, best_result.fun
 
-        while measurements.shape[0] >= 4:
+        while measurements.shape[0] > 4:
             func_error = list()
             # if np.logical_and(measurements>0.0,measurements<550)
             self.beacon_set = self.beacon_set[np.where(
@@ -141,6 +159,7 @@ class UwbOptimizeLocation:
                     np.logical_and(measurements>0.0 , measurements<550)
                 )
             ]
+            # valid measurements less than 4, so use robust positioning result.
             if measurements.shape[0] < 4:
                 self.beacon_set = beacon_backup
                 # self.measurements = measurements*1.0
@@ -180,6 +199,7 @@ class UwbOptimizeLocation:
 
 
         self.beacon_set= beacon_backup
+
         # print(best_result.x)
 
         # print('---------------------------------------------------')
