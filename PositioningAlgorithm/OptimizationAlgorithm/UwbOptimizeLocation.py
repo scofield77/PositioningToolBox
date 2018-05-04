@@ -76,8 +76,13 @@ class UwbOptimizeLocation:
     def position_error_robust_function(self, pose):
         # @vectorize([float64(float64)])
         def rou(u):
-            return 0.5 * u * u / (1.0 + u * u)
-            # return
+            # return 0.5 * u * u / (1.0 + u * u)
+
+            u2 = u*u
+            if u2 < 0.5:
+                return 0.5 * u2
+            else:
+                return 2.0 * u2 /(1.0+u2)-0.5
 
         rou = np.vectorize(rou)
         dis_to_beacon = np.linalg.norm(pose - self.beacon_set, axis=1)
@@ -98,14 +103,12 @@ class UwbOptimizeLocation:
         self.measurements = measurements[self.use_index]
         self.beacon_set = self.beacon_set[self.use_index]
 
-        if initial_pose.sum() < 111111111110.001:
-            result = minimize(self.position_error_robust_function,
-                              initial_pose, method='BFGS')
-        else:
-            result = minimize(self.position_error_robust_function,
-                              initial_pose, bounds=[(initial_pose[0] - max_dis, initial_pose[1] + max_dis),
-                                                     (initial_pose[1] - max_dis, initial_pose[1] + max_dis),
-                                                     (initial_pose[2] - max_dis, initial_pose[2] + max_dis)],method='L-BFGS-B')
+        # result = minimize(self.position_error_function,
+        #                   initial_pose,method='BFGS')
+
+        result = minimize(self.position_error_robust_function,
+                          initial_pose, method='BFGS')
+
         return result.x, result.fun
 
 

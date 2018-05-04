@@ -72,17 +72,25 @@ if __name__ == '__main__':
                 uol.positioning_function_robust(uwb_trace_r[i - 1, :],
                                                 uwb_data[i, 1:])
 
+        # else:
+        #     uwb_trace[i, :], uwb_opt_res[i] = \
+        #         uol.positioning_function(uwb_trace[i - 1, :],
+        #                                  uwb_data[i, 1:])
+        #     uwb_trace_r[i, :], uwb_opt_res_r[i] = \
+        #         uol.positioning_function_robust(2.0 * uwb_trace_r[i - 1, :] - uwb_trace_r[i - 2, :],
+        #                                         uwb_data[i, 1:])
+
     plt.figure()
     plt.title('trace 2d')
-    plt.plot(uwb_trace[:, 0], uwb_trace[:, 1], label='uwb')
-    plt.plot(uwb_trace_r[:, 0], uwb_trace_r[:, 1], label='uwb r')
+    plt.plot(uwb_trace[:, 0], uwb_trace[:, 1], '-+', label='uwb')
+    plt.plot(uwb_trace_r[:, 0], uwb_trace_r[:, 1], '-+', label='uwb r')
     plt.grid()
     plt.legend()
 
     plt.figure()
     plt.title('res')
-    plt.plot(uwb_opt_res,label= 'uwb')
-    plt.plot(uwb_opt_res_r, label='uwb r')
+    plt.plot(uwb_opt_res, '-+', label='uwb')
+    plt.plot(uwb_opt_res_r, '-+', label='uwb r')
     plt.grid()
     plt.legend()
 
@@ -91,8 +99,8 @@ if __name__ == '__main__':
     ax = fig.add_subplot(111, projection='3d')
     ax.set_title('trace 3d')
 
-    ax.plot(uwb_trace[:, 0], uwb_trace[:, 1], uwb_trace[:, 2], label='uwb')
-    ax.plot(uwb_trace_r[:, 0], uwb_trace_r[:, 1], uwb_trace_r[:, 2], label='uwb r')
+    ax.plot(uwb_trace[:, 0], uwb_trace[:, 1], uwb_trace[:, 2], '-+', label='uwb')
+    ax.plot(uwb_trace_r[:, 0], uwb_trace_r[:, 1], uwb_trace_r[:, 2], '-+', label='uwb r')
     ax.grid()
     ax.legend()
 
