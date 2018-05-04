@@ -130,7 +130,7 @@ class UwbOptimizeLocation:
         # best_result.fun=100000.0
         min_index = 1000
 
-        while measurements.shape[0] > 4:
+        while measurements.shape[0] >= 4:
             func_error = list()
             # if np.logical_and(measurements>0.0,measurements<550)
             self.beacon_set = self.beacon_set[np.where(
@@ -143,9 +143,11 @@ class UwbOptimizeLocation:
             ]
             if measurements.shape[0] < 4:
                 self.beacon_set = beacon_backup
+                # self.measurements = measurements*1.0
 
                 best_result = minimize(self.position_error_robust_function,
                                        initial_pose,method='BFGS')
+                print('in')
                 break
 
 
@@ -165,7 +167,7 @@ class UwbOptimizeLocation:
                     min_index = i+0
                 func_error.append(result.fun)
                 # print(result.fun,best_result.fun)
-            print(sorted(func_error))
+            # print(sorted(func_error))
             # break
             if np.std(np.asarray(func_error))<2.0:
                 break
@@ -174,12 +176,13 @@ class UwbOptimizeLocation:
                     measurements[min_index] = 100000
                 else:
                     break
+        # if measurements
 
 
         self.beacon_set= beacon_backup
         # print(best_result.x)
 
-        print('---------------------------------------------------')
+        # print('---------------------------------------------------')
         return best_result.x,best_result.fun
 
 
