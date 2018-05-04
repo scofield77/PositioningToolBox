@@ -44,7 +44,6 @@ class UwbOptimizeLocation:
         self.use_index = np.where(beacon_set[:, 0] < 1000.0)
         self.beacon_set = beacon_set[self.use_index]
 
-
         self.counter = 0
 
     def position_error_function(self, pose):
@@ -82,11 +81,11 @@ class UwbOptimizeLocation:
         def rou(u):
             # return 0.5 * u * u / (1.0 + u * u)
 
-            u2 = u*u
+            u2 = u * u
             if u2 < 0.5:
                 return 0.5 * u2
             else:
-                return 2.0 * u2 /(1.0+u2)-0.5
+                return 2.0 * u2 / (1.0 + u2) - 0.5
 
         # self.measurements = measurements[self.use_index]
         # self.beacon_set = self.beacon_set[self.use_index]
@@ -129,11 +128,10 @@ class UwbOptimizeLocation:
         measurements = measurements[self.use_index]
         beacon_backup = self.beacon_set * 1.0
 
-
         # initial result based on all measurements and normal error function.
         best_result = minimize(self.position_error_function,
-                               initial_pose,method='BFGS')
-        best_result.fun=100000.0
+                               initial_pose, method='BFGS')
+        best_result.fun = 100000.0
         min_index = 1000
         # if measurements.shape[0] <= 4:
         #     self.beacon_set = self.beacon_set[np.where(
@@ -156,11 +154,11 @@ class UwbOptimizeLocation:
             func_error = list()
             # if np.logical_and(measurements>0.0,measurements<550)
             self.beacon_set = self.beacon_set[np.where(
-                np.logical_and(measurements>0.0 , measurements<550.0)
+                np.logical_and(measurements > 0.0, measurements < 550.0)
             )]
             measurements = measurements[
                 np.where(
-                    np.logical_and(measurements>0.0 , measurements<550)
+                    np.logical_and(measurements > 0.0, measurements < 550)
                 )
             ]
             # valid measurements less than 4, so use robust positioning result.
@@ -169,7 +167,7 @@ class UwbOptimizeLocation:
                 # self.measurements = measurements*1.0
 
                 best_result = minimize(self.position_error_robust_function,
-                                       initial_pose,method='BFGS')
+                                       initial_pose, method='BFGS')
                 # self.counter +=1
                 # print(self.counter)
                 # print('in')
@@ -180,44 +178,38 @@ class UwbOptimizeLocation:
                 #     print(self.c)
                 break
 
-
-
             for i in range(measurements.shape[0]):
 
-
-                self.measurements=measurements*1.0
+                self.measurements = measurements * 1.0
                 self.measurements[i] = 10000.0
 
                 result = minimize(self.position_error_function,
-                                  initial_pose,method='BFGS')
+                                  initial_pose, method='BFGS')
                 # if best_result is None:
                 #     best_result = result
                 # else:
                 if result.fun < best_result.fun:
                     best_result = result
-                    min_index = i+0
+                    min_index = i + 0
                 func_error.append(result.fun)
                 # print(result.fun,best_result.fun)
             # print(sorted(func_error))
             # break
-            if np.std(np.asarray(func_error))<2.0:
+            if np.std(np.asarray(func_error)) < 2.0:
                 break
             else:
-                if min_index< measurements.shape[0]:
+                if min_index < measurements.shape[0]:
                     measurements[min_index] = 100000
                 else:
                     break
         # if measurements
 
-
-        self.beacon_set= beacon_backup
+        self.beacon_set = beacon_backup
 
         # print(best_result.x)
 
         # print('---------------------------------------------------')
-        return best_result.x,best_result.fun
-
-
+        return best_result.x, best_result.fun
 
 
 if __name__ == '__main__':
