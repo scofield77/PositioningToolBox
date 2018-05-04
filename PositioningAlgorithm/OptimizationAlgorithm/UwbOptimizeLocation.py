@@ -120,6 +120,7 @@ class UwbOptimizeLocation:
         return result.x, result.fun
 
     def iter_positioning(self, initial_pose, measurements):
+        self.measurements = measurements[self.use_index]
         measurements = measurements[self.use_index]
         beacon_backup = self.beacon_set * 1.0
 
@@ -141,6 +142,10 @@ class UwbOptimizeLocation:
                 )
             ]
             if measurements.shape[0] < 4:
+                self.beacon_set = beacon_backup
+
+                best_result = minimize(self.position_error_robust_function,
+                                       initial_pose,method='BFGS')
                 break
 
 
