@@ -56,7 +56,6 @@ class UwbOptimizeLocation:
         return np.linalg.norm((dis_to_beacon - self.measurements)[
                                   np.where(np.logical_and(self.measurements > 0.0, self.measurements < 550.0))])
 
-
     def positioning_function(self, initial_pose, measurements):
         '''
 
@@ -72,23 +71,21 @@ class UwbOptimizeLocation:
         result = minimize(self.position_error_function,
                           initial_pose, method='BFGS')
 
-
         return result.x, result.fun
 
-    def position_error_robust_function(self,pose):
+    def position_error_robust_function(self, pose):
         # @vectorize([float64(float64)])
         def rou(u):
-
-            return 0.5  * u*u /(1.0+u*u)
+            return 0.5 * u * u / (1.0 + u * u)
             # return
 
         rou = np.vectorize(rou)
-        dis_to_beacon = np.linalg.norm(pose-self.beacon_set,axis=1)
+        dis_to_beacon = np.linalg.norm(pose - self.beacon_set, axis=1)
 
         return np.linalg.norm(rou(dis_to_beacon - self.measurements)[
                                   np.where(np.logical_and(self.measurements > 0.0, self.measurements < 550.0))])
 
-    def positioning_function_robust(self, initial_pose, measurements):
+    def positioning_function_robust(self, initial_pose, measurements, max_dis=2.0):
         # k = 0
         # dis_to_beacon
         # pose = initial_pose
@@ -97,13 +94,19 @@ class UwbOptimizeLocation:
         #     dis_to_beacon=np.linalg.norm(pose-beacon_data)
         #
         #     dis_error = np.linalg
+        initial_pose = np.asarray(initial_pose)
         self.measurements = measurements[self.use_index]
         self.beacon_set = self.beacon_set[self.use_index]
 
-        result = minimize(self.position_error_robust_function,
-                          initial_pose, method='BFGS')
-        return result.x,result.fun
-
+        if initial_pose.sum() < 111111111110.001:
+            result = minimize(self.position_error_robust_function,
+                              initial_pose, method='BFGS')
+        else:
+            result = minimize(self.position_error_robust_function,
+                              initial_pose, bounds=[(initial_pose[0] - max_dis, initial_pose[1] + max_dis),
+                                                     (initial_pose[1] - max_dis, initial_pose[1] + max_dis),
+                                                     (initial_pose[2] - max_dis, initial_pose[2] + max_dis)],method='L-BFGS-B')
+        return result.x, result.fun
 
 
 if __name__ == '__main__':
