@@ -58,19 +58,19 @@ if __name__ == '__main__':
 
     for i in range(uwb_data.shape[0]):
         if i is 0:
-            uwb_trace[i, :], uwb_opt_res[i] = \
-                uol.positioning_function((0, 0, 0),
-                                         uwb_data[i, 1:])
-            # uwb_trace_r[i, :], uwb_opt_res_r[i] = \
-            #     uol.positioning_function_robust((0, 0, 0),
-            #                                     uwb_data[i, 1:])
+            # uwb_trace[i, :], uwb_opt_res[i] = \
+            #     uol.positioning_function((0, 0, 0),
+            #                              uwb_data[i, 1:])
+            uwb_trace_r[i, :], uwb_opt_res_r[i] = \
+                uol.positioning_function_robust((0, 0, 0),
+                                                uwb_data[i, 1:])
         else:
-            uwb_trace[i, :], uwb_opt_res[i] = \
-                uol.positioning_function(uwb_trace[i - 1, :],
-                                         uwb_data[i, 1:])
-            # uwb_trace_r[i, :], uwb_opt_res_r[i] = \
-            #     uol.positioning_function_robust(uwb_trace_r[i - 1, :],
-            #                                     uwb_data[i, 1:])
+            # uwb_trace[i, :], uwb_opt_res[i] = \
+            #     uol.positioning_function(uwb_trace[i - 1, :],
+            #                              uwb_data[i, 1:])
+            uwb_trace_r[i, :], uwb_opt_res_r[i] = \
+                uol.positioning_function_robust(uwb_trace_r[i - 1, :],
+                                                uwb_data[i, 1:])
 
     plt.figure()
     plt.title('trace 2d')
