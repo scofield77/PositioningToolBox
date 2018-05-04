@@ -79,7 +79,7 @@ class UwbOptimizeLocation:
 
         # @jit(nopython=True,cache=True)
         def rou(u):
-            return 0.5 * u * u
+            return 0.5 * u * u /(1.0+u*u)
 
         rou = np.vectorize(rou)
         dis_to_beacon = np.linalg.norm(pose-self.beacon_set,axis=1)
@@ -101,6 +101,8 @@ class UwbOptimizeLocation:
 
         result = minimize(self.position_error_robust_function,
                           initial_pose, method='BFGS')
+        return result.x,result.fun
+
 
 
 if __name__ == '__main__':
