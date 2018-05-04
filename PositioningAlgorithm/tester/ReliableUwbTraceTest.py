@@ -42,7 +42,7 @@ if __name__ == '__main__':
     start_time = time.time()
     # dir_name = '/home/steve/Data/FusingLocationData/0017/'
     # dir_name = '/home/steve/Data/FusingLocationData/0013/'
-    dir_name = '/home/steve/Data/NewFusingLocationData/0035/'
+    dir_name = '/home/steve/Data/NewFusingLocationData/0033/'
 
     # uwb_data = np.loadtxt(dir_name + 'uwb_result.csv', delimiter=',')
     # beacon_set = np.loadtxt(dir_name + 'beaconSet.csv', delimiter=',')
@@ -83,7 +83,7 @@ if __name__ == '__main__':
 
     t_trace = np.zeros_like(uwb_trace)
     for i in range(uwb_trace.shape[0]):
-        if (uwb_opt_res[i] > 0.4 or abs(uwb_trace[i,2]-average_high)>0.1)and i > -1:
+        if (uwb_opt_res[i] > 0.2 or abs(uwb_trace[i,2]-average_high)>0.1)and i > -1:
             # t_trace[i,:] =
             t_trace[i, 0] = t_trace[i, 0]
         else:
