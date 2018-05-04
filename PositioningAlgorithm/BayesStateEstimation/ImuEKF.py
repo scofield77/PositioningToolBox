@@ -246,8 +246,8 @@ class ImuEKFComplex:
             P_v = (self.H.dot(self.prob_state)).dot(np.transpose(self.H)) + R_k;
 
             eta_k[0] = (np.transpose(v_k).dot(P_v)).dot(v_k)
-            print(eta_k[0])
-
+            # print(eta_k[0])
+            #
             # if eta_k[0] > 15.0:
             #     return
 
@@ -273,20 +273,70 @@ class ImuEKFComplex:
         self.rotation_q = quaternion_left_update(self.rotation_q, dx[6:9], -1.0)
 
         self.state[6:9] = dcm2euler(q2dcm(self.rotation_q))
-    def measurement_uwb_mc(self,measurement, cov_m, beacon_set, ka_squard):
+    def measurement_uwb_mc(self,measurement, cov_m, beacon_set):
+
+        measurement = measurement[np.where(beacon_set[:,0]<5000.0)] *1.0
+        beacon_set = beacon_set[np.where(beacon_set<5000.0)] *1.0
+        beacon_set = beacon_set.reshape([-1,3])
+
+
+
+        m_index = np.where(measurement>0.0)
+        measurement = measurement[m_index]*1.0
+        beacon_set = beacon_set[m_index,:] *1.0
+        print(measurement.shape,beacon_set.shape)
+        measurement = measurement.reshape(-1)
+        beacon_set = beacon_set.reshape([-1,3])
+
+        if measurement.shape[0] < 3:
+            self.measurement_uwb_robust_multi(measurement,cov_m,beacon_set,8.0)
+            return
+        else:
+            print('mc')
+
+
+
+
         particles = np.zeros(shape=(1000,3))
         w = np.ones(shape=particles.shape[0])
 
-
+        rnd_p = np.random.normal(0.0,1.0,size=particles.shape)
 
         # sample
-
+        for i in range(3):
+            particles[:,i] = self.state[i] + rnd_p[:,i] * self.prob_state[i,i]
 
 
         # measurement
 
+        select_rnd = np.random.randint(0,measurement.shape[0]-1,size=particles.shape[0])
+        for i in range(w.shape[0]):
+            w[i] = w[i]  / abs(np.linalg.norm(particles[i,:]-beacon_set[select_rnd[i],:])-measurement[select_rnd[i]])
+        w = w / w.sum()
 
         # cluster
+
+
+
+        # self.state[0:3] = np.average(particles,axis=0,weights=w)
+        from sklearn.cluster import DBSCAN
+
+        cluster = DBSCAN(eps=0.3,min_samples=2)
+        cluster = cluster.fit(X=particles,sample_weight=w)
+        print(cluster.labels_)
+
+
+        # index = np.where(cluster)
+
+
+
+
+
+
+
+
+
+
 
     def measurement_uwb_robust_multi(self, measurement, cov_m, beacon_set, ka_squard):
         # @jit(nopython=True)
@@ -337,7 +387,7 @@ class ImuEKFComplex:
                                                    self.prob_state)
                 if abs(tvk) < 100.0 :#or tvk > 10.0:
                     v_k_list.append(tvk)
-                    R_k_list.append(trk)
+                    R_k_list.append(cov_m[0])
                     H_list.append(th)
                     K_list.append(tk)
                     dx_list.append(tdx)
@@ -349,13 +399,20 @@ class ImuEKFComplex:
         if len(v_k_list)>4:
             #iter
             max_index = np.argmax(np.asarray(v_k_list))
-            v_k_list[max_index] = 0.0
-            R_k_list[max_index] = 1000000000.0
+            print('max:',v_k_list[max_index],R_k_list[max_index])
+            if abs(v_k_list[max_index]) > 0.0:
+                v_k_list[max_index] = 0.0
+                R_k_list[max_index] = 1000000000.0
+            max_index = np.argmax(np.asarray(v_k_list))
+            print('max:',v_k_list[max_index],R_k_list[max_index])
+            if abs(v_k_list[max_index]) > 0.0:
+                v_k_list[max_index] = 0.0
+                R_k_list[max_index] = 1000000000.0
         elif len(v_k_list) is 4:
             max_index = np.argmax(np.asarray(v_k_list))
-            v_k_list[max_index] = 0.0
-            R_k_list[max_index]= 1000000000.0
-
+            if abs(v_k_list[max_index]) > 0.0:
+                v_k_list[max_index] = 0.0
+                R_k_list[max_index] = 1000000000.0
 
         # print('size:',len(R_k_list),R_k_list)
         # print('size:',len(R_k_list),v_k_list)
@@ -364,9 +421,9 @@ class ImuEKFComplex:
         self.H = np.zeros(shape=(len(v_k_list), self.state.shape[0]))
         V = np.zeros(shape=(len(v_k_list), 1))
         # print(sorted(v_k_list))
-        print(v_k_list)
-        print(R_k_list)
-        print('-0---------------------------------')
+        # print(v_k_list)
+        # print(R_k_list)
+        # print('-0---------------------------------')
 
         for i in range(len(v_k_list)):
             R_matrix[i, i] = R_k_list[i]
