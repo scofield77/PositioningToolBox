@@ -30,7 +30,7 @@ from scipy.optimize import minimize
 import matplotlib.pyplot as plt
 import math
 
-from numba import jit, float64
+from numba import jit, float64, vectorize
 
 
 class UwbOptimizeLocation:
@@ -76,10 +76,11 @@ class UwbOptimizeLocation:
         return result.x, result.fun
 
     def position_error_robust_function(self,pose):
-
-        # @jit(nopython=True,cache=True)
+        # @vectorize([float64(float64)])
         def rou(u):
-            return 0.5 * u * u /(1.0+u*u)
+
+            return 0.5  * u*u /(1.0+u*u)
+            # return
 
         rou = np.vectorize(rou)
         dis_to_beacon = np.linalg.norm(pose-self.beacon_set,axis=1)
