@@ -89,6 +89,7 @@ if __name__ == '__main__':
         #     uwb_trace_r[i, :], uwb_opt_res_r[i] = \
         #         uol.positioning_function_robust(2.0 * uwb_trace_r[i - 1, :] - uwb_trace_r[i - 2, :],
         #                                         uwb_data[i, 1:])
+    print(uwb_data.shape)
 
     plt.figure()
     plt.title('trace 2d')
