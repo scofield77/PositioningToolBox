@@ -39,9 +39,10 @@ class UwbOptimizeLocation:
 
         :param beacon_set:
         '''
-        self.beacon_set = beacon_set
+        # self.beacon_set = beacon_set
         self.measurements = np.zeros(beacon_set.shape[0])
-        self.use_index = np.where(self.beacon_set[:, 0] < 1000.0)
+        self.use_index = np.where(beacon_set[:, 0] < 1000.0)
+        self.beacon_set = beacon_set[self.use_index]
 
     def position_error_function(self, pose):
         '''
@@ -91,6 +92,13 @@ class UwbOptimizeLocation:
                                   np.where(np.logical_and(self.measurements > 0.0, self.measurements < 550.0))])
 
     def positioning_function_robust(self, initial_pose, measurements, max_dis=2.0):
+        '''
+        Robust based on rou function( a simplify of M-Estimation method).
+        :param initial_pose:
+        :param measurements:
+        :param max_dis:
+        :return:
+        '''
         # k = 0
         # dis_to_beacon
         # pose = initial_pose
@@ -101,7 +109,7 @@ class UwbOptimizeLocation:
         #     dis_error = np.linalg
         initial_pose = np.asarray(initial_pose)
         self.measurements = measurements[self.use_index]
-        self.beacon_set = self.beacon_set[self.use_index]
+        # self.beacon_set = self.beacon_set[self.use_index]
 
         # result = minimize(self.position_error_function,
         #                   initial_pose,method='BFGS')
@@ -110,6 +118,66 @@ class UwbOptimizeLocation:
                           initial_pose, method='BFGS')
 
         return result.x, result.fun
+
+    def iter_positioning(self, initial_pose, measurements):
+        measurements = measurements[self.use_index]
+        beacon_backup = self.beacon_set * 1.0
+
+
+        best_result = minimize(self.position_error_function,
+                               initial_pose,method='BFGS')
+        # best_result.fun=100000.0
+        min_index = 1000
+
+        while measurements.shape[0] > 4:
+            func_error = list()
+            # if np.logical_and(measurements>0.0,measurements<550)
+            self.beacon_set = self.beacon_set[np.where(
+                np.logical_and(measurements>0.0 , measurements<550.0)
+            )]
+            measurements = measurements[
+                np.where(
+                    np.logical_and(measurements>0.0 , measurements<550)
+                )
+            ]
+            if measurements.shape[0] < 4:
+                break
+
+
+            for i in range(measurements.shape[0]):
+
+
+                self.measurements=measurements*1.0
+                self.measurements[i] = 10000.0
+
+                result = minimize(self.position_error_function,
+                                  initial_pose,method='BFGS')
+                # if best_result is None:
+                #     best_result = result
+                # else:
+                if result.fun < best_result.fun:
+                    best_result = result
+                    min_index = i+0
+                func_error.append(result.fun)
+                # print(result.fun,best_result.fun)
+            print(sorted(func_error))
+            # break
+            if np.std(np.asarray(func_error))<2.0:
+                break
+            else:
+                if min_index< measurements.shape[0]:
+                    measurements[min_index] = 100000
+                else:
+                    break
+
+
+        self.beacon_set= beacon_backup
+        # print(best_result.x)
+
+        print('---------------------------------------------------')
+        return best_result.x,best_result.fun
+
+
 
 
 if __name__ == '__main__':

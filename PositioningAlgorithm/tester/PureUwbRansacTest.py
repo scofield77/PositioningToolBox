@@ -42,7 +42,7 @@ if __name__ == '__main__':
     start_time = time.time()
     # dir_name = '/home/steve/Data/FusingLocationData/0017/'
     # dir_name = '/home/steve/Data/FusingLocationData/0013/'
-    dir_name = '/home/steve/Data/NewFusingLocationData/0033/'
+    dir_name = '/home/steve/Data/NewFusingLocationData/0034/'
 
     # uwb_data = np.loadtxt(dir_name + 'uwb_result.csv', delimiter=',')
     # beacon_set = np.loadtxt(dir_name + 'beaconSet.csv', delimiter=',')
@@ -56,6 +56,9 @@ if __name__ == '__main__':
     uwb_trace_r = np.zeros([uwb_data.shape[0], 3])
     uwb_opt_res_r = np.zeros([uwb_data.shape[0]])
 
+    uwb_trace_ir = np.zeros_like(uwb_trace)
+    uwb_opt_res_ir = np.zeros_like(uwb_opt_res)
+
     for i in range(uwb_data.shape[0]):
         if i is 0:
             uwb_trace[i, :], uwb_opt_res[i] = \
@@ -64,12 +67,19 @@ if __name__ == '__main__':
             uwb_trace_r[i, :], uwb_opt_res_r[i] = \
                 uol.positioning_function_robust((0, 0, 0),
                                                 uwb_data[i, 1:])
+            uwb_trace_ir[i, :], uwb_opt_res_ir[i] = \
+                uol.iter_positioning((0, 0, 0),
+                                                uwb_data[i, 1:])
+
         else:
             uwb_trace[i, :], uwb_opt_res[i] = \
                 uol.positioning_function(uwb_trace[i - 1, :],
                                          uwb_data[i, 1:])
             uwb_trace_r[i, :], uwb_opt_res_r[i] = \
                 uol.positioning_function_robust(uwb_trace_r[i - 1, :],
+                                                uwb_data[i, 1:])
+            uwb_trace_ir[i, :], uwb_opt_res_ir[i] = \
+                uol.iter_positioning(uwb_trace_ir[i-1,:],
                                                 uwb_data[i, 1:])
 
         # else:
@@ -84,6 +94,7 @@ if __name__ == '__main__':
     plt.title('trace 2d')
     plt.plot(uwb_trace[:, 0], uwb_trace[:, 1], '-+', label='uwb')
     plt.plot(uwb_trace_r[:, 0], uwb_trace_r[:, 1], '-+', label='uwb r')
+    plt.plot(uwb_trace_ir[:, 0], uwb_trace_ir[:, 1], '-+', label='uwb ir')
     plt.grid()
     plt.legend()
 
@@ -91,6 +102,7 @@ if __name__ == '__main__':
     plt.title('res')
     plt.plot(uwb_opt_res, '-+', label='uwb')
     plt.plot(uwb_opt_res_r, '-+', label='uwb r')
+    plt.plot(uwb_opt_res_ir, '-+', label='uwb ir')
     plt.grid()
     plt.legend()
 
@@ -101,6 +113,7 @@ if __name__ == '__main__':
 
     ax.plot(uwb_trace[:, 0], uwb_trace[:, 1], uwb_trace[:, 2], '-+', label='uwb')
     ax.plot(uwb_trace_r[:, 0], uwb_trace_r[:, 1], uwb_trace_r[:, 2], '-+', label='uwb r')
+    ax.plot(uwb_trace_ir[:, 0], uwb_trace_ir[:, 1], uwb_trace_ir[:, 2], '-+', label='uwb ir')
     ax.grid()
     ax.legend()
 
