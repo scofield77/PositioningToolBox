@@ -57,19 +57,22 @@ if __name__ == '__main__':
     # matplotlib.rcParams['toolbar'] = 'toolmanager'
     start_time = time.time()
     # dir_name = '/home/steve/Data/FusingLocationData/0017/'
-    dir_name = '/home/steve/Data/FusingLocationData/0013/'
-    # dir_name = '/home/steve/Data/NewFusingLocationData/0034/'
+    # dir_name = '/home/steve/Data/FusingLocationData/0013/'
+    dir_name = '/home/steve/Data/NewFusingLocationData/0035/'
 
-    imu_data = np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=',')
+    # imu_data = np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=',')
+    imu_data = np.loadtxt(dir_name + 'LEFT_FOOT.data', delimiter=',')
     # imu_data = np.loadtxt(dir_name + 'HEAD.data', delimiter=',')
     imu_data = imu_data[:, 1:]
     imu_data[:, 1:4] = imu_data[:, 1:4] * 9.81
     imu_data[:, 4:7] = imu_data[:, 4:7] * (np.pi / 180.0)
 
-    uwb_data = np.loadtxt(dir_name + 'uwb_result.csv', delimiter=',')
-    beacon_set = np.loadtxt(dir_name + 'beaconSet.csv', delimiter=',')
-    # uwb_data = np.loadtxt(dir_name + 'uwb_data.csv', delimiter=',')
-    # beacon_set = np.loadtxt(dir_name + 'beaconset_no_mac.csv', delimiter=',')
+    # uwb_data = np.loadtxt(dir_name + 'uwb_result.csv', delimiter=',')
+    # beacon_set = np.loadtxt(dir_name + 'beaconSet.csv', delimiter=',')
+    uwb_data = np.loadtxt(dir_name + 'uwb_data.csv', delimiter=',')
+    beacon_set = np.loadtxt(dir_name + 'beaconset_no_mac.csv', delimiter=',')
+
+    ref_trace = np.loadtxt(dir_name + 'ref_trace.csv', delimiter=',')
 
     uol = UwbOptimizeLocation(beacon_set)
     uwb_trace = np.zeros([uwb_data.shape[0], 3])
@@ -77,11 +80,11 @@ if __name__ == '__main__':
     for i in range(uwb_data.shape[0]):
         if i is 0:
             uwb_trace[i, :], uwb_opt_res[i] = \
-                uol.positioning_function((0, 0, 0),
+                uol.iter_positioning((0, 0, 0),
                                          uwb_data[i, 1:])
         else:
             uwb_trace[i, :], uwb_opt_res[i] = \
-                uol.positioning_function(uwb_trace[i - 1, :],
+                uol.iter_positioning(uwb_trace[i - 1, :],
                                          uwb_data[i, 1:])
 
     # initial_state = get_initial_state(imu_data[:40, 1:4], np.asarray((0, 0, 0)), 0.0, 9)
@@ -104,7 +107,13 @@ if __name__ == '__main__':
     average_time_interval = (imu_data[-1, 0] - imu_data[0, 0]) / float(imu_data.shape[0])
     print('average time interval ', average_time_interval)
 
-    initial_orientation = 200.0 / 180.0 * np.pi
+    initial_pos = ref_trace[0, 1:]
+
+    ti = 1
+    while np.linalg.norm(ref_trace[ti, 1:] - ref_trace[0, 1:]) < 5.0:
+        ti += 1
+    initial_orientation = math.atan2(ref_trace[ti, 2] - ref_trace[0, 2],
+                                     ref_trace[ti, 1] - ref_trace[0, 1])-10.0 * np.pi /180.0
     # initial_orientation = 200.0 / 180.0 * np.pi
 
     kf = ImuEKFComplex(np.diag((
@@ -118,10 +127,11 @@ if __name__ == '__main__':
         0.0001 * np.pi / 180.0,
         0.0001 * np.pi / 180.0
     )),
-        local_g=-9.81, time_interval=average_time_interval)
+        local_g=-9.81,
+        time_interval=average_time_interval)
 
     kf.initial_state(imu_data[:50, 1:7],
-                     pos=np.mean(uwb_trace[0:3, :], axis=0),
+                     pos=initial_pos,
                      ori=initial_orientation)
     rkf = ImuEKFComplex(np.diag((
         0.001, 0.001, 0.001,
@@ -137,7 +147,7 @@ if __name__ == '__main__':
         local_g=-9.81, time_interval=average_time_interval)
 
     rkf.initial_state(imu_data[:50, 1:7],
-                      pos=np.mean(uwb_trace[0:3, :], axis=0),
+                      pos=initial_pos,
                       ori=initial_orientation)
 
     zv_state = GLRT_Detector(imu_data[:, 1:7],
@@ -176,21 +186,22 @@ if __name__ == '__main__':
                 if uwb_data[uwb_index, 0] < imu_data[i, 0]:
 
                     if uwb_index < uwb_data.shape[0] - 1:
-                        # rkf.measurement_uwb_robust_multi(np.asarray(uwb_data[uwb_index, 1:]),
-                        #                                  np.ones(1) * 0.1,
-                        #                                  beacon_set,
-                        #                                  6.0)
+                        rkf.measurement_uwb_robust_multi(np.asarray(uwb_data[uwb_index, 1:]),
+                                                         np.ones(1) * 0.1,
+                                                         beacon_set,
+                                                         6.0)
                         uwb_index += 1
                         for j in range(1, uwb_data.shape[1]):
-                            if uwb_data[uwb_index, j] > 0.0 and uwb_data[uwb_index, j] < 1000.0 and beacon_set[
-                                j - 1, 0] < 1000.0:
+                            if uwb_data[uwb_index, j] > 0.0 and \
+                                    uwb_data[uwb_index, j] < 1000.0 and \
+                                    beacon_set[j - 1, 0] < 1000.0:
                                 kf.measurement_uwb(np.asarray(uwb_data[uwb_index, j]),
-                                                   np.ones(1) * 1.0,
+                                                   np.ones(1) * 0.2,
                                                    np.transpose(beacon_set[j - 1, :]))
-                                rkf.measurement_uwb_robust(np.asarray(uwb_data[uwb_index, j]),
-                                                           np.ones(1) * 1.0,
-                                                           np.transpose(beacon_set[j - 1, :]),
-                                                           j, 4.0, 4.0)
+                                # rkf.measurement_uwb_robust(np.asarray(uwb_data[uwb_index, j]),
+                                #                            np.ones(1) * 0.2,
+                                #                            np.transpose(beacon_set[j - 1, :]),
+                                #                            j, 6.0, 1.0)
 
         # print(kf.state_x)
         # print( i /)
@@ -253,6 +264,7 @@ if __name__ == '__main__':
     plt.plot(trace[:, 0], trace[:, 1], '-+', label='fusing')
     plt.plot(rtrace[:, 0], rtrace[:, 1], '-+', label='robust')
     plt.plot(uwb_trace[:, 0], uwb_trace[:, 1], '+', label='uwb')
+    plt.plot(ref_trace[:,1],ref_trace[:,2],'-',label='ref')
     plt.legend()
     plt.grid()
 

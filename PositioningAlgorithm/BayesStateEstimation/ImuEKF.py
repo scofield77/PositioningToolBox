@@ -158,6 +158,24 @@ class ImuEKFComplex:
 
         self.state[9:] = self.state[9:] + dx[9:]
 
+    def iter_measurement_function_uwb(self,m,cov_matrix):
+        xop= self.state
+        xk  = xop *1.0
+        while True:
+            H = np.zeros([3, xop.shape[0]])
+
+            H[0:3, 3:6] = np.identity(3)
+
+            K = (self.prob_state.dot(np.transpose(H))).dot(
+                np.linalg.inv((H.dot(self.prob_state)).dot(np.transpose(H)) + cov_matrix)
+            )
+
+            # xk = xk + K.dot(m-H.dot(xop)-)
+
+
+
+
+
     def measurement_uwb(self, measurement, cov_m, beacon_pos):
         '''
         correct system state based on UWB measurements.
@@ -219,6 +237,7 @@ class ImuEKFComplex:
         v_k = z - y
         eta_k = np.zeros(1)
         self.uwb_eta_dict[beacon_id].append(eta_k[0])
+        # print(v_k)
 
         robust_loop_flag = True
         while robust_loop_flag:
@@ -227,9 +246,10 @@ class ImuEKFComplex:
             P_v = (self.H.dot(self.prob_state)).dot(np.transpose(self.H)) + R_k;
 
             eta_k[0] = (np.transpose(v_k).dot(P_v)).dot(v_k)
+            # print(eta_k[0])
 
-            if eta_k[0] > 15.0:
-                return
+            # if eta_k[0] > 15.0:
+            #     return
 
             if (eta_k[0] > ka_squard):
                 self.uwb_eta_dict[beacon_id][-1] = eta_k[0]
@@ -237,9 +257,9 @@ class ImuEKFComplex:
                 serial_length = 5
                 if len(self.uwb_eta_dict[beacon_id]) > serial_length:
                     lambda_k = np.std(np.asarray(self.uwb_eta_dict[beacon_id][-5:]))
-                    if lambda_k > T_d:
+                    if lambda_k > T_d or True:
                         robust_loop_flag = True
-                        R_k = eta_k / ka_squard * R_k
+                        R_k[0] = eta_k[0] / ka_squard * R_k[0]
         cov_m = R_k
 
         self.K = (self.prob_state.dot(np.transpose(self.H))).dot(
@@ -253,6 +273,20 @@ class ImuEKFComplex:
         self.rotation_q = quaternion_left_update(self.rotation_q, dx[6:9], -1.0)
 
         self.state[6:9] = dcm2euler(q2dcm(self.rotation_q))
+    def measurement_uwb_mc(self,measurement, cov_m, beacon_set, ka_squard):
+        particles = np.zeros(shape=(1000,3))
+        w = np.ones(shape=particles.shape[0])
+
+
+
+        # sample
+
+
+
+        # measurement
+
+
+        # cluster
 
     def measurement_uwb_robust_multi(self, measurement, cov_m, beacon_set, ka_squard):
         # @jit(nopython=True)
@@ -296,18 +330,18 @@ class ImuEKFComplex:
         for i in range(measurement.shape[0]):
             if self.dx_dict.get(i) is None:
                 self.dx_dict[i] = list()
-            if measurement[i] > 0.0:
+            if measurement[i] > 0.0 and beacon_set[i,0] < 5000.0:
                 tvk, trk, th, tk, tdx = get_vk_eta(measurement[i],
                                                    beacon_set[i, :].transpose(),
                                                    self.state, cov_m,
                                                    self.prob_state)
-                # if tvk < 0.5 or tvk > 10.0:
-                v_k_list.append(tvk)
-                R_k_list.append(trk)
-                H_list.append(th)
-                K_list.append(tk)
-                dx_list.append(tdx)
-                self.dx_dict[i].append(tdx)
+                if abs(tvk) < 10.0 :#or tvk > 10.0:
+                    v_k_list.append(tvk)
+                    R_k_list.append(trk)
+                    H_list.append(th)
+                    K_list.append(tk)
+                    dx_list.append(tdx)
+                    self.dx_dict[i].append(tdx)
             else:
                 self.dx_dict[i].append(np.zeros_like(self.state))
         # print(len(v_k_list))
@@ -318,6 +352,10 @@ class ImuEKFComplex:
         R_matrix = np.zeros(shape=(len(v_k_list), len(v_k_list)))
         self.H = np.zeros(shape=(len(v_k_list), self.state.shape[0]))
         V = np.zeros(shape=(len(v_k_list), 1))
+        # print(sorted(v_k_list))
+        print(v_k_list)
+        print(R_k_list)
+        print('-0---------------------------------')
 
         for i in range(len(v_k_list)):
             R_matrix[i, i] = R_k_list[i]
