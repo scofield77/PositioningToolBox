@@ -246,7 +246,7 @@ class ImuEKFComplex:
             P_v = (self.H.dot(self.prob_state)).dot(np.transpose(self.H)) + R_k;
 
             eta_k[0] = (np.transpose(v_k).dot(P_v)).dot(v_k)
-            # print(eta_k[0])
+            print(eta_k[0])
 
             # if eta_k[0] > 15.0:
             #     return
@@ -257,7 +257,7 @@ class ImuEKFComplex:
                 serial_length = 5
                 if len(self.uwb_eta_dict[beacon_id]) > serial_length:
                     lambda_k = np.std(np.asarray(self.uwb_eta_dict[beacon_id][-5:]))
-                    if lambda_k > T_d or True:
+                    if lambda_k > T_d :
                         robust_loop_flag = True
                         R_k[0] = eta_k[0] / ka_squard * R_k[0]
         cov_m = R_k
@@ -335,7 +335,7 @@ class ImuEKFComplex:
                                                    beacon_set[i, :].transpose(),
                                                    self.state, cov_m,
                                                    self.prob_state)
-                if abs(tvk) < 10.0 :#or tvk > 10.0:
+                if abs(tvk) < 100.0 :#or tvk > 10.0:
                     v_k_list.append(tvk)
                     R_k_list.append(trk)
                     H_list.append(th)
@@ -345,6 +345,17 @@ class ImuEKFComplex:
             else:
                 self.dx_dict[i].append(np.zeros_like(self.state))
         # print(len(v_k_list))
+
+        if len(v_k_list)>4:
+            #iter
+            max_index = np.argmax(np.asarray(v_k_list))
+            v_k_list[max_index] = 0.0
+            R_k_list[max_index] = 1000000000.0
+        elif len(v_k_list) is 4:
+            max_index = np.argmax(np.asarray(v_k_list))
+            v_k_list[max_index] = 0.0
+            R_k_list[max_index]= 1000000000.0
+
 
         # print('size:',len(R_k_list),R_k_list)
         # print('size:',len(R_k_list),v_k_list)
