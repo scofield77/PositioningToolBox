@@ -55,11 +55,11 @@ if __name__ == '__main__':
     for i in range(uwb_data.shape[0]):
         if i is 0:
             uwb_trace[i, :], uwb_opt_res[i] = \
-                uol.positioning_fucntion((0, 0, 0),
+                uol.positioning_function((0, 0, 0),
                                          uwb_data[i, 1:])
         else:
             uwb_trace[i, :], uwb_opt_res[i] = \
-                uol.positioning_fucntion(uwb_trace[i - 1, :],
+                uol.positioning_function(uwb_trace[i - 1, :],
                                          uwb_data[i, 1:])
 
 

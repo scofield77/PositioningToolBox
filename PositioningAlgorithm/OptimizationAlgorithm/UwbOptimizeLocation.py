@@ -57,7 +57,7 @@ class UwbOptimizeLocation:
                                   np.where(np.logical_and(self.measurements > 0.0, self.measurements < 550.0))])
 
 
-    def positioning_fucntion(self, initial_pose, measurements):
+    def positioning_function(self, initial_pose, measurements):
         '''
 
         :param initial_pose:
@@ -75,6 +75,33 @@ class UwbOptimizeLocation:
 
         return result.x, result.fun
 
+    def position_error_robust_function(self,pose):
+
+        # @jit(nopython=True,cache=True)
+        def rou(u):
+            return 0.5 * u * u
+
+        rou = np.vectorize(rou)
+        dis_to_beacon = np.linalg.norm(pose-self.beacon_set,axis=1)
+
+        return np.linalg.norm(rou(dis_to_beacon - self.measurements)[
+                                  np.where(np.logical_and(self.measurements > 0.0, self.measurements < 550.0))])
+
+    def positioning_function_robust(self, initial_pose, measurements):
+        # k = 0
+        # dis_to_beacon
+        # pose = initial_pose
+
+        # while k < 20:
+        #     dis_to_beacon=np.linalg.norm(pose-beacon_data)
+        #
+        #     dis_error = np.linalg
+        self.measurements = measurements[self.use_index]
+        self.beacon_set = self.beacon_set[self.use_index]
+
+        result = minimize(self.position_error_robust_function,
+                          initial_pose, method='BFGS')
+
 
 if __name__ == '__main__':
     dir_name = '/home/steve/Data/XsensUwb/MTI700/0002/'
@@ -88,9 +115,9 @@ if __name__ == '__main__':
 
     for i in range(uwb_data.shape[0]):
         if i is 0:
-            trace[i, :], res_error[i] = uol.positioning_fucntion((0, 0, 0), uwb_data[i, 1:])
+            trace[i, :], res_error[i] = uol.positioning_function((0, 0, 0), uwb_data[i, 1:])
         else:
-            trace[i, :], res_error[i] = uol.positioning_fucntion(trace[i - 1, :], uwb_data[i, 1:])
+            trace[i, :], res_error[i] = uol.positioning_function(trace[i - 1, :], uwb_data[i, 1:])
 
     plt.figure()
     plt.plot(trace[:, 0], trace[:, 1], '-+', label='source')
