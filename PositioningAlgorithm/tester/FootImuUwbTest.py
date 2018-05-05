@@ -58,7 +58,7 @@ if __name__ == '__main__':
     start_time = time.time()
     # dir_name = '/home/steve/Data/FusingLocationData/0017/'
     # dir_name = '/home/steve/Data/FusingLocationData/0013/'
-    dir_name = '/home/steve/Data/NewFusingLocationData/0035/'
+    dir_name = '/home/steve/Data/NewFusingLocationData/0032/'
 
     # imu_data = np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=',')
     imu_data = np.loadtxt(dir_name + 'LEFT_FOOT.data', delimiter=',')
@@ -112,10 +112,10 @@ if __name__ == '__main__':
     ti = 1
     while np.linalg.norm(ref_trace[ti, 1:] - ref_trace[0, 1:]) < 5.0:
         ti += 1
-    initial_orientation = math.atan2(ref_trace[ti, 2] - ref_trace[0, 2],
-                                     ref_trace[ti, 1] - ref_trace[0, 1])-10.0 * np.pi /180.0#35
     # initial_orientation = math.atan2(ref_trace[ti, 2] - ref_trace[0, 2],
-    #                                  ref_trace[ti, 1] - ref_trace[0, 1])+150.0 * np.pi /180.0#32
+    #                                  ref_trace[ti, 1] - ref_trace[0, 1])-10.0 * np.pi /180.0#35
+    initial_orientation = math.atan2(ref_trace[ti, 2] - ref_trace[0, 2],
+                                     ref_trace[ti, 1] - ref_trace[0, 1])+150.0 * np.pi /180.0#32
     #  initial_orientation = 200.0 / 180.0 * np.pi
 
     kf = ImuEKFComplex(np.diag((
@@ -188,13 +188,16 @@ if __name__ == '__main__':
             if uwb_data[uwb_index, 0] < imu_data[i, 0]:
 
                 if uwb_index < uwb_data.shape[0] - 1:
-                    # rkf.measurement_uwb_robust_multi(np.asarray(uwb_data[uwb_index, 1:]),
-                    #                                  np.ones(1) * 0.1,
-                    #                                  beacon_set,
-                    #                                  6.0)
-                    rkf.measurement_uwb_mc(np.asarray(uwb_data[uwb_index,1:]),
-                                           np.ones(1)*1.0,
-                                           beacon_set, ref_trace)
+                    rkf.measurement_uwb_robust_multi(np.asarray(uwb_data[uwb_index, 1:]),
+                                                     np.ones(1) * 0.1,
+                                                     beacon_set,
+                                                     6.0)
+                    # rkf.measurement_uwb_mc(np.asarray(uwb_data[uwb_index,1:]),
+                    #                        np.ones(1)*1.0,
+                    #                        beacon_set, ref_trace)
+                    # rkf.measurement_uwb_EM(np.asarray(uwb_data[uwb_index,1:]),
+                    #                        np.ones(1)*1.0,
+                    #                        beacon_set, ref_trace)
                     uwb_index += 1
                     for j in range(1, uwb_data.shape[1]):
                         if uwb_data[uwb_index, j] > 0.0 and \
@@ -238,20 +241,20 @@ if __name__ == '__main__':
 
     # plot dx list
 
-    if len(rkf.dx_dict) > 0:
-        dx_matrix = np.zeros(shape=(len(rkf.dx_dict), len(rkf.dx_dict[1]), 15))
-
-        for i in range(dx_matrix.shape[0]):
-            for j in range(dx_matrix.shape[1]):
-                dx_matrix[i, j, :] = rkf.dx_dict[i][j]
-
-        plt.figure()
-        plt.title('dx')
-        for i in range(dx_matrix.shape[0]):
-            # plt.plot(dx_matrix[i,:,0],dx_matrix[i,:,1],'-.',label=str(i))
-            plt.plot(np.linalg.norm(dx_matrix[i, :, 0:3], axis=1), '-+', label=str(i))
-        plt.grid()
-        plt.legend()
+    # if len(rkf.dx_dict) > 0:
+    #     dx_matrix = np.zeros(shape=(len(rkf.dx_dict), len(rkf.dx_dict[1]), 15))
+    #
+    #     for i in range(dx_matrix.shape[0]):
+    #         for j in range(dx_matrix.shape[1]):
+    #             dx_matrix[i, j, :] = rkf.dx_dict[i][j]
+    #
+    #     plt.figure()
+    #     plt.title('dx')
+    #     for i in range(dx_matrix.shape[0]):
+    #         # plt.plot(dx_matrix[i,:,0],dx_matrix[i,:,1],'-.',label=str(i))
+    #         plt.plot(np.linalg.norm(dx_matrix[i, :, 0:3], axis=1), '-+', label=str(i))
+    #     plt.grid()
+    #     plt.legend()
 
     # #
     # aux_plot(imu_data[:, 1:4], 'acc')
