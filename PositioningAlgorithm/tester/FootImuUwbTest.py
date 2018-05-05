@@ -58,7 +58,7 @@ if __name__ == '__main__':
     start_time = time.time()
     # dir_name = '/home/steve/Data/FusingLocationData/0017/'
     # dir_name = '/home/steve/Data/FusingLocationData/0013/'
-    dir_name = '/home/steve/Data/NewFusingLocationData/0033/'
+    dir_name = '/home/steve/Data/NewFusingLocationData/0035/'
 
     # imu_data = np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=',')
     imu_data = np.loadtxt(dir_name + 'LEFT_FOOT.data', delimiter=',')
@@ -112,10 +112,10 @@ if __name__ == '__main__':
     ti = 1
     while np.linalg.norm(ref_trace[ti, 1:] - ref_trace[0, 1:]) < 5.0:
         ti += 1
-    # initial_orientation = math.atan2(ref_trace[ti, 2] - ref_trace[0, 2],
-    #                                  ref_trace[ti, 1] - ref_trace[0, 1])-10.0 * np.pi /180.0#35
     initial_orientation = math.atan2(ref_trace[ti, 2] - ref_trace[0, 2],
-                                     ref_trace[ti, 1] - ref_trace[0, 1])+150.0 * np.pi /180.0#32
+                                     ref_trace[ti, 1] - ref_trace[0, 1])-10.0 * np.pi /180.0#35
+    # initial_orientation = math.atan2(ref_trace[ti, 2] - ref_trace[0, 2],
+    #                                  ref_trace[ti, 1] - ref_trace[0, 1])+150.0 * np.pi /180.0#32
     #  initial_orientation = 200.0 / 180.0 * np.pi
 
     kf = ImuEKFComplex(np.diag((
@@ -201,7 +201,7 @@ if __name__ == '__main__':
                                                    np.ones(1) * 0.5,
                                                    np.transpose(beacon_set[j - 1, :]))
                                 rkf.measurement_uwb_robust(np.asarray(uwb_data[uwb_index, j]),
-                                                           np.ones(1) * 0.5,
+                                                           np.ones(1) * 0.1,
                                                            np.transpose(beacon_set[j - 1, :]),
                                                            j, 7.0, 1.0)
 
@@ -270,21 +270,21 @@ if __name__ == '__main__':
     plt.legend()
     plt.grid()
 
-    plt.figure()
-    fig = plt.figure()
-    ax = fig.add_subplot(111, projection='3d')
-    ax.plot(trace[:, 0], trace[:, 1], trace[:, 2], '-+', label='trace')
-    ax.plot(rtrace[:, 0], rtrace[:, 1], rtrace[:, 2], '-+', label='robust')
-    ax.plot(uwb_trace[:, 0], uwb_trace[:, 1], uwb_trace[:, 2], '+', label='uwb')
-    ax.grid()
-    ax.legend()
-
-    plt.figure()
-    plt.title('uwb')
-    for i in range(1, uwb_data.shape[1]):
-        plt.plot(uwb_data[:, 0], uwb_data[:, i], '+-', label=str(i))
-    plt.plot(uwb_data[:, 0], uwb_opt_res, '+-', label='res error')
-    plt.grid()
-    plt.legend()
+    # plt.figure()
+    # fig = plt.figure()
+    # ax = fig.add_subplot(111, projection='3d')
+    # ax.plot(trace[:, 0], trace[:, 1], trace[:, 2], '-+', label='trace')
+    # ax.plot(rtrace[:, 0], rtrace[:, 1], rtrace[:, 2], '-+', label='robust')
+    # ax.plot(uwb_trace[:, 0], uwb_trace[:, 1], uwb_trace[:, 2], '+', label='uwb')
+    # ax.grid()
+    # ax.legend()
+    #
+    # plt.figure()
+    # plt.title('uwb')
+    # for i in range(1, uwb_data.shape[1]):
+    #     plt.plot(uwb_data[:, 0], uwb_data[:, i], '+-', label=str(i))
+    # plt.plot(uwb_data[:, 0], uwb_opt_res, '+-', label='res error')
+    # plt.grid()
+    # plt.legend()
 
     plt.show()
