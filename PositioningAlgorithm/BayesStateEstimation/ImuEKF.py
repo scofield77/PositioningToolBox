@@ -248,8 +248,8 @@ class ImuEKFComplex:
             eta_k[0] = (np.transpose(v_k).dot(P_v)).dot(v_k)
             # print(eta_k[0])
             #
-            # if eta_k[0] > 15.0:
-            #     return
+            if eta_k[0] > 1.0:
+                return
 
             if (eta_k[0] > ka_squard):
                 self.uwb_eta_dict[beacon_id][-1] = eta_k[0]
