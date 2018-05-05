@@ -400,7 +400,7 @@ class ImuEKFComplex:
             #iter
             max_index = np.argmax(np.asarray(v_k_list))
             print('max:',v_k_list[max_index],R_k_list[max_index])
-            if abs(v_k_list[max_index]) > 0.0:
+            if abs(v_k_list[max_index]) > 5.0:
                 v_k_list[max_index] = 0.0
                 R_k_list[max_index] = 1000000000.0
             max_index = np.argmax(np.asarray(v_k_list))
@@ -410,7 +410,7 @@ class ImuEKFComplex:
                 R_k_list[max_index] = 1000000000.0
         elif len(v_k_list) is 4:
             max_index = np.argmax(np.asarray(v_k_list))
-            if abs(v_k_list[max_index]) > 0.0:
+            if abs(v_k_list[max_index]) > 5.0:
                 v_k_list[max_index] = 0.0
                 R_k_list[max_index] = 1000000000.0
 
