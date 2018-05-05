@@ -287,7 +287,10 @@ class ImuEKFComplex:
         self.rotation_q = quaternion_left_update(self.rotation_q, dx[6:9], -1.0)
 
         self.state[6:9] = dcm2euler(q2dcm(self.rotation_q))
-    def measurement_uwb_mc(self,measurement, cov_m, beacon_set):
+
+
+
+    def measurement_uwb_mc(self,measurement, cov_m, beacon_set,ref_trace):
 
         measurement = measurement[np.where(beacon_set[:,0]<5000.0)] *1.0
         beacon_set = beacon_set[np.where(beacon_set<5000.0)] *1.0
@@ -333,11 +336,24 @@ class ImuEKFComplex:
 
 
         # self.state[0:3] = np.average(particles,axis=0,weights=w)
-        from sklearn.cluster import DBSCAN
+        from sklearn.cluster import DBSCAN,k_means
 
-        cluster = DBSCAN(eps=0.3,min_samples=2)
-        cluster = cluster.fit(X=particles,sample_weight=w)
-        print(cluster.labels_)
+        # cluster = DBSCAN(eps=0.3,min_samples=2)
+        # cluster  =
+        # cluster = cluster.fit(X=particles,sample_weight=w)
+        # print(cluster.labels_)
+
+        # plt.figure(11)
+        # plt.
+        fig = plt.figure(11)
+        ax = fig.add_subplot(111,projection='3d')
+
+        # ax.hist2d()
+        ax.clear()
+        ax.plot(ref_trace[:,1],ref_trace[:,2],ref_trace[3],'-+')
+        ax.scatter(particles[:,0],particles[:,1],particles[:,2])
+        plt.pause(0.1)
+
 
 
         # index = np.where(cluster)
