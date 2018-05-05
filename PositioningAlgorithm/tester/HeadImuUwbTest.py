@@ -187,7 +187,7 @@ if __name__ == '__main__':
                     rkf.measurement_uwb_robust_multi(np.asarray(uwb_data[uwb_index, 1:]),
                                                      np.ones(1) * 0.1,
                                                      beacon_set,
-                                                     6.0)
+                                                     7.0)
                     # rkf.measurement_uwb_mc(np.asarray(uwb_data[uwb_index,1:]),
                     #                        np.ones(1)*1.0,
                     #                        beacon_set)
