@@ -267,14 +267,14 @@ class ImuEKFComplex:
                 serial_length = 5
                 if len(self.uwb_eta_dict[beacon_id]) > serial_length:
                     lambda_k = np.std(np.asarray(self.uwb_eta_dict[beacon_id][-serial_length:]))
-                    print(self.uwb_eta_dict[beacon_id][-serial_length:],lambda_k, R_k[0])
+                    # print(self.uwb_eta_dict[beacon_id][-serial_length:],lambda_k, R_k[0])
                     if lambda_k > T_d :
                         robust_loop_flag = True
                         R_k[0] = eta_k[0] / ka_squard * R_k[0]
                 # self.uwb_eta_dict[beacon_id].pop()
 
         cov_m = R_k
-        print('-------------')
+        # print('-------------')
 
         self.K = (self.prob_state.dot(np.transpose(self.H))).dot(
             np.linalg.inv((self.H.dot(self.prob_state)).dot(np.transpose(self.H)) + cov_m)
