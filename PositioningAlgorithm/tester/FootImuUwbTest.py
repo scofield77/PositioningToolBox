@@ -188,22 +188,22 @@ if __name__ == '__main__':
                 if uwb_data[uwb_index, 0] < imu_data[i, 0]:
 
                     if uwb_index < uwb_data.shape[0] - 1:
-                        rkf.measurement_uwb_robust_multi(np.asarray(uwb_data[uwb_index, 1:]),
-                                                         np.ones(1) * 0.5,
-                                                         beacon_set,
-                                                         6.0)
+                        # rkf.measurement_uwb_robust_multi(np.asarray(uwb_data[uwb_index, 1:]),
+                        #                                  np.ones(1) * 0.5,
+                        #                                  beacon_set,
+                        #                                  6.0)
                         uwb_index += 1
                         for j in range(1, uwb_data.shape[1]):
                             if uwb_data[uwb_index, j] > 0.0 and \
                                     uwb_data[uwb_index, j] < 1000.0 and \
                                     beacon_set[j - 1, 0] < 1000.0:
                                 kf.measurement_uwb(np.asarray(uwb_data[uwb_index, j]),
-                                                   np.ones(1) * 0.1,
+                                                   np.ones(1) * 0.5,
                                                    np.transpose(beacon_set[j - 1, :]))
-                                # rkf.measurement_uwb_robust(np.asarray(uwb_data[uwb_index, j]),
-                                #                            np.ones(1) * 0.1,
-                                #                            np.transpose(beacon_set[j - 1, :]),
-                                #                            j, 7.0, 1.0)
+                                rkf.measurement_uwb_robust(np.asarray(uwb_data[uwb_index, j]),
+                                                           np.ones(1) * 0.1,
+                                                           np.transpose(beacon_set[j - 1, :]),
+                                                           j, 7.0, 1.0)
 
         # print(kf.state_x)
         # print( i /)
