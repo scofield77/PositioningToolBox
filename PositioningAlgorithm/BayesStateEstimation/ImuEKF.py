@@ -441,12 +441,12 @@ class ImuEKFComplex:
             v_k = z - y
             eta_k = np.zeros(1)
 
-            obust_loop_flag = True
+            robust_loop_flag = True
             first_time = True
             while robust_loop_flag:
                 robust_loop_flag = False
 
-                P_v = (self.H.dot(self.prob_state)).dot(np.transpose(self.H)) + R_k
+                P_v = (H.dot(P)).dot(np.transpose(H)) + R_k
 
                 eta_k[0] = (np.transpose(v_k).dot(np.linalg.inv(P_v))).dot(v_k)
                 # print(eta_k[0])
@@ -506,23 +506,23 @@ class ImuEKFComplex:
                 self.dx_dict[i].append(np.zeros_like(self.state))
         # print(len(v_k_list))
 
-        if len(v_k_list) > 4:
-            # iter
-            max_index = np.argmax(np.asarray(v_k_list))
-            print('max:', v_k_list[max_index], R_k_list[max_index])
-            if abs(v_k_list[max_index]) > 1.0:
-                v_k_list[max_index] = 0.0
-                R_k_list[max_index] = 1000000000.0
-            max_index = np.argmax(np.asarray(v_k_list))
-            print('max:', v_k_list[max_index], R_k_list[max_index])
-            if abs(v_k_list[max_index]) > 1.0:
-                v_k_list[max_index] = 0.0
-                R_k_list[max_index] = 1000000000.0
-        elif len(v_k_list) is 4:
-            max_index = np.argmax(np.asarray(v_k_list))
-            if abs(v_k_list[max_index]) > 1.0:
-                v_k_list[max_index] = 0.0
-                R_k_list[max_index] = 1000000000.0
+        # if len(v_k_list) > 4:
+        #     # iter
+        #     max_index = np.argmax(np.asarray(v_k_list))
+        #     print('max:', v_k_list[max_index], R_k_list[max_index])
+        #     if abs(v_k_list[max_index]) > 1.0:
+        #         v_k_list[max_index] = 0.0
+        #         R_k_list[max_index] = 1000000000.0
+        #     max_index = np.argmax(np.asarray(v_k_list))
+        #     print('max:', v_k_list[max_index], R_k_list[max_index])
+        #     if abs(v_k_list[max_index]) > 1.0:
+        #         v_k_list[max_index] = 0.0
+        #         R_k_list[max_index] = 1000000000.0
+        # elif len(v_k_list) is 4:
+        #     max_index = np.argmax(np.asarray(v_k_list))
+        #     if abs(v_k_list[max_index]) > 1.0:
+        #         v_k_list[max_index] = 0.0
+        #         R_k_list[max_index] = 1000000000.0
 
         # print('size:',len(R_k_list),R_k_list)
         # print('size:',len(R_k_list),v_k_list)

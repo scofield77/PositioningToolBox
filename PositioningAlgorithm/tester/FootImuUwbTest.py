@@ -188,10 +188,10 @@ if __name__ == '__main__':
             if uwb_data[uwb_index, 0] < imu_data[i, 0]:
 
                 if uwb_index < uwb_data.shape[0] - 1:
-                    rkf.measurement_uwb_robust_multi(np.asarray(uwb_data[uwb_index, 1:]),
-                                                     np.ones(1) * 0.1,
-                                                     beacon_set,
-                                                     6.0)
+                    # rkf.measurement_uwb_robust_multi(np.asarray(uwb_data[uwb_index, 1:]),
+                    #                                  np.ones(1) * 0.1,
+                    #                                  beacon_set,
+                    #                                  6.0)
                     # rkf.measurement_uwb_mc(np.asarray(uwb_data[uwb_index,1:]),
                     #                        np.ones(1)*1.0,
                     #                        beacon_set, ref_trace)
@@ -206,11 +206,11 @@ if __name__ == '__main__':
                             kf.measurement_uwb(np.asarray(uwb_data[uwb_index, j]),
                                                np.ones(1) * 0.2,
                                                np.transpose(beacon_set[j - 1, :]))
-                            # rkf.measurement_uwb_robust(np.asarray(uwb_data[uwb_index, j]),
-                            #                            np.ones(1) * 0.2,
-                            #                            np.transpose(beacon_set[j - 1, :]),
-                            #                            j, 4.0, 1.0)
-
+                            rkf.measurement_uwb_robust(np.asarray(uwb_data[uwb_index, j]),
+                                                       np.ones(1) * 0.2,
+                                                       np.transpose(beacon_set[j - 1, :]),
+                                                       j, 4.0, 1.0)
+        #
         # print(kf.state_x)
         # print( i /)
         trace[i, :] = kf.state[0:3]
