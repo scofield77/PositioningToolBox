@@ -58,7 +58,7 @@ if __name__ == '__main__':
     start_time = time.time()
     # dir_name = '/home/steve/Data/FusingLocationData/0017/'
     # dir_name = '/home/steve/Data/FusingLocationData/0013/'
-    dir_name = '/home/steve/Data/NewFusingLocationData/0032/'
+    dir_name = '/home/steve/Data/NewFusingLocationData/0033/'
 
     # imu_data = np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=',')
     imu_data = np.loadtxt(dir_name + 'LEFT_FOOT.data', delimiter=',')
@@ -201,9 +201,9 @@ if __name__ == '__main__':
                                                    np.ones(1) * 0.5,
                                                    np.transpose(beacon_set[j - 1, :]))
                                 rkf.measurement_uwb_robust(np.asarray(uwb_data[uwb_index, j]),
-                                                           np.ones(1) * 00.5,
+                                                           np.ones(1) * 0.5,
                                                            np.transpose(beacon_set[j - 1, :]),
-                                                           j, 6.0, 1.0)
+                                                           j, 7.0, 1.0)
 
         # print(kf.state_x)
         # print( i /)

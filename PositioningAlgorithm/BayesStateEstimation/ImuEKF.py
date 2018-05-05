@@ -238,29 +238,43 @@ class ImuEKFComplex:
         eta_k = np.zeros(1)
         self.uwb_eta_dict[beacon_id].append(eta_k[0])
         # print(v_k)
+        # if v_k[0] > 0.5:
+        #     return
 
         robust_loop_flag = True
+        first_time = True
         while robust_loop_flag:
             robust_loop_flag = False
 
-            P_v = (self.H.dot(self.prob_state)).dot(np.transpose(self.H)) + R_k;
+            P_v = (self.H.dot(self.prob_state)).dot(np.transpose(self.H)) + R_k
 
-            eta_k[0] = (np.transpose(v_k).dot(P_v)).dot(v_k)
+            eta_k[0] = (np.transpose(v_k).dot(np.linalg.inv(P_v))).dot(v_k)
             # print(eta_k[0])
             #
-            if eta_k[0] > 1.0:
-                return
-
+            # if eta_k[0] > 1.0:
+            #     return
+            if first_time:
+                self.uwb_eta_dict[beacon_id].append(eta_k[0])
+                first_time=False
             if (eta_k[0] > ka_squard):
+                # if first_time:
+                #
+                #     first_time=False
+                # else:
                 self.uwb_eta_dict[beacon_id][-1] = eta_k[0]
+
                 # np.std()
                 serial_length = 5
                 if len(self.uwb_eta_dict[beacon_id]) > serial_length:
-                    lambda_k = np.std(np.asarray(self.uwb_eta_dict[beacon_id][-5:]))
+                    lambda_k = np.std(np.asarray(self.uwb_eta_dict[beacon_id][-serial_length:]))
+                    print(self.uwb_eta_dict[beacon_id][-serial_length:],lambda_k, R_k[0])
                     if lambda_k > T_d :
                         robust_loop_flag = True
                         R_k[0] = eta_k[0] / ka_squard * R_k[0]
+                # self.uwb_eta_dict[beacon_id].pop()
+
         cov_m = R_k
+        print('-------------')
 
         self.K = (self.prob_state.dot(np.transpose(self.H))).dot(
             np.linalg.inv((self.H.dot(self.prob_state)).dot(np.transpose(self.H)) + cov_m)
