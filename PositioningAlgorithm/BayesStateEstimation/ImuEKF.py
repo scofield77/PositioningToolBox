@@ -424,7 +424,9 @@ class ImuEKFComplex:
 
     def measurement_uwb_robust_multi(self, measurement, cov_m, beacon_set, ka_squard):
         # @jit()# @jit(nopython=True)
-        def get_vk_eta(measurement, beacon_pos, state, cov, P):
+        def get_vk_eta(measurement, beacon_pos, state, cov, P, beacon_id):
+            if self.uwb_eta_dict.get(beacon_id) is None:
+                self.uwb_eta_dict[beacon_id] = list()
             z = np.zeros(1)
             y = np.zeros(1)
             z[0] = measurement
@@ -439,14 +441,38 @@ class ImuEKFComplex:
             v_k = z - y
             eta_k = np.zeros(1)
 
-            robust_loop_flag = True
+            obust_loop_flag = True
+            first_time = True
             while robust_loop_flag:
                 robust_loop_flag = False
-                P_v = (H.dot(P).dot(np.transpose(H)) + R_k)
-                eta_k[0] = (np.transpose(v_k).dot(np.linalg.inv(P_v))).dot(v_k)
 
+                P_v = (self.H.dot(self.prob_state)).dot(np.transpose(self.H)) + R_k
+
+                eta_k[0] = (np.transpose(v_k).dot(np.linalg.inv(P_v))).dot(v_k)
+                # print(eta_k[0])
+                #
+                # if eta_k[0] > 1.0:
+                #     return
+                if first_time:
+                    self.uwb_eta_dict[beacon_id].append(eta_k[0])
+                    first_time = False
                 if (eta_k[0] > ka_squard):
-                    R_k[0] = eta_k[0] / ka_squard * R_k[0]
+                    # if first_time:
+                    #
+                    #     first_time=False
+                    # else:
+                    self.uwb_eta_dict[beacon_id][-1] = eta_k[0]
+
+                    # np.std()
+                    serial_length = 5
+                    if len(self.uwb_eta_dict[beacon_id]) > serial_length:
+                        lambda_k = np.std(np.asarray(self.uwb_eta_dict[beacon_id][-serial_length:]))
+                        # print(self.uwb_eta_dict[beacon_id][-serial_length:],lambda_k, R_k[0])
+                        if lambda_k > 1.0:
+                            robust_loop_flag = True
+                            R_k[0] = eta_k[0] / ka_squard * R_k[0]
+
+
             K = (P.dot(np.transpose(H))).dot(
                 np.linalg.inv(((H.dot(P)).dot(np.transpose(H)) + R_k))
             )
@@ -468,7 +494,7 @@ class ImuEKFComplex:
                 tvk, trk, th, tk, tdx = get_vk_eta(measurement[i],
                                                    beacon_set[i, :].transpose(),
                                                    self.state, cov_m,
-                                                   self.prob_state)
+                                                   self.prob_state,i)
                 if abs(tvk) < 100.0:  # or tvk > 10.0:
                     v_k_list.append(tvk)
                     R_k_list.append(cov_m[0])
