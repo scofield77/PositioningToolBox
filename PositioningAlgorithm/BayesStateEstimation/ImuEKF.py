@@ -158,9 +158,9 @@ class ImuEKFComplex:
 
         self.state[9:] = self.state[9:] + dx[9:]
 
-    def iter_measurement_function_uwb(self,m,cov_matrix):
-        xop= self.state
-        xk  = xop *1.0
+    def iter_measurement_function_uwb(self, m, cov_matrix):
+        xop = self.state
+        xk = xop * 1.0
         while True:
             H = np.zeros([3, xop.shape[0]])
 
@@ -171,10 +171,6 @@ class ImuEKFComplex:
             )
 
             # xk = xk + K.dot(m-H.dot(xop)-)
-
-
-
-
 
     def measurement_uwb(self, measurement, cov_m, beacon_pos):
         '''
@@ -255,7 +251,7 @@ class ImuEKFComplex:
             #     return
             if first_time:
                 self.uwb_eta_dict[beacon_id].append(eta_k[0])
-                first_time=False
+                first_time = False
             if (eta_k[0] > ka_squard):
                 # if first_time:
                 #
@@ -268,7 +264,7 @@ class ImuEKFComplex:
                 if len(self.uwb_eta_dict[beacon_id]) > serial_length:
                     lambda_k = np.std(np.asarray(self.uwb_eta_dict[beacon_id][-serial_length:]))
                     # print(self.uwb_eta_dict[beacon_id][-serial_length:],lambda_k, R_k[0])
-                    if lambda_k > T_d :
+                    if lambda_k > T_d:
                         robust_loop_flag = True
                         R_k[0] = eta_k[0] / ka_squard * R_k[0]
                 # self.uwb_eta_dict[beacon_id].pop()
@@ -288,55 +284,46 @@ class ImuEKFComplex:
 
         self.state[6:9] = dcm2euler(q2dcm(self.rotation_q))
 
+    def measurement_uwb_mc(self, measurement, cov_m, beacon_set, ref_trace):
 
+        measurement = measurement[np.where(beacon_set[:, 0] < 5000.0)] * 1.0
+        beacon_set = beacon_set[np.where(beacon_set < 5000.0)] * 1.0
+        beacon_set = beacon_set.reshape([-1, 3])
 
-    def measurement_uwb_mc(self,measurement, cov_m, beacon_set,ref_trace):
-
-        measurement = measurement[np.where(beacon_set[:,0]<5000.0)] *1.0
-        beacon_set = beacon_set[np.where(beacon_set<5000.0)] *1.0
-        beacon_set = beacon_set.reshape([-1,3])
-
-
-
-        m_index = np.where(measurement>0.0)
-        measurement = measurement[m_index]*1.0
-        beacon_set = beacon_set[m_index,:] *1.0
-        print(measurement.shape,beacon_set.shape)
+        m_index = np.where(measurement > 0.0)
+        measurement = measurement[m_index] * 1.0
+        beacon_set = beacon_set[m_index, :] * 1.0
+        print(measurement.shape, beacon_set.shape)
         measurement = measurement.reshape(-1)
-        beacon_set = beacon_set.reshape([-1,3])
+        beacon_set = beacon_set.reshape([-1, 3])
 
         if measurement.shape[0] < 3:
-            self.measurement_uwb_robust_multi(measurement,cov_m,beacon_set,8.0)
+            self.measurement_uwb_robust_multi(measurement, cov_m, beacon_set, 8.0)
             return
         else:
             print('mc')
 
-
-
-
-        particles = np.zeros(shape=(1000,3))
+        particles = np.zeros(shape=(1000, 3))
         w = np.ones(shape=particles.shape[0])
 
-        rnd_p = np.random.normal(0.0,1.0,size=particles.shape)
+        rnd_p = np.random.normal(0.0, 1.0, size=particles.shape)
 
         # sample
         for i in range(3):
-            particles[:,i] = self.state[i] + rnd_p[:,i] * self.prob_state[i,i]
-
+            particles[:, i] = self.state[i] + rnd_p[:, i] * self.prob_state[i, i]
 
         # measurement
 
-        select_rnd = np.random.randint(0,measurement.shape[0]-1,size=particles.shape[0])
+        select_rnd = np.random.randint(0, measurement.shape[0] - 1, size=particles.shape[0])
         for i in range(w.shape[0]):
-            w[i] = w[i]  / abs(np.linalg.norm(particles[i,:]-beacon_set[select_rnd[i],:])-measurement[select_rnd[i]])
+            w[i] = w[i] / abs(
+                np.linalg.norm(particles[i, :] - beacon_set[select_rnd[i], :]) - measurement[select_rnd[i]])
         w = w / w.sum()
 
         # cluster
 
-
-
         # self.state[0:3] = np.average(particles,axis=0,weights=w)
-        from sklearn.cluster import DBSCAN,k_means
+        from sklearn.cluster import DBSCAN, k_means
 
         # cluster = DBSCAN(eps=0.3,min_samples=2)
         # cluster  =
@@ -346,27 +333,15 @@ class ImuEKFComplex:
         # plt.figure(11)
         # plt.
         fig = plt.figure(11)
-        ax = fig.add_subplot(111,projection='3d')
+        ax = fig.add_subplot(111, projection='3d')
 
         # ax.hist2d()
-        ax.clear()
-        ax.plot(ref_trace[:,1],ref_trace[:,2],ref_trace[3],'-+')
-        ax.scatter(particles[:,0],particles[:,1],particles[:,2])
+        # ax.clear()
+        ax.plot(ref_trace[:, 1], ref_trace[:, 2], ref_trace[:, 3], '-+')
+        ax.scatter(particles[:, 0], particles[:, 1], particles[:, 2])
         plt.pause(0.1)
 
-
-
         # index = np.where(cluster)
-
-
-
-
-
-
-
-
-
-
 
     def measurement_uwb_robust_multi(self, measurement, cov_m, beacon_set, ka_squard):
         # @jit(nopython=True)
@@ -410,12 +385,12 @@ class ImuEKFComplex:
         for i in range(measurement.shape[0]):
             if self.dx_dict.get(i) is None:
                 self.dx_dict[i] = list()
-            if measurement[i] > 0.0 and beacon_set[i,0] < 5000.0:
+            if measurement[i] > 0.0 and beacon_set[i, 0] < 5000.0:
                 tvk, trk, th, tk, tdx = get_vk_eta(measurement[i],
                                                    beacon_set[i, :].transpose(),
                                                    self.state, cov_m,
                                                    self.prob_state)
-                if abs(tvk) < 100.0 :#or tvk > 10.0:
+                if abs(tvk) < 100.0:  # or tvk > 10.0:
                     v_k_list.append(tvk)
                     R_k_list.append(cov_m[0])
                     H_list.append(th)
@@ -426,15 +401,15 @@ class ImuEKFComplex:
                 self.dx_dict[i].append(np.zeros_like(self.state))
         # print(len(v_k_list))
 
-        if len(v_k_list)>4:
-            #iter
+        if len(v_k_list) > 4:
+            # iter
             max_index = np.argmax(np.asarray(v_k_list))
-            print('max:',v_k_list[max_index],R_k_list[max_index])
+            print('max:', v_k_list[max_index], R_k_list[max_index])
             if abs(v_k_list[max_index]) > 1.0:
                 v_k_list[max_index] = 0.0
                 R_k_list[max_index] = 1000000000.0
             max_index = np.argmax(np.asarray(v_k_list))
-            print('max:',v_k_list[max_index],R_k_list[max_index])
+            print('max:', v_k_list[max_index], R_k_list[max_index])
             if abs(v_k_list[max_index]) > 1.0:
                 v_k_list[max_index] = 0.0
                 R_k_list[max_index] = 1000000000.0
