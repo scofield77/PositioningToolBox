@@ -373,7 +373,7 @@ class ImuEKFComplex:
             while robust_loop_flag:
                 robust_loop_flag = False
                 P_v = (H.dot(P).dot(np.transpose(H)) + R_k)
-                eta_k[0] = (np.transpose(v_k).dot(P_v)).dot(v_k)
+                eta_k[0] = (np.transpose(v_k).dot(np.linalg.inv(P_v))).dot(v_k)
 
                 if (eta_k[0] > ka_squard):
                     R_k = eta_k / ka_squard * R_k
@@ -414,17 +414,17 @@ class ImuEKFComplex:
             #iter
             max_index = np.argmax(np.asarray(v_k_list))
             print('max:',v_k_list[max_index],R_k_list[max_index])
-            if abs(v_k_list[max_index]) > 5.0:
+            if abs(v_k_list[max_index]) > 1.0:
                 v_k_list[max_index] = 0.0
                 R_k_list[max_index] = 1000000000.0
             max_index = np.argmax(np.asarray(v_k_list))
             print('max:',v_k_list[max_index],R_k_list[max_index])
-            if abs(v_k_list[max_index]) > 0.0:
+            if abs(v_k_list[max_index]) > 1.0:
                 v_k_list[max_index] = 0.0
                 R_k_list[max_index] = 1000000000.0
         elif len(v_k_list) is 4:
             max_index = np.argmax(np.asarray(v_k_list))
-            if abs(v_k_list[max_index]) > 5.0:
+            if abs(v_k_list[max_index]) > 1.0:
                 v_k_list[max_index] = 0.0
                 R_k_list[max_index] = 1000000000.0
 
