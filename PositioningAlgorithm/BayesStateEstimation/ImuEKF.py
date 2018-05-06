@@ -423,13 +423,16 @@ class ImuEKFComplex:
                 pv = (H[index[i], :].dot(pplus)).dot(np.transpose(H[index[i], :])) + Rk[index[i], index[i]]
                 gamma = v[index[i]] * v[index[i]] / pv
                 # print(pv, v[index[i]])
-                if gamma < 0.1 or i < index.shape[0] - 2:  # np.floor(index.shape[0]/2):
+                ka_squard = 5.41
+                if gamma < ka_squard or i < np.floor(index.shape[0]/2):
                     # break_flag=True
                     mask[index[i]] = 1.0
                     # Rk[index[i],index[i]]=cov_m[0]
                 else:
                     # print('corrected Rk')
-                    Rk[index[i], index[i]] = gamma / 0.1 * Rk[index[i], index[i]]
+                    # mask[index[i]] = ka_squard/gamma*1.0
+                    # mask[index[i]] = 0.5#ka_squard/gamma
+                    Rk[index[i], index[i]] = gamma / ka_squard * Rk[index[i], index[i]]
                     # mask[index[i]] = 1.0 / gamma
 
                     # i=index.shape[0]+1
@@ -446,7 +449,7 @@ class ImuEKFComplex:
             xplus = xminus + dx
             # print('it')
         # print('-----')
-        print(ite_counter)
+        # print(ite_counter)
 
         self.state = self.state + dx
 
