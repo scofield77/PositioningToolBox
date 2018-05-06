@@ -58,7 +58,7 @@ if __name__ == '__main__':
     start_time = time.time()
     # dir_name = '/home/steve/Data/FusingLocationData/0017/'
     # dir_name = '/home/steve/Data/FusingLocationData/0013/'
-    dir_name = '/home/steve/Data/NewFusingLocationData/0033/'
+    dir_name = '/home/steve/Data/NewFusingLocationData/0032/'
 
     # imu_data = np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=',')
     imu_data = np.loadtxt(dir_name + 'LEFT_FOOT.data', delimiter=',')
@@ -77,9 +77,9 @@ if __name__ == '__main__':
         if uwb_data[:, i].max() > 0.0:
             uwb_valid.append(i)
     random_index = np.random.randint(0, len(uwb_valid) - 1, len(uwb_valid))
-    for i in range(min(random_index.shape[0], 1)):
-        uwb_data[:, uwb_valid[random_index[i]]] *= 0.0
-        uwb_data[:, uwb_valid[random_index[i]]] -= 10.0
+    # for i in range(min(random_index.shape[0], 1)):
+    #     uwb_data[:, uwb_valid[random_index[i]]] *= 0.0
+    #     uwb_data[:, uwb_valid[random_index[i]]] -= 10.0
 
     ref_trace = np.loadtxt(dir_name + 'ref_trace.csv', delimiter=',')
 
@@ -210,6 +210,12 @@ if __name__ == '__main__':
                                                 0.01 * np.pi / 180.0,
                                                 0.01 * np.pi / 180.0))
                                        )
+        orkf.state_transaction_function(imu_data[i, 1:7],
+                                        np.diag((0.01, 0.01, 0.01,
+                                                 0.01 * np.pi / 180.0,
+                                                 0.01 * np.pi / 180.0,
+                                                 0.01 * np.pi / 180.0))
+                                        )
         if (i > 5) and (i < imu_data.shape[0] - 5):
             # print('i:',i)
             # zv_state[i] = z_tester.GLRT_Detector(imu_data[i - 4:i + 4, 1:8])
@@ -224,16 +230,16 @@ if __name__ == '__main__':
             if uwb_data[uwb_index, 0] < imu_data[i, 0]:
 
                 if uwb_index < uwb_data.shape[0] - 1:
-                    orkf.measurement_uwb_robust_multi(np.asarray(uwb_data[uwb_index, 1:]),
-                                                     np.ones(1) * 0.1,
-                                                     beacon_set,
-                                                     6.0)
+                    # orkf.measurement_uwb_robust_multi(np.asarray(uwb_data[uwb_index, 1:]),
+                    #                                   np.ones(1) * 0.1,
+                    #                                   beacon_set,
+                    #                                   6.0)
                     # rkf.measurement_uwb_mc(np.asarray(uwb_data[uwb_index,1:]),
                     #                        np.ones(1)*1.0,
                     #                        beacon_set, ref_trace)
-                    # orkf.measurement_uwb_iterate(np.asarray(uwb_data[uwb_index, 1:]),
-                    #                              np.ones(1) * 0.1,
-                    #                              beacon_set, ref_trace)
+                    orkf.measurement_uwb_iterate(np.asarray(uwb_data[uwb_index, 1:]),
+                                                 np.ones(1) * 0.1,
+                                                 beacon_set, ref_trace)
                     uwb_index += 1
                     for j in range(1, uwb_data.shape[1]):
                         if uwb_data[uwb_index, j] > 0.0 and \
