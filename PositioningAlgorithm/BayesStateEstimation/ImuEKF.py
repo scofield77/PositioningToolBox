@@ -202,7 +202,7 @@ class ImuEKFComplex:
         self.state[6:9] = dcm2euler(q2dcm(self.rotation_q))
 
         kh = self.K.dot(self.H)
-        self.prob_state = (np.identity(kh.shape[0])-kh).dot(self.prob_state)
+        self.prob_state = (np.identity(kh.shape[0]) - kh).dot(self.prob_state)
 
     def measurement_uwb_robust(self, measurement,
                                cov_m,
@@ -296,7 +296,7 @@ class ImuEKFComplex:
         xminus = self.state
 
         xplus = self.state
-        xop = self.state*0.0
+        xop = self.state * 0.0
 
         # process and select measurement and beaconset
         measurement = measurement[np.where(beacon_set[:, 0] < 5000.0)] * 1.0
@@ -310,26 +310,45 @@ class ImuEKFComplex:
         measurement = measurement.reshape(-1)
         beacon_set = beacon_set.reshape([-1, 3])
 
-
-        Rk = np.identity(measurement.shape[0],float) * cov_m[0]
+        Rk = np.identity(measurement.shape[0], float) * cov_m[0]
         dx = np.zeros(self.state.shape[0])
-        while np.linalg.norm(xplus-xop) > 0.01:
-            xop = xplus*1.0
-            y = np.linalg.norm(xop[0:3]-beacon_set,axis=1)
-            H = np.zeros(shape=(measurement.shape[0],self.state.shape[0]))
-            H[:,0:3] = (xop[0:3]-beacon_set) / y.reshape(-1,1)
+
+        def rou(u):
+            # return 0.5 * u * u / (1.0 + u * u)
+
+            u2 = u * u
+            if u2 < 1.0:
+                return 0.5 * u2
+            else:
+                return 2.0 * u2 / (1.0 + u2) - 0.5
+        def d_rou(u):
+            u2 = u*u
+            if u2 < 1.0:
+                return u
+            else:
+                return 4.0 * u /(1.0 + u2) / (1.0+u2)
+
+
+
+        rou = np.vectorize(rou)
+        d_rou = np.vectorize(d_rou)
+
+
+        while np.linalg.norm(xplus - xop) > 0.01:
+            xop = xplus * 1.0
+            y = np.linalg.norm(xop[0:3] - beacon_set, axis=1)
+            y = rou(y)
+            H = np.zeros(shape=(measurement.shape[0], self.state.shape[0]))
+            H[:, 0:3] = (xop[0:3] - beacon_set) / y.reshape(-1, 1) * d_rou(y.reshape(-1,1))
 
             K = (pminus.dot(np.transpose(H))).dot(
-                np.linalg.inv(H.dot(pminus.dot(np.transpose(H)))+Rk))
+                np.linalg.inv(H.dot(pminus.dot(np.transpose(H))) + Rk))
             kh = K.dot(H)
-            pplus = (np.identity(kh.shape[0])-kh).dot(pminus)
-            dx = K.dot(measurement-y-H.dot(xminus-xop))
+            pplus = (np.identity(kh.shape[0]) - kh).dot(pminus)
+            dx = K.dot(measurement - y - H.dot(xminus - xop))
             xplus = xminus + dx
-            print('it')
-        print('-----')
-
-
-
+            # print('it')
+        # print('-----')
 
         self.state = self.state + dx
 
@@ -340,6 +359,7 @@ class ImuEKFComplex:
     def measurement_uwb_mc(self, measurement, cov_m, beacon_set, ref_trace):
         '''
         Use particle simulator posterior distribution.
+        uncompleted!!! and may be invalid in such situation.
         :param measurement:
         :param cov_m:
         :param beacon_set:
