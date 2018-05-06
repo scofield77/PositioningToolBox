@@ -426,7 +426,7 @@ class ImuEKFComplex:
                     # print(pv, v[index[i]])
                     ka_squard = 10.0
 
-                    if gamma < ka_squard or i < np.floor(index.shape[0] / 2):
+                    if gamma < ka_squard :#or i < np.floor(index.shape[0] / 2):
                         # break_flag=True
                         mask[index[i]] = 1.0
                         # Rk[index[i],index[i]]=cov_m[0]

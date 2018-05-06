@@ -73,13 +73,13 @@ if __name__ == '__main__':
     beacon_set = np.loadtxt(dir_name + 'beaconset_no_mac.csv', delimiter=',')
 
     uwb_valid = list()
-    for i in range(1,uwb_data.shape[1]):
-        if uwb_data[:,i].max()>0.0:
+    for i in range(1, uwb_data.shape[1]):
+        if uwb_data[:, i].max() > 0.0:
             uwb_valid.append(i)
-    random_index = np.random.randint(0,len(uwb_valid)-1,len(uwb_valid))
-    for i in range(min(random_index.shape[0],1)):
-        uwb_data[:,uwb_valid[random_index[i]]] *= 0.0
-        uwb_data[:,uwb_valid[random_index[i]]] -= 10.0
+    random_index = np.random.randint(0, len(uwb_valid) - 1, len(uwb_valid))
+    for i in range(min(random_index.shape[0], 1)):
+        uwb_data[:, uwb_valid[random_index[i]]] *= 0.0
+        uwb_data[:, uwb_valid[random_index[i]]] -= 10.0
 
     ref_trace = np.loadtxt(dir_name + 'ref_trace.csv', delimiter=',')
 
@@ -100,6 +100,7 @@ if __name__ == '__main__':
 
     trace = np.zeros([imu_data.shape[0], 3])
     rtrace = np.zeros([imu_data.shape[0], 3])
+    ortrace = np.zeros([imu_data.shape[0], 3])
     vel = np.zeros([imu_data.shape[0], 3])
     ang = np.zeros([imu_data.shape[0], 3])
     ba = np.zeros([imu_data.shape[0], 3])
@@ -164,6 +165,26 @@ if __name__ == '__main__':
     rkf.initial_state(imu_data[:50, 1:7],
                       pos=initial_pos,
                       ori=initial_orientation)
+    orkf = ImuEKFComplex(np.diag((
+        0.001,
+        0.001,
+        0.001,
+        0.001,
+        0.001,
+        0.001,
+        0.001 * np.pi / 180.0, 0.001 * np.pi / 180.0, 0.001 * np.pi / 180.0,
+        0.0001,
+        0.0001,
+        0.0001,
+        0.0001 * np.pi / 180.0,
+        0.0001 * np.pi / 180.0,
+        0.0001 * np.pi / 180.0
+    )),
+        local_g=-9.81, time_interval=average_time_interval)
+
+    orkf.initial_state(imu_data[:50, 1:7],
+                       pos=initial_pos,
+                       ori=initial_orientation)
 
     zv_state = GLRT_Detector(imu_data[:, 1:7],
                              sigma_a=1.0,
@@ -197,29 +218,31 @@ if __name__ == '__main__':
                                            np.diag((0.0001, 0.0001, 0.0001)))
                 rkf.measurement_function_zv(np.asarray((0, 0, 0)),
                                             np.diag((0.0001, 0.0001, 0.0001)))
+                orkf.measurement_function_zv(np.asarray((0, 0, 0)),
+                                             np.diag((0.0001, 0.0001, 0.0001)))
 
             if uwb_data[uwb_index, 0] < imu_data[i, 0]:
 
                 if uwb_index < uwb_data.shape[0] - 1:
-                    # rkf.measurement_uwb_robust_multi(np.asarray(uwb_data[uwb_index, 1:]),
-                    #                                  np.ones(1) * 0.1,
-                    #                                  beacon_set,
-                    #                                  6.0)
+                    orkf.measurement_uwb_robust_multi(np.asarray(uwb_data[uwb_index, 1:]),
+                                                     np.ones(1) * 0.1,
+                                                     beacon_set,
+                                                     6.0)
                     # rkf.measurement_uwb_mc(np.asarray(uwb_data[uwb_index,1:]),
                     #                        np.ones(1)*1.0,
                     #                        beacon_set, ref_trace)
-                    rkf.measurement_uwb_iterate(np.asarray(uwb_data[uwb_index, 1:]),
-                                                np.ones(1) * 0.1,
-                                                beacon_set, ref_trace)
+                    # orkf.measurement_uwb_iterate(np.asarray(uwb_data[uwb_index, 1:]),
+                    #                              np.ones(1) * 0.1,
+                    #                              beacon_set, ref_trace)
                     uwb_index += 1
                     for j in range(1, uwb_data.shape[1]):
                         if uwb_data[uwb_index, j] > 0.0 and \
                                 uwb_data[uwb_index, j] < 1000.0 and \
                                 beacon_set[j - 1, 0] < 1000.0:
-                            # kf.measurement_uwb(np.asarray(uwb_data[uwb_index, j]),
-                            #                    np.ones(1) * 0.1,
-                            #                    np.transpose(beacon_set[j - 1, :]))
-                            kf.measurement_uwb_robust(np.asarray(uwb_data[uwb_index, j]),
+                            kf.measurement_uwb(np.asarray(uwb_data[uwb_index, j]),
+                                               np.ones(1) * 0.1,
+                                               np.transpose(beacon_set[j - 1, :]))
+                            rkf.measurement_uwb_robust(np.asarray(uwb_data[uwb_index, j]),
                                                        np.ones(1) * 0.2,
                                                        np.transpose(beacon_set[j - 1, :]),
                                                        j, 7.0, 1.0)
@@ -236,6 +259,7 @@ if __name__ == '__main__':
         iner_acc[i, :] = kf.acc
 
         rtrace[i, :] = rkf.state[0:3]
+        ortrace[i, :] = orkf.state[0:3]
 
         # print('finished:', rate * 100.0, "% ", i, imu_data.shape[0])
 
@@ -285,6 +309,7 @@ if __name__ == '__main__':
     plt.figure()
     plt.plot(trace[:, 0], trace[:, 1], '-+', label='fusing')
     plt.plot(rtrace[:, 0], rtrace[:, 1], '-+', label='robust')
+    plt.plot(ortrace[:, 0], ortrace[:, 1], '-+', label='own robust')
     plt.plot(uwb_trace[:, 0], uwb_trace[:, 1], '+', label='uwb')
     plt.plot(ref_trace[:, 1], ref_trace[:, 2], '-', label='ref')
     plt.legend()
