@@ -72,6 +72,15 @@ if __name__ == '__main__':
     uwb_data = np.loadtxt(dir_name + 'uwb_data.csv', delimiter=',')
     beacon_set = np.loadtxt(dir_name + 'beaconset_no_mac.csv', delimiter=',')
 
+    uwb_valid = list()
+    for i in range(1,uwb_data.shape[1]):
+        if uwb_data[:,i].max()>0.0:
+            uwb_valid.append(i)
+    random_index = np.random.randint(0,len(uwb_valid)-1,len(uwb_valid))
+    for i in range(min(random_index.shape[0],1)):
+        uwb_data[:,uwb_valid[random_index[i]]] *= 0.0
+        uwb_data[:,uwb_valid[random_index[i]]] -= 10.0
+
     ref_trace = np.loadtxt(dir_name + 'ref_trace.csv', delimiter=',')
 
     uol = UwbOptimizeLocation(beacon_set)
