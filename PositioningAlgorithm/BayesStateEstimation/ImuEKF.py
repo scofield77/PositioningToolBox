@@ -201,6 +201,9 @@ class ImuEKFComplex:
 
         self.state[6:9] = dcm2euler(q2dcm(self.rotation_q))
 
+        kh = self.K.dot(self.H)
+        self.prob_state = (np.identity(kh.shape[0])-kh).dot(self.prob_state)
+
     def measurement_uwb_robust(self, measurement,
                                cov_m,
                                beacon_pos,
@@ -284,73 +287,46 @@ class ImuEKFComplex:
 
         self.state[6:9] = dcm2euler(q2dcm(self.rotation_q))
 
-    def measurement_uwb_EM(self, measurement, cov_m, beacon_set, ref_trace):
-        def get_vk_eta(measurement, beacon_pos, state, cov, P):
-            z = np.zeros(1)
-            y = np.zeros(1)
-            z[0] = measurement
-            y[0] = np.linalg.norm(state[0:3] - beacon_pos)
+        kh = self.K.dot(self.H)
+        self.prob_state = (np.identity(kh.shape[0]) - kh).dot(self.prob_state)
 
-            H = np.zeros(shape=(1, state.shape[0]))
-            H[0, 0:3] = (state[0:3] - beacon_pos).transpose() / y[0]
+    def measurement_uwb_iterate(self, measurement, cov_m, beacon_set, ref_trace):
 
-            R_k = cov * 1.0
+        pminus = self.prob_state
+        xminus = self.state
 
-            P_v = (H.dot(P).dot(np.transpose(H)) + R_k)
-            v_k = z - y
-            eta_k = np.zeros(1)
+        xplus = self.state
+        xop = self.state*0.0
 
-            K = (P.dot(np.transpose(H))).dot(
-                np.linalg.inv(((H.dot(P)).dot(np.transpose(H)) + R_k))
-            )
-            dx = K.dot(z - y)
-            return v_k[0], R_k[0], H, K, dx
+        # process and select measurement and beaconset
+        measurement = measurement[np.where(beacon_set[:, 0] < 5000.0)] * 1.0
+        beacon_set = beacon_set[np.where(beacon_set < 5000.0)] * 1.0
+        beacon_set = beacon_set.reshape([-1, 3])
 
-        v_k_list = list()
-        R_k_list = list()
-        H_list = list()
-        K_list = list()
-        dx_list = list()
-        # if measurement.
+        m_index = np.where(measurement > 0.0)
+        measurement = measurement[m_index] * 1.0
+        beacon_set = beacon_set[m_index, :] * 1.0
+        print(measurement.shape, beacon_set.shape)
         measurement = measurement.reshape(-1)
+        beacon_set = beacon_set.reshape([-1, 3])
 
-        for i in range(measurement.shape[0]):
-            if self.dx_dict.get(i) is None:
-                self.dx_dict[i] = list()
-            if measurement[i] > 0.0 and beacon_set[i, 0] < 5000.0:
-                tvk, trk, th, tk, tdx = get_vk_eta(measurement[i],
-                                                   beacon_set[i, :].transpose(),
-                                                   self.state, cov_m,
-                                                   self.prob_state)
-                if abs(tvk) < 2.0:  # or tvk > 10.0:
-                    v_k_list.append(tvk)
-                    R_k_list.append(cov_m[0])
-                    H_list.append(th)
-                    K_list.append(tk)
-                    dx_list.append(tdx)
-                    self.dx_dict[i].append(tdx)
-            else:
-                self.dx_dict[i].append(np.zeros_like(self.state))
 
-        assert len(v_k_list) == len(R_k_list) == len(H_list)
-        R_matrix = np.zeros(shape=(len(v_k_list), len(v_k_list)))
-        self.H = np.zeros(shape=(len(v_k_list), self.state.shape[0]))
-        V = np.zeros(shape=(len(v_k_list), 1))
-        # print(sorted(v_k_list))
-        # print(v_k_list)
-        # print(R_k_list)
-        # print('-0---------------------------------')
+        Rk = np.identity(measurement.shape[0],float) * cov_m[0]
+        dx = np.zeros(self.state.shape[0])
+        while np.linalg.norm(xplus-xop) > 0.1:
+            xop = xplus
+            y = np.linalg.norm(xop[0:3]-beacon_set,axis=1)
+            H = np.zeros(shape=(measurement.shape[0],self.state.shape[0]))
+            H[:,0:3] = (xop[0:3]-beacon_set) / y.reshape(-1,1)
 
-        for i in range(len(v_k_list)):
-            R_matrix[i, i] = R_k_list[i]
-            self.H[i, :] = H_list[i]
-            V[i, 0] = v_k_list[i]
+            K = (pminus.dot(np.transpose(H))).dot(
+                np.linalg.inv(H.dot(pminus.dot(np.transpose(H)))+Rk))
+            kh = K.dot(H)
+            pplus = (np.identity(kh.shape[0])-kh).dot(pminus)
+            dx = K.dot(measurement-y-H.dot(xminus-xop))
 
-        self.K = (self.prob_state.dot(np.transpose(self.H))).dot(
-            np.linalg.inv((self.H.dot(self.prob_state)).dot(np.transpose(self.H)) + R_matrix)
-        )
 
-        dx = self.K.dot(V).reshape(-1)
+
 
         self.state = self.state + dx
 
