@@ -81,11 +81,11 @@ if __name__ == '__main__':
         if i is 0:
             uwb_trace[i, :], uwb_opt_res[i] = \
                 uol.iter_positioning((0, 0, 0),
-                                         uwb_data[i, 1:])
+                                     uwb_data[i, 1:])
         else:
             uwb_trace[i, :], uwb_opt_res[i] = \
                 uol.iter_positioning(uwb_trace[i - 1, :],
-                                         uwb_data[i, 1:])
+                                     uwb_data[i, 1:])
 
     # initial_state = get_initial_state(imu_data[:40, 1:4], np.asarray((0, 0, 0)), 0.0, 9)
 
@@ -115,7 +115,7 @@ if __name__ == '__main__':
     # initial_orientation = math.atan2(ref_trace[ti, 2] - ref_trace[0, 2],
     #                                  ref_trace[ti, 1] - ref_trace[0, 1])-10.0 * np.pi /180.0#35
     initial_orientation = math.atan2(ref_trace[ti, 2] - ref_trace[0, 2],
-                                     ref_trace[ti, 1] - ref_trace[0, 1])+150.0 * np.pi /180.0#32
+                                     ref_trace[ti, 1] - ref_trace[0, 1]) + 150.0 * np.pi / 180.0  # 32
     #  initial_orientation = 200.0 / 180.0 * np.pi
 
     kf = ImuEKFComplex(np.diag((
@@ -272,7 +272,7 @@ if __name__ == '__main__':
     plt.plot(trace[:, 0], trace[:, 1], '-+', label='fusing')
     plt.plot(rtrace[:, 0], rtrace[:, 1], '-+', label='robust')
     plt.plot(uwb_trace[:, 0], uwb_trace[:, 1], '+', label='uwb')
-    plt.plot(ref_trace[:,1],ref_trace[:,2],'-',label='ref')
+    plt.plot(ref_trace[:, 1], ref_trace[:, 2], '-', label='ref')
     plt.legend()
     plt.grid()
 
