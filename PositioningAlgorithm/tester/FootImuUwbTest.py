@@ -46,6 +46,7 @@ from PositioningAlgorithm.BayesStateEstimation.ImuEKF import *
 # from AlgorithmTool
 import time
 
+from PositioningAlgorithm.BayesStateEstimation.UwbMeasurementEKF import UwbRangeEKF
 from PositioningAlgorithm.OptimizationAlgorithm.UwbOptimizeLocation import UwbOptimizeLocation
 
 # from mayavi import mlab
@@ -80,6 +81,13 @@ if __name__ == '__main__':
     # for i in range(min(random_index.shape[0], 1)):
     #     uwb_data[:, uwb_valid[random_index[i]]] *= 0.0
     #     uwb_data[:, uwb_valid[random_index[i]]] -= 10.0
+
+
+    uwb_filter_list = list()
+    for i in range(1,uwb_data.shape[1]):
+        uwb_filter_list.append(UwbRangeEKF(0.2,beacon_set[i-1,:].reshape(-1)))
+    uwb_est_data = np.zeros_like(uwb_data)
+    uwb_est_data[:,0] = uwb_data[:,0]*1.0
 
     ref_trace = np.loadtxt(dir_name + 'ref_trace.csv', delimiter=',')
 
@@ -126,6 +134,8 @@ if __name__ == '__main__':
     #                                  ref_trace[ti, 1] - ref_trace[0, 1])-10.0 * np.pi /180.0#35
     initial_orientation = math.atan2(ref_trace[ti, 2] - ref_trace[0, 2],
                                      ref_trace[ti, 1] - ref_trace[0, 1]) + 150.0 * np.pi / 180.0  # 32
+
+
     #  initial_orientation = 200.0 / 180.0 * np.pi
 
     kf = ImuEKFComplex(np.diag((
@@ -242,9 +252,16 @@ if __name__ == '__main__':
                                                  beacon_set, ref_trace)
                     uwb_index += 1
                     for j in range(1, uwb_data.shape[1]):
+
                         if uwb_data[uwb_index, j] > 0.0 and \
                                 uwb_data[uwb_index, j] < 1000.0 and \
                                 beacon_set[j - 1, 0] < 1000.0:
+                            if uwb_filter_list[j-1].m < -1000.0:
+                                uwb_filter_list[j-1].initial_pose(uwb_data[uwb_index,j-1], rkf.state[0:3],rkf.prob_state[0:3,0:3])
+                            else:
+                                uwb_filter_list[j-1].state_transmition(rkf.state[0:3],rkf.prob_state[0:3,0:3])
+                                uwb_filter_list[j-1].measurement(uwb_data[uwb_index,j-1],0.1,6.0,1.0)
+
                             kf.measurement_uwb(np.asarray(uwb_data[uwb_index, j]),
                                                np.ones(1) * 0.1,
                                                np.transpose(beacon_set[j - 1, :]))
@@ -252,6 +269,7 @@ if __name__ == '__main__':
                                                        np.ones(1) * 0.2,
                                                        np.transpose(beacon_set[j - 1, :]),
                                                        j, 7.0, 1.0)
+                        uwb_est_data[uwb_index,j-1] = uwb_filter_list[j-1].m
                     # print(rkf.prob_state[0,0],rkf.prob_state[1,1],rkf.prob_state[2,2])
         #
         # print(kf.state_x)
@@ -320,6 +338,15 @@ if __name__ == '__main__':
     plt.plot(ref_trace[:, 1], ref_trace[:, 2], '-', label='ref')
     plt.legend()
     plt.grid()
+
+
+    plt.figure()
+    plt.title('uwb estimated')
+    for i in range(1,uwb_est_data.shape[1]):
+        plt.plot(uwb_est_data[:,0],uwb_est_data[:,i],label=str(i))
+    plt.legend()
+    plt.grid()
+
 
     # plt.figure()
     # fig = plt.figure()
