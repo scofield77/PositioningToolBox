@@ -196,20 +196,20 @@ if __name__ == '__main__':
                     #                        np.ones(1)*1.0,
                     #                        beacon_set, ref_trace)
                     rkf.measurement_uwb_iterate(np.asarray(uwb_data[uwb_index, 1:]),
-                                                np.ones(1) * 1.0,
+                                                np.ones(1) * 0.2,
                                                 beacon_set, ref_trace)
                     uwb_index += 1
                     for j in range(1, uwb_data.shape[1]):
                         if uwb_data[uwb_index, j] > 0.0 and \
                                 uwb_data[uwb_index, j] < 1000.0 and \
                                 beacon_set[j - 1, 0] < 1000.0:
-                            kf.measurement_uwb(np.asarray(uwb_data[uwb_index, j]),
-                                               np.ones(1) * 0.2,
-                                               np.transpose(beacon_set[j - 1, :]))
-                            # rkf.measurement_uwb_robust(np.asarray(uwb_data[uwb_index, j]),
-                            #                            np.ones(1) * 0.2,
-                            #                            np.transpose(beacon_set[j - 1, :]),
-                            #                            j, 4.0, 1.0)
+                            # kf.measurement_uwb(np.asarray(uwb_data[uwb_index, j]),
+                            #                    np.ones(1) * 0.2,
+                            #                    np.transpose(beacon_set[j - 1, :]))
+                            kf.measurement_uwb_robust(np.asarray(uwb_data[uwb_index, j]),
+                                                       np.ones(1) * 0.2,
+                                                       np.transpose(beacon_set[j - 1, :]),
+                                                       j, 6.0, 1.0)
         #
         # print(kf.state_x)
         # print( i /)

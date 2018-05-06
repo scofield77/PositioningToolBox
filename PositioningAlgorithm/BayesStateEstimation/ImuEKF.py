@@ -290,9 +290,10 @@ class ImuEKFComplex:
         kh = self.K.dot(self.H)
         self.prob_state = (np.identity(kh.shape[0]) - kh).dot(self.prob_state)
 
-    def measurement_uwb_iterate(self, measurement, cov_m, beacon_set, ref_trace):
+    def measurement_uwb_iterate_standard(self, measurement, cov_m, beacon_set, ref_trace):
 
-        pminus = self.prob_state
+        pminus = self.prob_state*1.0
+        pplus = pminus *1.0
         xminus = self.state
 
         xplus = self.state
@@ -313,48 +314,154 @@ class ImuEKFComplex:
         Rk = np.identity(measurement.shape[0], float) * cov_m[0]
         dx = np.zeros(self.state.shape[0])
 
-        def rou(u):
-            # return 0.5 * u * u / (1.0 + u * u)
+        # robust kernel function part
+        # def rou(u):
+        #     # return 0.5 * u * u / (1.0 + u * u)
+        #
+        #     u2 = u * u
+        #     # if u2 < 1.0:
+        #     #     return 0.5 * u2
+        #     # else:
+        #     return 2.0 * u2 / (1.0 + u2) - 0.5
+        #
+        # def d_rou(u):
+        #     u2 = u * u
+        #     # if u2 < 1.0:
+        #     #     return u
+        #     # else:
+        #     return 4.0 * u / (1.0 + u2) / (1.0 + u2)
 
-            u2 = u * u
-            if u2 < 1.0:
-                return 0.5 * u2
-            else:
-                return 2.0 * u2 / (1.0 + u2) - 0.5
-        def d_rou(u):
-            u2 = u*u
-            if u2 < 1.0:
-                return u
-            else:
-                return 4.0 * u /(1.0 + u2) / (1.0+u2)
+        # rou = np.vectorize(rou)
+        # d_rou = np.vectorize(d_rou)
 
-
-
-        rou = np.vectorize(rou)
-        d_rou = np.vectorize(d_rou)
-
-
-        while np.linalg.norm(xplus - xop) > 0.01:
+        mask = np.zeros(measurement.shape[0])
+        ite_counter = 0
+        while np.linalg.norm(xplus - xop) > 0.01 and ite_counter < 30:
+            ite_counter += 1
             xop = xplus * 1.0
             y = np.linalg.norm(xop[0:3] - beacon_set, axis=1)
-            y = rou(y)
+            # y = rou(y)
             H = np.zeros(shape=(measurement.shape[0], self.state.shape[0]))
-            H[:, 0:3] = (xop[0:3] - beacon_set) / y.reshape(-1, 1) * d_rou(y.reshape(-1,1))
+            H[:, 0:3] = (xop[0:3] - beacon_set) / y.reshape(-1, 1)  # * d_rou(y.reshape(-1, 1))
+
 
             K = (pminus.dot(np.transpose(H))).dot(
                 np.linalg.inv(H.dot(pminus.dot(np.transpose(H))) + Rk))
             kh = K.dot(H)
             pplus = (np.identity(kh.shape[0]) - kh).dot(pminus)
-            dx = K.dot(measurement - y - H.dot(xminus - xop))
+            # if tp_plus
+            dx = K.dot((measurement - y - H.dot(xminus - xop)) )
             xplus = xminus + dx
             # print('it')
-        # print('-----')
 
         self.state = self.state + dx
 
         self.rotation_q = quaternion_left_update(self.rotation_q, dx[6:9], -1.0)
 
         self.state[6:9] = dcm2euler(q2dcm(self.rotation_q))
+
+        self.prob_state = pplus
+
+    def measurement_uwb_iterate(self, measurement, cov_m, beacon_set, ref_trace):
+
+        pminus = self.prob_state*1.0
+        pplus = pminus *1.0
+        xminus = self.state
+
+        xplus = self.state
+        xop = self.state * 0.0
+
+        # process and select measurement and beaconset
+        measurement = measurement[np.where(beacon_set[:, 0] < 5000.0)] * 1.0
+        beacon_set = beacon_set[np.where(beacon_set < 5000.0)] * 1.0
+        beacon_set = beacon_set.reshape([-1, 3])
+
+        m_index = np.where(measurement > 0.0)
+        measurement = measurement[m_index] * 1.0
+        beacon_set = beacon_set[m_index, :] * 1.0
+        # print(measurement.shape, beacon_set.shape)
+        measurement = measurement.reshape(-1)
+        beacon_set = beacon_set.reshape([-1, 3])
+
+        Rk = np.identity(measurement.shape[0], float) * cov_m[0]
+        dx = np.zeros(self.state.shape[0])
+
+        # robust kernel function part
+        # def rou(u):
+        #     # return 0.5 * u * u / (1.0 + u * u)
+        #
+        #     u2 = u * u
+        #     # if u2 < 1.0:
+        #     #     return 0.5 * u2
+        #     # else:
+        #     return 2.0 * u2 / (1.0 + u2) - 0.5
+        #
+        # def d_rou(u):
+        #     u2 = u * u
+        #     # if u2 < 1.0:
+        #     #     return u
+        #     # else:
+        #     return 4.0 * u / (1.0 + u2) / (1.0 + u2)
+
+        # rou = np.vectorize(rou)
+        # d_rou = np.vectorize(d_rou)
+
+        mask = np.zeros(measurement.shape[0])
+        ite_counter = 0
+        while np.linalg.norm(xplus - xop) > 0.01 and ite_counter < 30:
+            ite_counter += 1
+            xop = xplus * 1.0
+            y = np.linalg.norm(xop[0:3] - beacon_set, axis=1)
+            # y = rou(y)
+            H = np.zeros(shape=(measurement.shape[0], self.state.shape[0]))
+            H[:, 0:3] = (xop[0:3] - beacon_set) / y.reshape(-1, 1)  # * d_rou(y.reshape(-1, 1))
+
+            v = measurement - y
+            # print(np.sort(v))
+
+            # if np.std(v)>0.5:
+            #     for i in range(v.shape[0]):
+            #         if abs(v[i] - np.mean(v)) > 3.0 * np.std(v):
+            #             mask[i] = 0.0#np.std(v) / abs(v[i] - np.mean(v))
+            index = np.argsort(np.abs(v))
+            # print(v[index])
+            break_flag = False
+            for i in range(index.shape[0]):
+                if mask[index[i]] < 0.5:
+                    # mask[index[i]] = 1.0
+                    # if v[index[i]] > 7.0*cov_m:
+                    #     break_flag = True
+                    # gama = np.transpose(v[index[i]]).dot((H[index[i],:].dot(pminus)).dot(H[index[i],:]))
+                    pv = (H[index[i],:].dot(pminus)).dot(np.transpose(H[index[i],:]))+cov_m[0]
+                    gamma = v[index[i]] * v[index[i]] / pv
+                    if pv < 6.0:
+                        # break_flag=True
+                        mask[index[i]] = 1.0
+
+                    # i=index.shape[0]+1
+            # if break_flag:
+            #     break
+            print(mask)
+
+            K = (pminus.dot(np.transpose(H))).dot(
+                np.linalg.inv(H.dot(pminus.dot(np.transpose(H))) + Rk))
+            kh = K.dot(H)
+            pplus = (np.identity(kh.shape[0]) - kh).dot(pminus)
+            # if tp_plus
+            dx = K.dot((measurement - y - H.dot(xminus - xop)) * mask)
+            xplus = xminus + dx
+            # print('it')
+        print('-----')
+
+        self.state = self.state + dx
+
+        self.rotation_q = quaternion_left_update(self.rotation_q, dx[6:9], -1.0)
+
+        self.state[6:9] = dcm2euler(q2dcm(self.rotation_q))
+
+        self.prob_state = pplus
+
+
 
     def measurement_uwb_mc(self, measurement, cov_m, beacon_set, ref_trace):
         '''
