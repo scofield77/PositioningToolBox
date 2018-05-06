@@ -292,8 +292,8 @@ class ImuEKFComplex:
 
     def measurement_uwb_iterate_standard(self, measurement, cov_m, beacon_set, ref_trace):
 
-        pminus = self.prob_state*1.0
-        pplus = pminus *1.0
+        pminus = self.prob_state * 1.0
+        pplus = pminus * 1.0
         xminus = self.state
 
         xplus = self.state
@@ -344,13 +344,12 @@ class ImuEKFComplex:
             H = np.zeros(shape=(measurement.shape[0], self.state.shape[0]))
             H[:, 0:3] = (xop[0:3] - beacon_set) / y.reshape(-1, 1)  # * d_rou(y.reshape(-1, 1))
 
-
             K = (pminus.dot(np.transpose(H))).dot(
                 np.linalg.inv(H.dot(pminus.dot(np.transpose(H))) + Rk))
             kh = K.dot(H)
             pplus = (np.identity(kh.shape[0]) - kh).dot(pminus)
             # if tp_plus
-            dx = K.dot((measurement - y - H.dot(xminus - xop)) )
+            dx = K.dot((measurement - y - H.dot(xminus - xop)))
             xplus = xminus + dx
             # print('it')
 
@@ -364,8 +363,8 @@ class ImuEKFComplex:
 
     def measurement_uwb_iterate(self, measurement, cov_m, beacon_set, ref_trace):
 
-        pminus = self.prob_state*1.0
-        pplus = pminus *1.0
+        pminus = self.prob_state * 1.0
+        pplus = pminus * 1.0
         xminus = self.state
 
         xplus = self.state
@@ -417,31 +416,26 @@ class ImuEKFComplex:
             H[:, 0:3] = (xop[0:3] - beacon_set) / y.reshape(-1, 1)  # * d_rou(y.reshape(-1, 1))
 
             v = measurement - y
-            # print(np.sort(v))
 
-            # if np.std(v)>0.5:
-            #     for i in range(v.shape[0]):
-            #         if abs(v[i] - np.mean(v)) > 3.0 * np.std(v):
-            #             mask[i] = 0.0#np.std(v) / abs(v[i] - np.mean(v))
             index = np.argsort(np.abs(v))
-            # print(v[index])
             break_flag = False
             for i in range(index.shape[0]):
-                if mask[index[i]] < 0.5:
-                    # mask[index[i]] = 1.0
-                    # if v[index[i]] > 7.0*cov_m:
-                    #     break_flag = True
-                    # gama = np.transpose(v[index[i]]).dot((H[index[i],:].dot(pminus)).dot(H[index[i],:]))
-                    pv = (H[index[i],:].dot(pminus)).dot(np.transpose(H[index[i],:]))+cov_m[0]
-                    gamma = v[index[i]] * v[index[i]] / pv
-                    if pv < 6.0:
-                        # break_flag=True
-                        mask[index[i]] = 1.0
+                pv = (H[index[i], :].dot(pplus)).dot(np.transpose(H[index[i], :])) + Rk[index[i], index[i]]
+                gamma = v[index[i]] * v[index[i]] / pv
+                # print(pv, v[index[i]])
+                if gamma < 0.1 or i < index.shape[0] - 2:  # np.floor(index.shape[0]/2):
+                    # break_flag=True
+                    mask[index[i]] = 1.0
+                    # Rk[index[i],index[i]]=cov_m[0]
+                else:
+                    # print('corrected Rk')
+                    Rk[index[i], index[i]] = gamma / 0.1 * Rk[index[i], index[i]]
+                    # mask[index[i]] = 1.0 / gamma
 
                     # i=index.shape[0]+1
             # if break_flag:
             #     break
-            print(mask)
+            # print(mask*v)
 
             K = (pminus.dot(np.transpose(H))).dot(
                 np.linalg.inv(H.dot(pminus.dot(np.transpose(H))) + Rk))
@@ -451,7 +445,8 @@ class ImuEKFComplex:
             dx = K.dot((measurement - y - H.dot(xminus - xop)) * mask)
             xplus = xminus + dx
             # print('it')
-        print('-----')
+        # print('-----')
+        print(ite_counter)
 
         self.state = self.state + dx
 
@@ -460,8 +455,6 @@ class ImuEKFComplex:
         self.state[6:9] = dcm2euler(q2dcm(self.rotation_q))
 
         self.prob_state = pplus
-
-
 
     def measurement_uwb_mc(self, measurement, cov_m, beacon_set, ref_trace):
         '''

@@ -58,7 +58,7 @@ if __name__ == '__main__':
     start_time = time.time()
     # dir_name = '/home/steve/Data/FusingLocationData/0017/'
     # dir_name = '/home/steve/Data/FusingLocationData/0013/'
-    dir_name = '/home/steve/Data/NewFusingLocationData/0032/'
+    dir_name = '/home/steve/Data/NewFusingLocationData/0033/'
 
     # imu_data = np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=',')
     imu_data = np.loadtxt(dir_name + 'LEFT_FOOT.data', delimiter=',')
@@ -136,9 +136,13 @@ if __name__ == '__main__':
                      pos=initial_pos,
                      ori=initial_orientation)
     rkf = ImuEKFComplex(np.diag((
-        0.001, 0.001, 0.001,
-        0.001, 0.001, 0.001,
-        0.001 * np.pi / 180.0, 0.001 * np.pi / 180.0, 0.0001 * np.pi / 180.0,
+        0.001,
+        0.001,
+        0.001,
+        0.001,
+        0.001,
+        0.001,
+        0.001 * np.pi / 180.0, 0.001 * np.pi / 180.0, 0.001 * np.pi / 180.0,
         0.0001,
         0.0001,
         0.0001,
@@ -196,7 +200,7 @@ if __name__ == '__main__':
                     #                        np.ones(1)*1.0,
                     #                        beacon_set, ref_trace)
                     rkf.measurement_uwb_iterate(np.asarray(uwb_data[uwb_index, 1:]),
-                                                np.ones(1) * 0.2,
+                                                np.ones(1) * 0.1,
                                                 beacon_set, ref_trace)
                     uwb_index += 1
                     for j in range(1, uwb_data.shape[1]):
@@ -204,12 +208,13 @@ if __name__ == '__main__':
                                 uwb_data[uwb_index, j] < 1000.0 and \
                                 beacon_set[j - 1, 0] < 1000.0:
                             # kf.measurement_uwb(np.asarray(uwb_data[uwb_index, j]),
-                            #                    np.ones(1) * 0.2,
+                            #                    np.ones(1) * 0.1,
                             #                    np.transpose(beacon_set[j - 1, :]))
                             kf.measurement_uwb_robust(np.asarray(uwb_data[uwb_index, j]),
                                                        np.ones(1) * 0.2,
                                                        np.transpose(beacon_set[j - 1, :]),
-                                                       j, 6.0, 1.0)
+                                                       j, 7.0, 1.0)
+                    # print(rkf.prob_state[0,0],rkf.prob_state[1,1],rkf.prob_state[2,2])
         #
         # print(kf.state_x)
         # print( i /)
