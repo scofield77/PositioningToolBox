@@ -306,15 +306,15 @@ class ImuEKFComplex:
         m_index = np.where(measurement > 0.0)
         measurement = measurement[m_index] * 1.0
         beacon_set = beacon_set[m_index, :] * 1.0
-        print(measurement.shape, beacon_set.shape)
+        # print(measurement.shape, beacon_set.shape)
         measurement = measurement.reshape(-1)
         beacon_set = beacon_set.reshape([-1, 3])
 
 
         Rk = np.identity(measurement.shape[0],float) * cov_m[0]
         dx = np.zeros(self.state.shape[0])
-        while np.linalg.norm(xplus-xop) > 0.1:
-            xop = xplus
+        while np.linalg.norm(xplus-xop) > 0.01:
+            xop = xplus*1.0
             y = np.linalg.norm(xop[0:3]-beacon_set,axis=1)
             H = np.zeros(shape=(measurement.shape[0],self.state.shape[0]))
             H[:,0:3] = (xop[0:3]-beacon_set) / y.reshape(-1,1)
@@ -324,6 +324,9 @@ class ImuEKFComplex:
             kh = K.dot(H)
             pplus = (np.identity(kh.shape[0])-kh).dot(pminus)
             dx = K.dot(measurement-y-H.dot(xminus-xop))
+            xplus = xminus + dx
+            print('it')
+        print('-----')
 
 
 
