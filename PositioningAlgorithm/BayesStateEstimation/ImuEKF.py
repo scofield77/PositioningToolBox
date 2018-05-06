@@ -284,7 +284,6 @@ class ImuEKFComplex:
 
         self.state[6:9] = dcm2euler(q2dcm(self.rotation_q))
 
-
     def measurement_uwb_EM(self, measurement, cov_m, beacon_set, ref_trace):
         def get_vk_eta(measurement, beacon_pos, state, cov, P):
             z = np.zeros(1)
@@ -393,8 +392,8 @@ class ImuEKFComplex:
 
         # sample
         for i in range(3):
-            particles[:, i] = self.state[i] + rnd_p[:, i] * 1.0#self.prob_state[i, i]
-        print(np.std(particles,axis=0))
+            particles[:, i] = self.state[i] + rnd_p[:, i] * 1.0  # self.prob_state[i, i]
+        print(np.std(particles, axis=0))
 
         # measurement
 
@@ -406,12 +405,12 @@ class ImuEKFComplex:
 
         # cluster
 
-        self.state[0:3] = np.average(particles,axis=0,weights=w)
+        self.state[0:3] = np.average(particles, axis=0, weights=w)
         from sklearn.cluster import DBSCAN, k_means
 
-        cluster = DBSCAN(eps=0.3,min_samples=2)
+        cluster = DBSCAN(eps=0.3, min_samples=2)
         # cluster  =
-        cluster = cluster.fit(X=particles,sample_weight=w)
+        cluster = cluster.fit(X=particles, sample_weight=w)
         print(cluster.labels_)
 
         # fig = plt.figure(11)
@@ -472,7 +471,6 @@ class ImuEKFComplex:
                             robust_loop_flag = True
                             R_k[0] = eta_k[0] / ka_squard * R_k[0]
 
-
             K = (P.dot(np.transpose(H))).dot(
                 np.linalg.inv(((H.dot(P)).dot(np.transpose(H)) + R_k))
             )
@@ -494,7 +492,7 @@ class ImuEKFComplex:
                 tvk, trk, th, tk, tdx = get_vk_eta(measurement[i],
                                                    beacon_set[i, :].transpose(),
                                                    self.state, cov_m,
-                                                   self.prob_state,i)
+                                                   self.prob_state, i)
                 if abs(tvk) < 100.0:  # or tvk > 10.0:
                     v_k_list.append(tvk)
                     R_k_list.append(cov_m[0])
