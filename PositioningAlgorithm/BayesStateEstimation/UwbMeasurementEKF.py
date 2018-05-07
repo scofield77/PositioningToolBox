@@ -55,15 +55,15 @@ class UwbRangeEKF:
 
         self.m = self.m + np.asarray((dm))
         if self.m < 0.0:
-            print(self.m, self.last_pose, pose, dm)
+            print(self.beacon_set,self.m, self.last_pose, pose, dm)
 
         G = np.zeros(shape=(1, 6))
         G[0, 0:3] = 2.0 * (pose - self.beacon_set).reshape(1,-1)
         G[0, 3:6] = -2.0 * (self.last_pose - self.beacon_set).reshape(1,-1)
 
         P = np.zeros(shape=[6, 6])
-        P[0:3, 0:3] = self.last_pose_prob * 1.0
-        P[3:6, 3:6] = pose_prob * 1.0
+        P[0:3, 0:3] = pose_prob * 1.0
+        P[3:6, 3:6] = self.last_pose_prob * 1.0
 
         self.cov[0] = self.cov[0] + (
             (G).dot(P)).dot(np.transpose(G))
