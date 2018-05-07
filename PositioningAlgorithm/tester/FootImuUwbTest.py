@@ -313,7 +313,8 @@ if __name__ == '__main__':
                         # right
 
                         if uwb_filter_list[j - 1].m > -1000.0:
-                            uwb_filter_list[j - 1].state_transmition_2d(drkf.state[0:3], drkf.prob_state[0:3, 0:3])
+                            # uwb_filter_list[j - 1].state_transmition_2d(drkf.state[0:3], drkf.prob_state[0:3, 0:3])
+                            uwb_filter_list[j - 1].state_estimate(drkf.state[0:3], drkf.prob_state[0:3, 0:3])
                             uwb_est_data[uwb_index, j] = uwb_filter_list[j - 1].m
                             uwb_est_prob[uwb_index, j] = uwb_filter_list[j - 1].cov
 
@@ -326,7 +327,7 @@ if __name__ == '__main__':
                                 uwb_filter_list[j - 1].initial_pose(uwb_data[uwb_index, j], rkf.state[0:3] * 1.0,
                                                                     rkf.prob_state[0:3, 0:3] * 1.0)
                             else:
-                                uwb_filter_list[j - 1].measurement_func(uwb_data[uwb_index, j], 0.5, 6.0, 1.0)
+                                uwb_filter_list[j - 1].measurement_func(uwb_data[uwb_index, j], 1.5, 5.0, 1.0)
                                 uwb_est_data[uwb_index, j] = uwb_filter_list[j-1].m
                                 if np.linalg.norm(uwb_filter_list[j - 1].beacon_set - beacon_set[j - 1, :]) > 0.1:
                                     print('error', uwb_filter_list[j - 1].beacon_set, beacon_set[j - 1, :])
@@ -420,6 +421,20 @@ if __name__ == '__main__':
         plt.text(beacon_set[i, 0], beacon_set[i, 1], s=str(i + 1))
     plt.legend()
     plt.grid()
+
+    plt.figure()
+    # plt.plot(trace[:, 0], trace[:, 1], '-', label='fusing')
+    plt.plot(ftrace[:, 0], ftrace[:, 1], '-', label='foot')
+    # plt.plot(rtrace[:, 0], rtrace[:, 1], '-', label='robust')
+    plt.plot(ortrace[:, 0], ortrace[:, 1], '-+', label='own robust')
+    plt.plot(dtrace[:, 0], dtrace[:, 1], '-+', label='d ekf')
+    plt.plot(uwb_trace[:, 0], uwb_trace[:, 1], '+', label='uwb')
+    plt.plot(ref_trace[:, 1], ref_trace[:, 2], '-', label='ref')
+    for i in range(beacon_set.shape[0]):
+        plt.text(beacon_set[i, 0], beacon_set[i, 1], s=str(i + 1))
+    plt.legend()
+    plt.grid()
+
 
     plt.figure()
     plt.subplot(411)

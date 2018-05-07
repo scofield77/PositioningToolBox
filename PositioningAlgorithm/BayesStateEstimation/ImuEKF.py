@@ -314,25 +314,6 @@ class ImuEKFComplex:
         Rk = np.identity(measurement.shape[0], float) * cov_m[0]
         dx = np.zeros(self.state.shape[0])
 
-        # robust kernel function part
-        # def rou(u):
-        #     # return 0.5 * u * u / (1.0 + u * u)
-        #
-        #     u2 = u * u
-        #     # if u2 < 1.0:
-        #     #     return 0.5 * u2
-        #     # else:
-        #     return 2.0 * u2 / (1.0 + u2) - 0.5
-        #
-        # def d_rou(u):
-        #     u2 = u * u
-        #     # if u2 < 1.0:
-        #     #     return u
-        #     # else:
-        #     return 4.0 * u / (1.0 + u2) / (1.0 + u2)
-
-        # rou = np.vectorize(rou)
-        # d_rou = np.vectorize(d_rou)
 
         mask = np.zeros(measurement.shape[0])
         ite_counter = 0
@@ -385,25 +366,6 @@ class ImuEKFComplex:
         Rk = np.identity(measurement.shape[0], float) * cov_m[0]
         dx = np.zeros(self.state.shape[0])
 
-        # robust kernel function part
-        # def rou(u):
-        #     # return 0.5 * u * u / (1.0 + u * u)
-        #
-        #     u2 = u * u
-        #     # if u2 < 1.0:
-        #     #     return 0.5 * u2
-        #     # else:
-        #     return 2.0 * u2 / (1.0 + u2) - 0.5
-        #
-        # def d_rou(u):
-        #     u2 = u * u
-        #     # if u2 < 1.0:
-        #     #     return u
-        #     # else:
-        #     return 4.0 * u / (1.0 + u2) / (1.0 + u2)
-
-        # rou = np.vectorize(rou)
-        # d_rou = np.vectorize(d_rou)
 
         mask = np.zeros(measurement.shape[0])
         ite_counter = 0
@@ -419,6 +381,9 @@ class ImuEKFComplex:
 
             index = np.argsort(np.abs(v))
             break_flag = False
+
+
+
             for i in range(index.shape[0]):
                 if mask[index[i]] < 0.01:
                     pv = (H[index[i], :].dot(pplus)).dot(np.transpose(H[index[i], :])) + Rk[index[i], index[i]]

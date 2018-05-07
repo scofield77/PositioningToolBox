@@ -111,6 +111,18 @@ class UwbRangeEKF:
         self.last_pose_prob = pose_prob * 1.0
         self.last_pose = pose * 1.0
 
+    def state_estimate(self, pose, pose_prob):
+        m = np.linalg.norm(pose-self.beacon_set)
+        # cov_m =
+        G = np.zeros(shape=(1,3))
+        G[0,0:3] = (pose-self.beacon_set).reshape(1,-1) / np.linalg.norm(pose-self.beacon_set)
+
+        cov_m = np.zeros(1)
+        cov_m[0] = (G.dot(pose_prob)).dot(np.transpose(G))
+        self.measurement_func(m,cov_m,6.0,1.0)
+
+
+
     def measurement_func(self, measurement, cov_m, ka_squard=10.0, T_d=15.0):
         '''
         measurement function with robust function.
