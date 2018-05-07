@@ -59,7 +59,7 @@ if __name__ == '__main__':
     start_time = time.time()
     # dir_name = '/home/steve/Data/FusingLocationData/0017/'
     # dir_name = '/home/steve/Data/FusingLocationData/0013/'
-    dir_name = '/home/steve/Data/NewFusingLocationData/0032/'
+    dir_name = '/home/steve/Data/NewFusingLocationData/0033/'
 
     # imu_data = np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=',')
     imu_data = np.loadtxt(dir_name + 'LEFT_FOOT.data', delimiter=',')
@@ -108,6 +108,7 @@ if __name__ == '__main__':
     # initial_state = get_initial_state(imu_data[:40, 1:4], np.asarray((0, 0, 0)), 0.0, 9)
 
     trace = np.zeros([imu_data.shape[0], 3])
+    ftrace = np.zeros([imu_data.shape[0], 3])
     rtrace = np.zeros([imu_data.shape[0], 3])
     ortrace = np.zeros([imu_data.shape[0], 3])
     dtrace = np.zeros_like(trace)
@@ -156,6 +157,24 @@ if __name__ == '__main__':
     kf.initial_state(imu_data[:50, 1:7],
                      pos=initial_pos,
                      ori=initial_orientation)
+    fkf = ImuEKFComplex(np.diag((
+        0.001, 0.001, 0.001,
+        0.001, 0.001, 0.001,
+        0.001 * np.pi / 180.0, 0.001 * np.pi / 180.0, 0.0001 * np.pi / 180.0,
+        0.0001,
+        0.0001,
+        0.0001,
+        0.0001 * np.pi / 180.0,
+        0.0001 * np.pi / 180.0,
+        0.0001 * np.pi / 180.0
+    )),
+        local_g=-9.81,
+        time_interval=average_time_interval)
+
+    fkf.initial_state(imu_data[:50, 1:7],
+                     pos=initial_pos,
+                     ori=initial_orientation)
+
     rkf = ImuEKFComplex(np.diag((
         0.001,
         0.001,
@@ -235,6 +254,12 @@ if __name__ == '__main__':
                                                0.01 * np.pi / 180.0,
                                                0.01 * np.pi / 180.0))
                                       )
+        fkf.state_transaction_function(imu_data[i, 1:7],
+                                      np.diag((0.01, 0.01, 0.01,
+                                               0.01 * np.pi / 180.0,
+                                               0.01 * np.pi / 180.0,
+                                               0.01 * np.pi / 180.0))
+                                      )
         rkf.state_transaction_function(imu_data[i, 1:7],
                                        np.diag((0.01, 0.01, 0.01,
                                                 0.01 * np.pi / 180.0,
@@ -258,6 +283,9 @@ if __name__ == '__main__':
             # print('i:',i)
             # zv_state[i] = z_tester.GLRT_Detector(imu_data[i - 4:i + 4, 1:8])
             if zv_state[i] > 0.5:
+                fkf.measurement_function_zv(np.asarray((0, 0, 0)),
+                                           np.diag((0.0001, 0.0001, 0.0001)))
+
                 kf.measurement_function_zv(np.asarray((0, 0, 0)),
                                            np.diag((0.0001, 0.0001, 0.0001)))
                 rkf.measurement_function_zv(np.asarray((0, 0, 0)),
@@ -330,6 +358,7 @@ if __name__ == '__main__':
         rate = i / imu_data.shape[0]
         iner_acc[i, :] = kf.acc
 
+        ftrace[i,:] = fkf.state[0:3]
         rtrace[i, :] = rkf.state[0:3]
         ortrace[i, :] = orkf.state[0:3]
         dtrace[i,:] = drkf.state[0:3]
@@ -380,10 +409,11 @@ if __name__ == '__main__':
     # aux_plot(iner_acc, 'inner acc')
 
     plt.figure()
-    plt.plot(trace[:, 0], trace[:, 1], '-+', label='fusing')
-    plt.plot(rtrace[:, 0], rtrace[:, 1], '-+', label='robust')
-    plt.plot(ortrace[:, 0], ortrace[:, 1], '-+', label='own robust')
-    plt.plot(dtrace[:, 0], dtrace[:, 1], '-+', label='d ekf')
+    plt.plot(trace[:, 0], trace[:, 1], '-', label='fusing')
+    plt.plot(ftrace[:, 0], ftrace[:, 1], '-', label='foot')
+    plt.plot(rtrace[:, 0], rtrace[:, 1], '-', label='robust')
+    plt.plot(ortrace[:, 0], ortrace[:, 1], '-', label='own robust')
+    plt.plot(dtrace[:, 0], dtrace[:, 1], '-', label='d ekf')
     plt.plot(uwb_trace[:, 0], uwb_trace[:, 1], '+', label='uwb')
     plt.plot(ref_trace[:, 1], ref_trace[:, 2], '-', label='ref')
     for i in range(beacon_set.shape[0]):
