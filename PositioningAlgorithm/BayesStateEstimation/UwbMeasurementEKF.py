@@ -37,50 +37,53 @@ class UwbRangeEKF:
         self.measurement = list()
         self.beacon_set = beacon_set * 1.0
 
-        self.last_pose = np.asarray((0.0,0.0,0.0))
+        self.last_pose = np.asarray((0.0, 0.0, 0.0))
         self.last_pose_prob = np.identity(3)
         self.pos_list = list()
         self.pose_prob_list = list()
 
         self.last_eta = list()
 
-    def initial_pose(self,m,pose,pose_prob):
-        self.m = m
+    def initial_pose(self, m, pose, pose_prob):
+        self.m = np.asarray((m))
         self.last_pose = pose
         self.last_pose_prob = pose_prob
 
     def state_transmition(self, pose, pose_prob):
         # dv = pose-self.last_pose
-        dm = np.linalg.norm(pose-self.beacon_set)-np.linalg.norm(self.last_pose-self.beacon_set)
+        dm = np.linalg.norm(pose - self.beacon_set) - np.linalg.norm(self.last_pose - self.beacon_set)
 
-        self.m = self.m + dm
+        self.m = self.m + np.asarray((dm))
+        if self.m < 0.0:
+            print(self.m, self.last_pose, pose, dm)
 
-        G = np.zeros(shape=(6))
-        G[0:3] = 2.0 * (pose-self.beacon_set)
-        G[3:6] = -2.0 * (self.last_pose-self.beacon_set)
+        G = np.zeros(shape=(1, 6))
+        G[0, 0:3] = 2.0 * (pose - self.beacon_set).reshape(1,-1)
+        G[0, 3:6] = -2.0 * (self.last_pose - self.beacon_set).reshape(1,-1)
 
-        P = np.zeros(shape=[6,3])
-        P[0:3,0:3] = self.last_pose_prob *1.0
-        P[3:6,0:3] = pose_prob * 1.0
+        P = np.zeros(shape=[6, 6])
+        P[0:3, 0:3] = self.last_pose_prob * 1.0
+        P[3:6, 3:6] = pose_prob * 1.0
 
-        self.cov[0] = self.cov[0] + ((np.transpose(G)).dot(P)).dot(G)
+        self.cov[0] = self.cov[0] + (
+            (G).dot(P)).dot(np.transpose(G))
 
         self.last_pose_prob = pose_prob * 1.0
         self.last_pose = pose * 1.0
 
-    def measurement(self, measurement, cov_m, ka_squard = 10.0, T_d = 15.0):
+    def measurement_func(self, measurement, cov_m, ka_squard=10.0, T_d=15.0):
         z = np.asarray((measurement))
 
         y = self.m
 
-        self.H = np.ones(shape=(1,1))
+        self.H = np.ones(shape=(1, 1))
 
         R_k = np.asarray((cov_m))
 
-        P_v = (self.H.dot(self.prob_state)).dot(np.transpose(self.H)) + R_k;
+        P_v = (self.H.dot(self.cov)).dot(np.transpose(self.H)) + R_k
         v_k = z - y
         eta_k = np.zeros(1)
-        self.uwb_eta_dict[beacon_id].append(eta_k[0])
+        self.last_eta.append(eta_k[0])
         # print(v_k)
         # if v_k[0] > 0.5:
         #     return
@@ -90,9 +93,9 @@ class UwbRangeEKF:
         while robust_loop_flag:
             robust_loop_flag = False
 
-            P_v = (self.H.dot(self.prob_state)).dot(np.transpose(self.H)) + R_k
+            P_v = (self.H.dot(self.cov)).dot(np.transpose(self.H)) + R_k
 
-            eta_k[0] = (np.transpose(v_k).dot(np.linalg.inv(P_v))).dot(v_k)
+            eta_k[0] = v_k*v_k/P_v
             # print(eta_k[0])
             #
             # if eta_k[0] > 1.0:
@@ -114,14 +117,16 @@ class UwbRangeEKF:
                     # print(self.uwb_eta_dict[beacon_id][-serial_length:],lambda_k, R_k[0])
                     if lambda_k > T_d:
                         robust_loop_flag = True
-                        R_k[0] = eta_k[0] / ka_squard * R_k[0]
+                        R_k = eta_k / ka_squard * R_k
                 # self.uwb_eta_dict[beacon_id].pop()
 
-        cov_m = R_k
+        cov_m = np.asarray((R_k))
         # print('-------------')
 
-        self.K = (self.prob_state.dot(np.transpose(self.H))).dot(
-            np.linalg.inv((self.H.dot(self.prob_state)).dot(np.transpose(self.H)) + cov_m)
+        self.m = np.asarray((self.m))
+
+        self.K = (self.m.dot(np.transpose(self.H))).dot(
+            np.linalg.inv((self.H.dot(self.m)).dot(np.transpose(self.H)) + cov_m)
         )
 
         dx = self.K.dot(z - y)
@@ -129,9 +134,5 @@ class UwbRangeEKF:
         # self.state = self.state + dx
         self.m = self.m + dx
 
-
         kh = self.K.dot(self.H)
-        self.prob_state = (np.identity(kh.shape[0]) - kh).dot(self.prob_state)
-
-
-
+        self.cov = (np.identity(kh.shape[0]) - kh).dot(self.m)
