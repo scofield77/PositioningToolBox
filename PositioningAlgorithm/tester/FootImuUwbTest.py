@@ -88,6 +88,7 @@ if __name__ == '__main__':
         # print(uwb_filter_list[i-1])
     uwb_est_data = np.zeros_like(uwb_data)
     uwb_est_data[:, 0] = uwb_data[:, 0] * 1.0
+    uwb_est_prob = np.zeros_like(uwb_est_data)
 
     ref_trace = np.loadtxt(dir_name + 'ref_trace.csv', delimiter=',')
 
@@ -252,18 +253,23 @@ if __name__ == '__main__':
                     uwb_index += 1
                     for j in range(1, uwb_data.shape[1]):
 
-                        if uwb_filter_list[j-1].m > -1000.0:
+                        if uwb_filter_list[j - 1].m > -1000.0:
                             uwb_filter_list[j - 1].state_transmition(rkf.state[0:3], rkf.prob_state[0:3, 0:3])
                             uwb_est_data[uwb_index, j - 1] = uwb_filter_list[j - 1].m
+                            uwb_est_prob[uwb_index, j - 1] = uwb_filter_list[j - 1].cov
 
                         if uwb_data[uwb_index, j] > 0.0 and \
                                 uwb_data[uwb_index, j] < 1000.0 and \
                                 beacon_set[j - 1, 0] < 1000.0:
+
+                            # initial uwb filter
                             if uwb_filter_list[j - 1].m < -1000.0:
-                                uwb_filter_list[j - 1].initial_pose(uwb_data[uwb_index, j - 1], rkf.state[0:3],
-                                                                    rkf.prob_state[0:3, 0:3])
+                                uwb_filter_list[j - 1].initial_pose(uwb_data[uwb_index, j], rkf.state[0:3] * 1.0,
+                                                                    rkf.prob_state[0:3, 0:3] * 1.0)
                             else:
-                                uwb_filter_list[j - 1].measurement_func(uwb_data[uwb_index, j - 1], 1.0, 6.0, 1.0)
+                                uwb_filter_list[j - 1].measurement_func(uwb_data[uwb_index, j], 1.0, 6.0, 1.0)
+                                if np.linalg.norm(uwb_filter_list[j - 1].beacon_set - beacon_set[j - 1, :]) < 0.1:
+                                    print('error', uwb_filter_list[j - 1].beacon_set, beacon_set[j - 1, :])
 
                             kf.measurement_uwb(np.asarray(uwb_data[uwb_index, j]),
                                                np.ones(1) * 0.1,
@@ -340,33 +346,39 @@ if __name__ == '__main__':
     plt.plot(uwb_trace[:, 0], uwb_trace[:, 1], '+', label='uwb')
     plt.plot(ref_trace[:, 1], ref_trace[:, 2], '-', label='ref')
     for i in range(beacon_set.shape[0]):
-        plt.text(beacon_set[i,0],beacon_set[i,1],s=str(i+1))
+        plt.text(beacon_set[i, 0], beacon_set[i, 1], s=str(i + 1))
     plt.legend()
     plt.grid()
 
     plt.figure()
-    plt.subplot(311)
+    plt.subplot(411)
     plt.title('uwb estimated')
     for i in range(1, uwb_est_data.shape[1]):
-        if uwb_data[:,i].max()>0.0 and beacon_set[i-1,0]<5000.0:
-            plt.plot(uwb_est_data[:, 0], uwb_est_data[:, i],'-+', label=str(i))
+        if uwb_data[:, i].max() > 0.0 and beacon_set[i - 1, 0] < 5000.0:
+            plt.plot(uwb_est_data[:, 0], uwb_est_data[:, i], '-+', label=str(i))
     plt.legend()
     plt.grid()
-    plt.subplot(312)
+    plt.subplot(412)
     plt.title('uwb')
     for i in range(1, uwb_est_data.shape[1]):
-        if uwb_data[:,i].max()>0.0 and beacon_set[i-1,0]<5000.0:
+        if uwb_data[:, i].max() > 0.0 and beacon_set[i - 1, 0] < 5000.0:
             plt.plot(uwb_est_data[:, 0], uwb_data[:, i], '+', label=str(i))
     plt.legend()
     plt.grid()
-    plt.subplot(313)
+    plt.subplot(413)
     plt.title('uwb dif')
     for i in range(1, uwb_est_data.shape[1]):
-        if uwb_data[:,i].max()>0.0 and beacon_set[i-1,0]<5000.0:
-            plt.plot(uwb_est_data[:, 0], uwb_est_data[:, i]-uwb_data[:,i],'+', label=str(i))
+        if uwb_data[:, i].max() > 0.0 and beacon_set[i - 1, 0] < 5000.0:
+            plt.plot(uwb_est_data[:, 0], uwb_est_data[:, i] - uwb_data[:, i], '+', label=str(i))
     plt.legend()
     plt.grid()
-
+    plt.subplot(414)
+    plt.title('uwb prob')
+    for i in range(1, uwb_est_data.shape[1]):
+        if uwb_data[:, i].max() > 0.0 and beacon_set[i - 1, 0] < 5000.0:
+            plt.plot(uwb_est_data[:, 0], uwb_est_prob[:, i], '+', label=str(i))
+    plt.legend()
+    plt.grid()
     # plt.figure()
     # fig = plt.figure()
     # ax = fig.add_subplot(111, projection='3d')

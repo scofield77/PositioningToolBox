@@ -54,8 +54,8 @@ class UwbRangeEKF:
         dm = np.linalg.norm(pose - self.beacon_set) - np.linalg.norm(self.last_pose - self.beacon_set)
 
         self.m = self.m + np.asarray((dm))
-        if self.m < 0.0:
-            print(self.beacon_set,self.m, self.last_pose, pose, dm)
+        # if self.m < 0.0:
+        #     print(self.beacon_set,self.m, self.last_pose, pose, dm)
 
         G = np.zeros(shape=(1, 6))
         G[0, 0:3] = 2.0 * (pose - self.beacon_set).reshape(1,-1)
@@ -72,6 +72,8 @@ class UwbRangeEKF:
         self.last_pose = pose * 1.0
 
     def measurement_func(self, measurement, cov_m, ka_squard=10.0, T_d=15.0):
+        if measurement<0.0:
+            print(measurement)
         z = np.asarray((measurement))
 
         y = self.m
