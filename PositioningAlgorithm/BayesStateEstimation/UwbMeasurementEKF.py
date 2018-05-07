@@ -80,7 +80,6 @@ class UwbRangeEKF:
         self.last_pose_prob = pose_prob * 1.0
         self.last_pose = pose * 1.0
 
-
     def state_transmition_2d(self, pose, pose_prob):
         '''
         Update measuremen in 2d
@@ -122,7 +121,7 @@ class UwbRangeEKF:
         :return:
         '''
         if measurement < 0.0:
-            print('measurement is error:',  measurement,' beacon set is :',self.beacon_set)
+            print('measurement is error:', measurement, ' beacon set is :', self.beacon_set)
         z = np.asarray((measurement))
 
         y = self.m
@@ -169,11 +168,11 @@ class UwbRangeEKF:
                     if lambda_k > T_d:
                         robust_loop_flag = True
                         R_k = eta_k / ka_squard * R_k
-                        print('R_k')
+                        # print('R_k')
                 # self.uwb_eta_dict[beacon_id].pop()
 
         cov_m = np.asarray((R_k))
-        print('-------------')
+        # print('-------------')
 
         self.m = np.asarray((self.m))
 

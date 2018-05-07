@@ -183,7 +183,7 @@ class ImuEKFComplex:
         z = np.zeros(1)
         y = np.zeros(1)
 
-        z = measurement
+        z[0] = measurement
         y[0] = np.linalg.norm(self.state[0:3] - beacon_pos)
 
         self.H = np.zeros(shape=(1, self.state.shape[0]))
@@ -225,7 +225,7 @@ class ImuEKFComplex:
         z = np.zeros(1)
         y = np.zeros(1)
 
-        z = measurement
+        z[0] = measurement
         y[0] = np.linalg.norm(self.state[0:3] - beacon_pos)
 
         self.H = np.zeros(shape=(1, self.state.shape[0]))
