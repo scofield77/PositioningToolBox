@@ -59,7 +59,7 @@ if __name__ == '__main__':
     start_time = time.time()
     # dir_name = '/home/steve/Data/FusingLocationData/0017/'
     # dir_name = '/home/steve/Data/FusingLocationData/0013/'
-    dir_name = '/home/steve/Data/NewFusingLocationData/0033/'
+    dir_name = '/home/steve/Data/NewFusingLocationData/0032/'
 
     # imu_data = np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=',')
     imu_data = np.loadtxt(dir_name + 'LEFT_FOOT.data', delimiter=',')
@@ -299,6 +299,7 @@ if __name__ == '__main__':
                                                                     rkf.prob_state[0:3, 0:3] * 1.0)
                             else:
                                 uwb_filter_list[j - 1].measurement_func(uwb_data[uwb_index, j], 0.5, 6.0, 1.0)
+                                uwb_est_data[uwb_index, j] = uwb_filter_list[j-1].m
                                 if np.linalg.norm(uwb_filter_list[j - 1].beacon_set - beacon_set[j - 1, :]) > 0.1:
                                     print('error', uwb_filter_list[j - 1].beacon_set, beacon_set[j - 1, :])
 
