@@ -255,7 +255,7 @@ if __name__ == '__main__':
                         # right
 
                         if uwb_filter_list[j - 1].m > -1000.0:
-                            uwb_filter_list[j - 1].state_transmition(rkf.state[0:3], rkf.prob_state[0:3, 0:3])
+                            uwb_filter_list[j - 1].state_transmition_2d(rkf.state[0:3], rkf.prob_state[0:3, 0:3])
                             uwb_est_data[uwb_index, j] = uwb_filter_list[j - 1].m
                             uwb_est_prob[uwb_index, j] = uwb_filter_list[j - 1].cov
 
@@ -269,13 +269,13 @@ if __name__ == '__main__':
                                                                     rkf.prob_state[0:3, 0:3] * 1.0)
                             else:
                                 uwb_filter_list[j - 1].measurement_func(uwb_data[uwb_index, j], 1.0, 6.0, 1.0)
-                                if np.linalg.norm(uwb_filter_list[j - 1].beacon_set - beacon_set[j - 1, :])  >0.1:
+                                if np.linalg.norm(uwb_filter_list[j - 1].beacon_set - beacon_set[j - 1, :]) > 0.1:
                                     print('error', uwb_filter_list[j - 1].beacon_set, beacon_set[j - 1, :])
 
                             kf.measurement_uwb(np.asarray(uwb_data[uwb_index, j]),
                                                np.ones(1) * 0.1,
                                                np.transpose(beacon_set[j - 1, :]))
-                            rkf.measurement_uwb_robust(np.asarray(uwb_data[uwb_index, j]),
+                            rkf.measurement_uwb_robust(np.asarray(uwb_filter_list[j - 1].m[0]),
                                                        np.ones(1) * 0.2,
                                                        np.transpose(beacon_set[j - 1, :]),
                                                        j, 7.0, 1.0)
@@ -380,8 +380,6 @@ if __name__ == '__main__':
             plt.plot(uwb_est_data[:, 0], uwb_est_prob[:, i], '+', label=str(i))
     plt.legend()
     plt.grid()
-
-
 
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
