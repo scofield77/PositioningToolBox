@@ -58,8 +58,10 @@ class UwbRangeEKF:
         #     print(self.beacon_set,self.m, self.last_pose, pose, dm)
 
         G = np.zeros(shape=(1, 6))
-        G[0, 0:3] = 2.0 * (pose - self.beacon_set).reshape(1,-1)
-        G[0, 3:6] = -2.0 * (self.last_pose - self.beacon_set).reshape(1,-1)
+        G[0, 0:3] = (pose - self.beacon_set).reshape(1, -1) / np.linalg.norm(pose - self.beacon_set)
+        G[0, 3:6] = -1.0 * (self.last_pose - self.beacon_set).reshape(1, -1) / np.linalg.norm(
+            self.last_pose - self.beacon_set)
+        # G  = G /
 
         P = np.zeros(shape=[6, 6])
         P[0:3, 0:3] = pose_prob * 1.0
@@ -67,12 +69,13 @@ class UwbRangeEKF:
 
         self.cov[0] = self.cov[0] + (
             (G).dot(P)).dot(np.transpose(G))
+        print(P, G.dot((P)).dot(np.transpose(G)))
 
         self.last_pose_prob = pose_prob * 1.0
         self.last_pose = pose * 1.0
 
     def measurement_func(self, measurement, cov_m, ka_squard=10.0, T_d=15.0):
-        if measurement<0.0:
+        if measurement < 0.0:
             print(measurement)
         z = np.asarray((measurement))
 
@@ -97,7 +100,7 @@ class UwbRangeEKF:
 
             P_v = (self.H.dot(self.cov)).dot(np.transpose(self.H)) + R_k
 
-            eta_k[0] = v_k*v_k/P_v
+            eta_k[0] = v_k * v_k / P_v
             # print(eta_k[0])
             #
             # if eta_k[0] > 1.0:
