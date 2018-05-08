@@ -112,18 +112,60 @@ class UwbRangeEKF:
         self.last_pose = pose * 1.0
 
     def state_estimate(self, pose, pose_prob):
-        m = np.linalg.norm(pose-self.beacon_set)
+        m = np.linalg.norm(pose - self.beacon_set)
         # cov_m =
-        G = np.zeros(shape=(1,3))
-        G[0,0:3] = (pose-self.beacon_set).reshape(1,-1) / np.linalg.norm(pose-self.beacon_set)
+        G = np.zeros(shape=(1, 3))
+        G[0, 0:3] = (pose - self.beacon_set).reshape(1, -1) / np.linalg.norm(pose - self.beacon_set)
 
         cov_m = np.zeros(1)
         cov_m[0] = (G.dot(pose_prob)).dot(np.transpose(G))
-        self.measurement_func(m,cov_m,6.0,1.0)
-
-
+        self.measurement_func(m, cov_m, 6.0, 1.0)
 
     def measurement_func(self, measurement, cov_m, ka_squard=10.0, T_d=15.0):
+        '''
+        measurement function
+        :param measurement:
+        :param cov_m:
+        :param ka_squard:
+        :param T_d:
+        :return:
+        '''
+        if measurement < 0.0:
+            print('measurement is error:', measurement, ' beacon set is :', self.beacon_set)
+        z = np.asarray((measurement))
+
+        y = self.m
+
+        self.H = np.ones(shape=(1, 1))
+
+        R_k = np.asarray((cov_m))
+
+        P_v = (self.H.dot(self.cov)).dot(np.transpose(self.H)) + R_k
+        v_k = z - y
+        eta_k = np.zeros(1)
+        self.last_eta.append(eta_k[0])
+        # print(v_k)
+        # if v_k[0] > 0.5:
+        #     return
+
+        cov_m = np.asarray((R_k))
+        # print('-------------')
+
+        self.m = np.asarray((self.m))
+
+        self.K = (self.m.dot(np.transpose(self.H))).dot(
+            np.linalg.inv((self.H.dot(self.m)).dot(np.transpose(self.H)) + cov_m)
+        )
+
+        dx = self.K.dot(z - y)
+
+        # self.state = self.state + dx
+        self.m = self.m + dx
+
+        kh = self.K.dot(self.H)
+        self.cov = (np.identity(kh.shape[0]) - kh).dot(self.cov)
+
+    def measurement_func_robust(self, measurement, cov_m, ka_squard=10.0, T_d=15.0):
         '''
         measurement function with robust function.
         :param measurement:
@@ -152,7 +194,9 @@ class UwbRangeEKF:
 
         robust_loop_flag = True
         first_time = True
+        iter_counter = 0
         while robust_loop_flag:
+            iter_counter +=1
             robust_loop_flag = False
 
             P_v = (self.H.dot(self.cov)).dot(np.transpose(self.H)) + R_k
@@ -184,7 +228,8 @@ class UwbRangeEKF:
                 # self.uwb_eta_dict[beacon_id].pop()
 
         cov_m = np.asarray((R_k))
-        # print('-------------')
+        print('-------------')
+        print(iter_counter,'in uwb measurement ekf robust')
 
         self.m = np.asarray((self.m))
 
