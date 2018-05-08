@@ -88,6 +88,7 @@ if __name__ == '__main__':
         # print(uwb_filter_list[i-1])
     uwb_est_data = np.zeros_like(uwb_data)
     uwb_est_data[:, 0] = uwb_data[:, 0] * 1.0
+    uwb_est_data[:,1:] = uwb_est_data[:,1:]-10.0
     uwb_est_prob = np.zeros_like(uwb_est_data)
 
     ref_trace = np.loadtxt(dir_name + 'ref_trace.csv', delimiter=',')
@@ -328,7 +329,7 @@ if __name__ == '__main__':
                                                                     rkf.prob_state[0:3, 0:3] * 1.0)
                             else:
                                 uwb_filter_list[j - 1].measurement_func(uwb_data[uwb_index, j], 1.5, 5.0, 1.0)
-                                uwb_est_data[uwb_index, j] = uwb_filter_list[j-1].m
+                                # uwb_est_data[uwb_index, j] = uwb_filter_list[j-1].m
                                 if np.linalg.norm(uwb_filter_list[j - 1].beacon_set - beacon_set[j - 1, :]) > 0.1:
                                     print('error', uwb_filter_list[j - 1].beacon_set, beacon_set[j - 1, :])
 
@@ -346,9 +347,10 @@ if __name__ == '__main__':
                     drkf.measurement_uwb_iterate(np.asarray(uwb_est_data[uwb_index, 1:]),
                                                 np.ones(1) * 0.1,
                                                 beacon_set, ref_trace)
-                    for j in range(1,uwb_data.shape[1]):
-                        if uwb_filter_list[j-1].m > -1000.0:
-                            uwb_filter_list[j-1].state_estimate(drkf.state[0:3],drkf.prob_state[0:3,0:3])
+                    # for j in range(1,uwb_data.shape[1]):
+                    #     if uwb_filter_list[j-1].m > -1000.0:
+                    #         uwb_filter_list[j-1].state_estimate(drkf.state[0:3],drkf.prob_state[0:3,0:3])
+                    #         uwb_est_data[uwb_index, j] = uwb_filter_list[j-1].m
 
 
                     # print(rkf.prob_state[0,0],rkf.prob_state[1,1],rkf.prob_state[2,2])
@@ -428,8 +430,8 @@ if __name__ == '__main__':
 
     plt.figure()
     # plt.plot(trace[:, 0], trace[:, 1], '-', label='fusing')
-    plt.plot(ftrace[:, 0], ftrace[:, 1], '-', label='foot')
-    # plt.plot(rtrace[:, 0], rtrace[:, 1], '-', label='robust')
+    # plt.plot(ftrace[:, 0], ftrace[:, 1], '-', label='foot')
+    plt.plot(rtrace[:, 0], rtrace[:, 1], '-', label='robust')
     plt.plot(ortrace[:, 0], ortrace[:, 1], '-+', label='own robust')
     plt.plot(dtrace[:, 0], dtrace[:, 1], '-+', label='d ekf')
     plt.plot(uwb_trace[:, 0], uwb_trace[:, 1], '+', label='uwb')
