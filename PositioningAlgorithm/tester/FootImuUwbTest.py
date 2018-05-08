@@ -59,7 +59,7 @@ if __name__ == '__main__':
     start_time = time.time()
     # dir_name = '/home/steve/Data/FusingLocationData/0017/'
     # dir_name = '/home/steve/Data/FusingLocationData/0013/'
-    dir_name = '/home/steve/Data/NewFusingLocationData/0033/'
+    dir_name = '/home/steve/Data/NewFusingLocationData/0032/'
 
     # imu_data = np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=',')
     imu_data = np.loadtxt(dir_name + 'LEFT_FOOT.data', delimiter=',')
@@ -346,6 +346,10 @@ if __name__ == '__main__':
                     drkf.measurement_uwb_iterate(np.asarray(uwb_est_data[uwb_index, 1:]),
                                                 np.ones(1) * 0.1,
                                                 beacon_set, ref_trace)
+                    for j in range(1,uwb_data.shape[1]):
+                        if uwb_filter_list[j-1].m > -1000.0:
+                            uwb_filter_list[j-1].state_estimate(drkf.state[0:3],drkf.prob_state[0:3,0:3])
+
 
                     # print(rkf.prob_state[0,0],rkf.prob_state[1,1],rkf.prob_state[2,2])
         #
