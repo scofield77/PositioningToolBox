@@ -397,9 +397,9 @@ class ImuEKFComplex:
                         # Rk[index[i],index[i]]=cov_m[0]
                     else:
                         # print('corrected Rk')
-                        mask[index[i]] = ka_squard / gamma * 1.0
-                        # mask[index[i]] = 1.0#ka_squard/gamma
-                        # Rk[index[i], index[i]] = gamma / ka_squard * Rk[index[i], index[i]]
+                        # mask[index[i]] = ka_squard / gamma * 1.0
+                        mask[index[i]] = 1.0#ka_squard/gamma
+                        Rk[index[i], index[i]] = gamma / ka_squard * Rk[index[i], index[i]]
                         # mask[index[i]] = 1.0 / gamma
                     i = index.shape[0] + 1
 
