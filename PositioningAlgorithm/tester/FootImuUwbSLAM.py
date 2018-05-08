@@ -23,6 +23,7 @@
          佛祖保佑       永无BUG 
 '''
 
+
 import numpy as np
 import scipy as sp
 from numba import jit
@@ -30,8 +31,9 @@ from numba import jit
 import math
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+import matplotlib
 
-from transforms3d import euler, quaternions
+# from transforms3d import euler, quaternions
 
 from PositioningAlgorithm.BayesStateEstimation.KalmanFIlterBase import *
 
@@ -40,9 +42,12 @@ from scipy.optimize import minimize
 from AlgorithmTool.ImuTools import *
 
 from PositioningAlgorithm.BayesStateEstimation.ImuEKF import *
+# from gr import pygr
 
 # from AlgorithmTool
 import time
+
+# from mayavi import mlab
 
 if __name__ == '__main__':
     import mkl
@@ -50,16 +55,25 @@ if __name__ == '__main__':
     mkl.set_num_threads(6)
     # print(np.show_config())
     # print(mk)
-
+    matplotlib.use('Qt5Agg')
+    # matplotlib.rcParams['toolbar'] = 'toolmanager'
     start_time = time.time()
-    dir_name = '/home/steve/Data/FusingLocationData/0013/'
+    # dir_name = '/home/steve/Data/FusingLocationData/0017/'
+    dir_name = '/home/steve/Data/NewFusingLocationData/0032/'
 
+    # dir_name = 'D:\\NewFusingLocationData\\0035\\'
+
+    # imu_data = np.loadtxt(dir_name + 'LEFT_FOOT.data', delimiter=',')
     imu_data = np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=',')
     imu_data = imu_data[:, 1:]
     imu_data[:, 1:4] = imu_data[:, 1:4] * 9.81
     imu_data[:, 4:7] = imu_data[:, 4:7] * (np.pi / 180.0)
 
     # initial_state = get_initial_state(imu_data[:40, 1:4], np.asarray((0, 0, 0)), 0.0, 9)
+    uwb_data = np.loadtxt(dir_name + 'uwb_data.csv', delimiter=',')
+    beacon_set = np.loadtxt(dir_name + 'beaconset_no_mac.csv', delimiter=',')
+
+
 
     trace = np.zeros([imu_data.shape[0], 3])
     vel = np.zeros([imu_data.shape[0], 3])
@@ -69,7 +83,7 @@ if __name__ == '__main__':
 
     iner_acc = np.zeros([imu_data.shape[0], 3])
 
-    zv_state = np.zeros([imu_data.shape[0], 1])
+    zv_state = np.zeros([imu_data.shape[0]])
 
     # kf = KalmanFilterBase(9)
     # kf.state_x = initial_state
@@ -82,16 +96,22 @@ if __name__ == '__main__':
         0.001, 0.001, 0.001,
         0.001, 0.001, 0.001,
         0.001 * np.pi / 180.0, 0.001 * np.pi / 180.0, 0.0001 * np.pi / 180.0,
-        0.0001, 0.0001, 0.0001,
+        0.0001,
+        0.0001,
+        0.0001,
         0.0001 * np.pi / 180.0,
-        0.000000001 * np.pi / 180.0,
-        0.00000001 * np.pi / 180.0
+        0.0001 * np.pi / 180.0,
+        0.0001 * np.pi / 180.0
     )),
         local_g=-9.81, time_interval=average_time_interval)
 
     kf.initial_state(imu_data[:50, 1:7])
 
-    zv_state = GLRT_Detector(imu_data[:, 1:7])
+    zv_state = GLRT_Detector(imu_data[:, 1:7], sigma_a=1.0,
+                             sigma_g=1.0 * np.pi / 180.0,
+                             gamma=200,
+                             gravity=9.8,
+                             time_Window_size=5)
 
     for i in range(imu_data.shape[0]):
         # print('i:',i)
@@ -135,6 +155,7 @@ if __name__ == '__main__':
         plt.legend()
 
 
+    # #
     aux_plot(imu_data[:, 1:4], 'acc')
     aux_plot(imu_data[:, 4:7], 'gyr')
     aux_plot(imu_data[:, 7:10], 'mag')
@@ -149,6 +170,17 @@ if __name__ == '__main__':
     plt.figure()
     plt.plot(trace[:, 0], trace[:, 1], '-+')
     plt.grid()
+
+
+
+    plt.figure()
+    plt.title('uwb estimated')
+    for i in range(1, uwb_data.shape[1]):
+        if uwb_data[:, i].max() > 0.0 and beacon_set[i - 1, 0] < 5000.0:
+            plt.plot(uwb_data[:, 0], uwb_data[:, i], '-+', label=str(i))
+    plt.legend()
+    plt.grid()
+
 
     # plt.figure()
     fig = plt.figure()
