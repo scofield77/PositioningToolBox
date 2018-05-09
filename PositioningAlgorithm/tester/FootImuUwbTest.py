@@ -59,8 +59,8 @@ if __name__ == '__main__':
     start_time = time.time()
     # dir_name = '/home/steve/Data/FusingLocationData/0017/'
     # dir_name = '/home/steve/Data/FusingLocationData/0013/'
-    dir_name = '/home/steve/Data/NewFusingLocationData/0033/'
-    dir_name = 'D:/Data/NewFusingLocationData/0033/'
+    dir_name = '/home/steve/Data/NewFusingLocationData/0039/'
+    # dir_name = 'D:/Data/NewFusingLocationData/0033/'
 
     # imu_data = np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=',')
     imu_data = np.loadtxt(dir_name + 'LEFT_FOOT.data', delimiter=',')
@@ -92,7 +92,7 @@ if __name__ == '__main__':
     uwb_est_data[:, 1:] = uwb_est_data[:, 1:] - 10.0
     uwb_est_prob = np.zeros_like(uwb_est_data)
 
-    ref_trace = np.loadtxt(dir_name + 'ref_trace.csv', delimiter=',')
+    # ref_trace = np.loadtxt(dir_name + 'ref_trace.csv', delimiter=',')
 
     uol = UwbOptimizeLocation(beacon_set)
     uwb_trace = np.zeros([uwb_data.shape[0], 3])
@@ -107,6 +107,8 @@ if __name__ == '__main__':
                 uol.iter_positioning(uwb_trace[i - 1, :],
                                      uwb_data[i, 1:])
 
+    ref_trace =np.zeros(shape=(uwb_trace.shape[0],uwb_trace.shape[1]+1))
+    ref_trace[:,1:] = uwb_trace*1.0
     # initial_state = get_initial_state(imu_data[:40, 1:4], np.asarray((0, 0, 0)), 0.0, 9)
 
     trace = np.zeros([imu_data.shape[0], 3])
@@ -131,6 +133,7 @@ if __name__ == '__main__':
     print('average time interval ', average_time_interval)
 
     initial_pos = ref_trace[0, 1:]
+
 
     ti = 1
     while np.linalg.norm(ref_trace[ti, 1:] - ref_trace[0, 1:]) < 5.0:
@@ -329,7 +332,8 @@ if __name__ == '__main__':
                                 uwb_filter_list[j - 1].initial_pose(uwb_data[uwb_index, j], rkf.state[0:3] * 1.0,
                                                                     rkf.prob_state[0:3, 0:3] * 1.0)
                             else:
-                                uwb_filter_list[j - 1].measurement_func_robust(uwb_data[uwb_index, j], 0.1, 3.0, 1.0)
+                                # uwb_filter_list[j - 1].measurement_func_robust(uwb_data[uwb_index, j], 0.1, 3.0, 1.0)
+                                uwb_filter_list[j - 1].measurement_func(uwb_data[uwb_index, j], 0.1, 3.0, 1.0)
                                 # uwb_est_data[uwb_index, j] = uwb_filter_list[j-1].m
                                 if np.linalg.norm(uwb_filter_list[j - 1].beacon_set - beacon_set[j - 1, :]) > 0.1:
                                     print('error', uwb_filter_list[j - 1].beacon_set, beacon_set[j - 1, :])
@@ -422,7 +426,7 @@ if __name__ == '__main__':
     plt.plot(ortrace[:, 0], ortrace[:, 1], '-', label='own robust')
     plt.plot(dtrace[:, 0], dtrace[:, 1], '-', label='d ekf')
     plt.plot(uwb_trace[:, 0], uwb_trace[:, 1], '+', label='uwb')
-    plt.plot(ref_trace[:, 1], ref_trace[:, 2], '-', label='ref')
+    # plt.plot(ref_trace[:, 1], ref_trace[:, 2], '-', label='ref')
     for i in range(beacon_set.shape[0]):
         plt.text(beacon_set[i, 0], beacon_set[i, 1], s=str(i + 1))
     plt.legend()
@@ -435,7 +439,7 @@ if __name__ == '__main__':
     plt.plot(ortrace[:, 0], ortrace[:, 1], '-+', label='own robust')
     plt.plot(dtrace[:, 0], dtrace[:, 1], '-+', label='d ekf')
     plt.plot(uwb_trace[:, 0], uwb_trace[:, 1], '+', label='uwb')
-    plt.plot(ref_trace[:, 1], ref_trace[:, 2], '-', label='ref')
+    # plt.plot(ref_trace[:, 1], ref_trace[:, 2], '-', label='ref')
     for i in range(beacon_set.shape[0]):
         plt.text(beacon_set[i, 0], beacon_set[i, 1], s=str(i + 1))
     plt.legend()
