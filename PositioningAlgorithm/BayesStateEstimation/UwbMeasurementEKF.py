@@ -196,7 +196,7 @@ class UwbRangeEKF:
         first_time = True
         iter_counter = 0
         while robust_loop_flag:
-            iter_counter +=1
+            iter_counter += 1
             robust_loop_flag = False
 
             P_v = (self.H.dot(self.cov)).dot(np.transpose(self.H)) + R_k
@@ -229,7 +229,7 @@ class UwbRangeEKF:
 
         cov_m = np.asarray((R_k))
         print('-------------')
-        print(iter_counter,'in uwb measurement ekf robust')
+        print(iter_counter, 'in uwb measurement ekf robust')
 
         self.m = np.asarray((self.m))
 
