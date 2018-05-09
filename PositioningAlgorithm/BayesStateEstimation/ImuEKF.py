@@ -118,6 +118,7 @@ class ImuEKFComplex:
         )).reshape([3, 3])
 
         aux_build_F_G(self.F, self.G, St, q2dcm(self.rotation_q), self.time_interval)
+        # print('G shape:', self.G.shape)
 
         self.prob_state = (self.F.dot(self.prob_state)).dot(np.transpose(self.F)) + (self.G.dot(noise_matrix)).dot(
             np.transpose(self.G))
