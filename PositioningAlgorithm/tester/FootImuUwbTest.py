@@ -460,9 +460,10 @@ if __name__ == '__main__':
     plt.title('uwb dif')
     for i in range(1, uwb_est_data.shape[1]):
         if uwb_data[:, i].max() > 0.0 and beacon_set[i - 1, 0] < 5000.0:
-            index_list = np.where(uwb_data[:,i]>0.0)
+            index_list = np.where(uwb_data[:, i] > 0.0)
             # print(index_list)
-            plt.plot(uwb_est_data[index_list[0], 0], uwb_est_data[index_list[0], i] - uwb_data[index_list[0], i], '-+', label=str(i))
+            plt.plot(uwb_est_data[index_list[0], 0], uwb_est_data[index_list[0], i] - uwb_data[index_list[0], i], '-+',
+                     label=str(i))
     plt.legend()
     plt.grid()
     plt.subplot(414)
