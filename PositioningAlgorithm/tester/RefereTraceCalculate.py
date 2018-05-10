@@ -109,11 +109,10 @@ if __name__ == '__main__':
                                      uwb_data[i, 1:])
 
 
-    ref_trace = np.loadtxt(dir_name + 'ref_trace.csv', delimiter=',')
+    # ref_trace = np.loadtxt(dir_name + 'ref_trace.csv', delimiter=',')
 
-    # ref_trace = np.zeros(shape=(uwb_trace.shape[0], uwb_trace.shape[1] + 1))
-    # ref_trace[:, 1:] = uwb_trace * 1.0
-    # initial_state = get_initial_state(imu_data[:40, 1:4], np.asarray((0, 0, 0)), 0.0, 9)
+    ref_trace = np.zeros(shape=(uwb_trace.shape[0], uwb_trace.shape[1] + 1))
+    ref_trace[:, 1:] = uwb_trace * 1.0
 
     trace = np.zeros([imu_data.shape[0], 3])
     ftrace = np.zeros([imu_data.shape[0], 3])
