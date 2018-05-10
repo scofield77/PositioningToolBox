@@ -73,6 +73,8 @@ if __name__ == '__main__':
     # beacon_set = np.loadtxt(dir_name + 'beaconSet.csv', delimiter=',')
     uwb_data = np.loadtxt(dir_name + 'uwb_data.csv', delimiter=',')
     beacon_set = np.loadtxt(dir_name + 'beaconset_no_mac.csv', delimiter=',')
+    beacon_set = np.loadtxt(dir_name + 'beaconset_fill.csv', delimiter=',')
+
 
     uwb_valid = list()
     for i in range(1, uwb_data.shape[1]):

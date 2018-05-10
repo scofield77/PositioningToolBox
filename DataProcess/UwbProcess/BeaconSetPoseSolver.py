@@ -73,7 +73,7 @@ if __name__ == '__main__':
         6, 3, 27.5,
         3, 0, 20.28,
         3, 3, 13.38
-    )).reshape(-1,3)
+    )).reshape(-1, 3)
 
 
     def error_func(unknow_b):
@@ -85,12 +85,12 @@ if __name__ == '__main__':
                     # print('i,j', i, j, unknow_matrix[i, j])
                     error += abs(np.linalg.norm(unknow_b[i, :] - unknow_b[j, :]) - unknow_matrix[i, j])
         for i in range(uk_matrix.shape[0]):
-            k = int(uk_matrix[i,0])
-            u = int(uk_matrix[i,1])
-            d = float(uk_matrix[i,2])
-            error += abs(np.linalg.norm(know_beacon[k,0:2]-unknow_b[u,0:2])-d)
+            k = int(uk_matrix[i, 0])
+            u = int(uk_matrix[i, 1])
+            d = float(uk_matrix[i, 2])
+            error += abs(np.linalg.norm(know_beacon[k, 0:2] - unknow_b[u, 0:2]) - d)
 
-        error += np.std(unknow_b[:, 2])  + abs(np.mean(unknow_b[:,2])-1.4)
+        error += np.std(unknow_b[:, 2]) + abs(np.mean(unknow_b[:, 2]) - 1.4)
         return error
 
 
@@ -103,8 +103,8 @@ if __name__ == '__main__':
     cal_dis_m = np.zeros_like(unknow_matrix)
     for i in range(cal_dis_m.shape[0]):
         for j in range(cal_dis_m.shape[1]):
-            cal_dis_m[i,j] = np.linalg.norm(unknow_beacon[i,:]-unknow_beacon[j,:])
-    print('ref matrix \n:',cal_dis_m)
+            cal_dis_m[i, j] = np.linalg.norm(unknow_beacon[i, :] - unknow_beacon[j, :])
+    print('ref matrix \n:', cal_dis_m)
     print('---------')
     print(unknow_matrix)
 
@@ -121,18 +121,26 @@ if __name__ == '__main__':
     for i in range(unknow_beacon.shape[0]):
         plt.text(unknow_beacon[i, 0], unknow_beacon[i, 1], s=str(i))
 
-    plt.plot(know_beacon[:,0],know_beacon[:,1],'b*')
+    plt.plot(know_beacon[:, 0], know_beacon[:, 1], 'b*')
 
     for i in range(know_beacon.shape[0]):
-        plt.text(know_beacon[i,0],know_beacon[i,1],s='know-'+str(i))
+        plt.text(know_beacon[i, 0], know_beacon[i, 1], s='know-' + str(i))
     plt.grid()
 
-    dir_name ='/home/steve/Data/NewFusingLocationData/'
-    beacon_set[14,:] = unknow_beacon[0,:]
-    beacon_set[37:,:] = unknow_beacon[1:-1,:]
+    dir_name = '/home/steve/Data/NewFusingLocationData/'
+    beacon_set[14, :] = unknow_beacon[0, :]
+    beacon_set[37:, :] = unknow_beacon[1:-1, :]
 
     print(beacon_set)
 
+    import os
+    import re
+    for sub_dir in os.listdir(dir_name):
+        dm = re.compile('^[0-9]{4}$')
+        print(sub_dir)
+        if dm.match(sub_dir):
+            print(dir_name+sub_dir+'/beaconset_fill.csv')
+            np.savetxt(dir_name+sub_dir+'/beaconset_fill.csv',beacon_set,delimiter=',')
 
 
     plt.show()
