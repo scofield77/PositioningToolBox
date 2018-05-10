@@ -42,7 +42,7 @@ if __name__ == '__main__':
     start_time = time.time()
     # dir_name = '/home/steve/Data/FusingLocationData/0017/'
     # dir_name = '/home/steve/Data/FusingLocationData/0013/'
-    dir_name = '/home/steve/Data/NewFusingLocationData/0039/'
+    dir_name = '/home/steve/Data/NewFusingLocationData/0044/'
 
     # uwb_data = np.loadtxt(dir_name + 'uwb_result.csv', delimiter=',')
     # beacon_set = np.loadtxt(dir_name + 'beaconSet.csv', delimiter=',')
@@ -69,7 +69,7 @@ if __name__ == '__main__':
                                                 uwb_data[i, 1:])
             uwb_trace_ir[i, :], uwb_opt_res_ir[i] = \
                 uol.iter_positioning((0, 0, 0),
-                                                uwb_data[i, 1:])
+                                     uwb_data[i, 1:])
 
         else:
             uwb_trace[i, :], uwb_opt_res[i] = \
@@ -79,8 +79,8 @@ if __name__ == '__main__':
                 uol.positioning_function_robust(uwb_trace_r[i - 1, :],
                                                 uwb_data[i, 1:])
             uwb_trace_ir[i, :], uwb_opt_res_ir[i] = \
-                uol.iter_positioning(uwb_trace_ir[i-1,:],
-                                                uwb_data[i, 1:])
+                uol.iter_positioning(uwb_trace_ir[i - 1, :],
+                                     uwb_data[i, 1:])
 
         # else:
         #     uwb_trace[i, :], uwb_opt_res[i] = \
@@ -115,6 +115,9 @@ if __name__ == '__main__':
     ax.plot(uwb_trace[:, 0], uwb_trace[:, 1], uwb_trace[:, 2], '-+', label='uwb')
     ax.plot(uwb_trace_r[:, 0], uwb_trace_r[:, 1], uwb_trace_r[:, 2], '-+', label='uwb r')
     ax.plot(uwb_trace_ir[:, 0], uwb_trace_ir[:, 1], uwb_trace_ir[:, 2], '-+', label='uwb ir')
+    for i in range(1, uwb_data.shape[1]):
+        if uwb_data[:, i].max() > 0.0 and beacon_set[i - 1, 0] < 5000.0:
+            ax.text(beacon_set[i - 1, 0], beacon_set[i - 1, 1], beacon_set[i - 1, 2], s=str(i))
     ax.grid()
     ax.legend()
 

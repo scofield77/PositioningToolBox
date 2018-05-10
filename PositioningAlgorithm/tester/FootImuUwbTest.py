@@ -59,7 +59,7 @@ if __name__ == '__main__':
     start_time = time.time()
     # dir_name = '/home/steve/Data/FusingLocationData/0017/'
     # dir_name = '/home/steve/Data/FusingLocationData/0013/'
-    dir_name = '/home/steve/Data/NewFusingLocationData/0045/'
+    dir_name = '/home/steve/Data/NewFusingLocationData/0038/'
     # dir_name = 'D:/Data/NewFusingLocationData/0033/'
 
     # imu_data = np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=',')
@@ -107,8 +107,8 @@ if __name__ == '__main__':
                 uol.iter_positioning(uwb_trace[i - 1, :],
                                      uwb_data[i, 1:])
 
-    ref_trace =np.zeros(shape=(uwb_trace.shape[0],uwb_trace.shape[1]+1))
-    ref_trace[:,1:] = uwb_trace*1.0
+    ref_trace = np.zeros(shape=(uwb_trace.shape[0], uwb_trace.shape[1] + 1))
+    ref_trace[:, 1:] = uwb_trace * 1.0
     # initial_state = get_initial_state(imu_data[:40, 1:4], np.asarray((0, 0, 0)), 0.0, 9)
 
     trace = np.zeros([imu_data.shape[0], 3])
@@ -134,14 +134,14 @@ if __name__ == '__main__':
 
     initial_pos = ref_trace[0, 1:]
 
-
     ti = 1
     while np.linalg.norm(ref_trace[ti, 1:] - ref_trace[0, 1:]) < 5.0:
         ti += 1
     # initial_orientation = math.atan2(ref_trace[ti, 2] - ref_trace[0, 2],
     #                                  ref_trace[ti, 1] - ref_trace[0, 1]) - 10.0 * np.pi / 180.0  # 35
-    initial_orientation = math.atan2(ref_trace[ti, 2] - ref_trace[0, 2],
-                                     ref_trace[ti, 1] - ref_trace[0, 1]) + 150.0 * np.pi / 180.0  # 32
+    # initial_orientation = math.atan2(ref_trace[ti, 2] - ref_trace[0, 2],
+    #                                  ref_trace[ti, 1] - ref_trace[0, 1]) + 150.0 * np.pi / 180.0  # 32
+    initial_orientation = 80.0 * np.pi / 180.0
 
     #  initial_orientation = 200.0 / 180.0 * np.pi
 
@@ -332,17 +332,17 @@ if __name__ == '__main__':
                                 uwb_filter_list[j - 1].initial_pose(uwb_data[uwb_index, j], rkf.state[0:3] * 1.0,
                                                                     rkf.prob_state[0:3, 0:3] * 1.0)
                             else:
-                                # uwb_filter_list[j - 1].measurement_func_robust(uwb_data[uwb_index, j], 0.1, 3.0, 1.0)
-                                uwb_filter_list[j - 1].measurement_func(uwb_data[uwb_index, j], 0.1, 3.0, 1.0)
+                                uwb_filter_list[j - 1].measurement_func_robust(uwb_data[uwb_index, j], 10.0, 2.0, 1.0)
+                                # uwb_filter_list[j - 1].measurement_func(uwb_data[uwb_index, j], 1.0, 3.0, 1.0)
                                 # uwb_est_data[uwb_index, j] = uwb_filter_list[j-1].m
                                 if np.linalg.norm(uwb_filter_list[j - 1].beacon_set - beacon_set[j - 1, :]) > 0.1:
                                     print('error', uwb_filter_list[j - 1].beacon_set, beacon_set[j - 1, :])
 
                             kf.measurement_uwb(np.asarray(uwb_data[uwb_index, j]),
-                                               np.ones(1) * 0.1,
+                                               np.ones(1) * 1.0,
                                                np.transpose(beacon_set[j - 1, :]))
                             rkf.measurement_uwb_robust(uwb_data[uwb_index, j],
-                                                       np.ones(1) * 1.0,
+                                                       np.ones(1) * 0.1,
                                                        np.transpose(beacon_set[j - 1, :]),
                                                        j, 7.0, 1.0)
                             # if uwb_filter_list[j-1].cov<0.02:
