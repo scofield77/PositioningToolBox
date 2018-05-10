@@ -343,7 +343,7 @@ class ImuEKFComplex:
 
         self.prob_state = pplus
 
-    def measurement_uwb_iterate(self, measurement, cov_m, beacon_set, ref_trace):
+    def measurement_uwb_iterate(self, measurement, cov_m, beacon_set, ref_trace, ka_squard = 10.0):
 
         pminus = self.prob_state * 1.0
         pplus = pminus * 1.0
@@ -390,7 +390,7 @@ class ImuEKFComplex:
                     pv = (H[index[i], :].dot(pplus)).dot(np.transpose(H[index[i], :])) + Rk[index[i], index[i]]
                     gamma = v[index[i]] * v[index[i]] / pv
                     # print(pv, v[index[i]])
-                    ka_squard = 7.0
+                    # ka_squard = 7.0
 
                     if gamma < ka_squard :#or i < np.floor(index.shape[0] / 2):
                         # break_flag=True

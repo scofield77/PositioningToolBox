@@ -42,7 +42,7 @@ if __name__ == '__main__':
     start_time = time.time()
     # dir_name = '/home/steve/Data/FusingLocationData/0017/'
     # dir_name = '/home/steve/Data/FusingLocationData/0013/'
-    dir_name = '/home/steve/Data/NewFusingLocationData/0038/'
+    dir_name = '/home/steve/Data/NewFusingLocationData/0045/'
 
 
     # uwb_data = np.loadtxt(dir_name + 'uwb_result.csv', delimiter=',')
