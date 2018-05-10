@@ -47,7 +47,7 @@ if __name__ == '__main__':
     # uwb_data = np.loadtxt(dir_name + 'uwb_result.csv', delimiter=',')
     # beacon_set = np.loadtxt(dir_name + 'beaconSet.csv', delimiter=',')
     uwb_data = np.loadtxt(dir_name + 'uwb_data.csv', delimiter=',')
-    beacon_set = np.loadtxt(dir_name + 'beaconset_no_mac.csv', delimiter=',')
+    beacon_set = np.loadtxt(dir_name + 'beaconset_fill.csv', delimiter=',')
 
     uol = UwbOptimizeLocation(beacon_set)
     uwb_trace = np.zeros([uwb_data.shape[0], 3])
@@ -56,13 +56,16 @@ if __name__ == '__main__':
         if i is 0:
             uwb_trace[i, :], uwb_opt_res[i] = \
                 uol.iter_positioning((0, 0, 0),
-                                         uwb_data[i, 1:])
+                                     uwb_data[i, 1:])
         else:
+            # break
             uwb_trace[i, :], uwb_opt_res[i] = \
                 uol.iter_positioning(uwb_trace[i - 1, :],
-                                         uwb_data[i, 1:])
+                                     uwb_data[i, 1:])
 
-    ref_trace = np.loadtxt(dir_name + 'ref_trace.csv', delimiter=',')
+    # ref_trace = np.loadtxt(dir_name + 'ref_trace.csv', delimiter=',')
+    ref_trace = np.zeros(shape=(uwb_trace.shape[0], uwb_trace.shape[1] + 1))
+    ref_trace[:, 1:] = uwb_trace * 1.0
 
     plt.figure()
     plt.plot(ref_trace[:, 1], ref_trace[:, 2], '-+', label='ref')
