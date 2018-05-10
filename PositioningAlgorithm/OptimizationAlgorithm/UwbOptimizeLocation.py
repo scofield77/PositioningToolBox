@@ -41,7 +41,7 @@ class UwbOptimizeLocation:
         '''
         # self.beacon_set = beacon_set
         self.measurements = np.zeros(beacon_set.shape[0])
-        self.use_index = np.where(beacon_set[:, 0] < 1000.0)
+        self.use_index = np.where(beacon_set[:, 0] < 5000.0)
         self.beacon_set = beacon_set[self.use_index]
 
         self.counter = 0

@@ -92,9 +92,9 @@ if __name__ == '__main__':
     #                         dir_name + 'beaconSet.csv')
 
 
-    dir_name = "/home/steve/Data/NewFusingLocationData/0030/"
+    dir_name = "/home/steve/Data/NewFusingLocationData/0045/"
     uwb_file_p = UwbProcess(dir_name+"HEAD_UWB.data",
                             dir_name+'../BeaconSet.csv')
 
     uwb_file_p.save(dir_name)
-    uwb_file_p.show()
+    # uwb_file_p.show()
