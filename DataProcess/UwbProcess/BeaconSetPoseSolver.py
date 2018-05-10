@@ -90,7 +90,7 @@ if __name__ == '__main__':
             d = float(uk_matrix[i,2])
             error += abs(np.linalg.norm(know_beacon[k,0:2]-unknow_b[u,0:2])-d)
 
-        error += np.std(unknow_b[:, 2]) * 3.0 + abs(np.mean(unknow_b[:,2])-1.5)*3.0
+        error += np.std(unknow_b[:, 2]) * 3.0 + abs(np.mean(unknow_b[:,2])-1.7)*3.0
         return error
 
 
@@ -126,5 +126,9 @@ if __name__ == '__main__':
     for i in range(know_beacon.shape[0]):
         plt.text(know_beacon[i,0],know_beacon[i,1],s='know-'+str(i))
     plt.grid()
+
+    dir_name ='/home/steve/Data/NewFusingLocationData/'
+
+
 
     plt.show()
