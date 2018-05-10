@@ -42,8 +42,7 @@ if __name__ == '__main__':
     start_time = time.time()
     # dir_name = '/home/steve/Data/FusingLocationData/0017/'
     # dir_name = '/home/steve/Data/FusingLocationData/0013/'
-    dir_name = '/home/steve/Data/NewFusingLocationData/0045/'
-
+    dir_name = '/home/steve/Data/NewFusingLocationData/0038/'
 
     # uwb_data = np.loadtxt(dir_name + 'uwb_result.csv', delimiter=',')
     # beacon_set = np.loadtxt(dir_name + 'beaconSet.csv', delimiter=',')
@@ -53,15 +52,16 @@ if __name__ == '__main__':
     uol = UwbOptimizeLocation(beacon_set)
     uwb_trace = np.zeros([uwb_data.shape[0], 3])
     uwb_opt_res = np.zeros([uwb_data.shape[0]])
+
     for i in range(uwb_data.shape[0]):
         if i is 0:
             uwb_trace[i, :], uwb_opt_res[i] = \
                 uol.iter_positioning((0, 0, 0),
-                                         uwb_data[i, 1:])
+                                     uwb_data[i, 1:])
         else:
             uwb_trace[i, :], uwb_opt_res[i] = \
                 uol.iter_positioning(uwb_trace[i - 1, :],
-                                         uwb_data[i, 1:])
+                                     uwb_data[i, 1:])
 
 
     @jit(nopython=True, cache=True)
@@ -80,24 +80,23 @@ if __name__ == '__main__':
     print(average_high)
 
     # write acceptable data to file
-    t_file = open(dir_name+'selected_uwb_trace.csv','w')
+    t_file = open(dir_name + 'selected_uwb_trace.csv', 'w')
 
     t_trace = np.zeros_like(uwb_trace)
     for i in range(uwb_trace.shape[0]):
-        if (uwb_opt_res[i] > 0.2 or abs(uwb_trace[i,2]-average_high)>0.1)and i > -1:
+        if (uwb_opt_res[i] > 0.2 or abs(uwb_trace[i, 2] - average_high) > 0.1) and i > -1:
             # t_trace[i,:] =
             t_trace[i, 0] = t_trace[i, 0]
         else:
-            if i > 2 and i < uwb_trace.shape[0]-2:
-                diff = uwb_trace[i+1,:]+uwb_trace[i-1,:]-2.0 * uwb_trace[i,:]
+            if i > 2 and i < uwb_trace.shape[0] - 2:
+                diff = uwb_trace[i + 1, :] + uwb_trace[i - 1, :] - 2.0 * uwb_trace[i, :]
                 if np.linalg.norm(diff) > 1.0:
                     continue
 
-
             t_trace[i, :] = uwb_trace[i, :]
-            t_file.write("%15.15f,%15.15f,%15.15f,%15.15f\n"%(uwb_data[i,0],uwb_trace[i,0],uwb_trace[i,1],uwb_trace[i,2]))
+            t_file.write("%15.15f,%15.15f,%15.15f,%15.15f\n" % (
+            uwb_data[i, 0], uwb_trace[i, 0], uwb_trace[i, 1], uwb_trace[i, 2]))
     t_file.close()
-
 
     plt.figure()
     plt.title('measuremment & res')
@@ -127,5 +126,22 @@ if __name__ == '__main__':
     ax.plot(t_trace[:, 0], t_trace[:, 1], t_trace[:, 2], '*', label='t trace\\beta')
     ax.grid()
     ax.legend()
+
+
+
+    # ref_trace = np.loadtxt(dir_name+'selected_uwb_trace.csv',delimiter=',')
+    # smooth_fac = 0.5
+    # xf = sp.interpolate.UnivariateSpline(ref_trace[:,0],ref_trace[:,1])
+    # yf = sp.interpolate.UnivariateSpline(ref_trace[:,0],ref_trace[:,2])
+    # xf.set_smoothing_factor(smooth_fac)
+    # yf.set_smoothing_factor(smooth_fac)
+
+    # plt.figure()
+    # plt.title('ref and interpolate')
+    # plt.plot(ref_trace[:,1],ref_trace[:,2],label='ref')
+    # plt.plot(xf(uwb_data[:,0]),yf(uwb_data[:,0]),label='inter')
+    # plt.grid()
+    # plt.legend()
+
 
     plt.show()

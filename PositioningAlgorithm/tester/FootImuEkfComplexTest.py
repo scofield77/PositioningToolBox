@@ -62,8 +62,8 @@ if __name__ == '__main__':
 
     # dir_name = 'D:\\NewFusingLocationData\\0035\\'
 
-    # imu_data = np.loadtxt(dir_name + 'LEFT_FOOT.data', delimiter=',')
-    imu_data = np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=',')
+    imu_data = np.loadtxt(dir_name + 'LEFT_FOOT.data', delimiter=',')
+    # imu_data = np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=',')
     imu_data = imu_data[:, 1:]
     imu_data[:, 1:4] = imu_data[:, 1:4] * 9.81
     imu_data[:, 4:7] = imu_data[:, 4:7] * (np.pi / 180.0)

@@ -69,7 +69,7 @@ class UwbOptimizeLocation:
         # print('beacon',self.beacon_set.shape[0])
         # print('use index:',self.use_index)
         self.measurements = measurements[self.use_index]
-        self.beacon_set = self.beacon_set[self.use_index]
+        # self.beacon_set = self.beacon_set[self.use_index]
 
         result = minimize(self.position_error_function,
                           initial_pose, method='BFGS')
