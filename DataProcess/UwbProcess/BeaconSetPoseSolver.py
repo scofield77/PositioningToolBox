@@ -83,14 +83,14 @@ if __name__ == '__main__':
             for j in range(unknow_matrix.shape[1]):
                 if unknow_matrix[i, j] > 0.1:
                     # print('i,j', i, j, unknow_matrix[i, j])
-                    error += abs(np.linalg.norm(unknow_b[i, :] - unknow_b[j, :]) - unknow_matrix[i, j])*2.0
+                    error += abs(np.linalg.norm(unknow_b[i, :] - unknow_b[j, :]) - unknow_matrix[i, j])
         for i in range(uk_matrix.shape[0]):
             k = int(uk_matrix[i,0])
             u = int(uk_matrix[i,1])
             d = float(uk_matrix[i,2])
             error += abs(np.linalg.norm(know_beacon[k,0:2]-unknow_b[u,0:2])-d)
 
-        error += np.std(unknow_b[:, 2]) * 3.0 + abs(np.mean(unknow_b[:,2])-1.7)*3.0
+        error += np.std(unknow_b[:, 2])  + abs(np.mean(unknow_b[:,2])-1.31)
         return error
 
 
@@ -128,6 +128,10 @@ if __name__ == '__main__':
     plt.grid()
 
     dir_name ='/home/steve/Data/NewFusingLocationData/'
+    beacon_set[14,:] = unknow_beacon[0,:]
+    beacon_set[38,:] = unknow_beacon[1:,:]
+
+    print(beacon_set)
 
 
 
