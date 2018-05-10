@@ -1,5 +1,5 @@
 # -*- coding:utf-8 -*-
-# carete by steve at  2018 / 04 / 25　下午3:51
+# carete by steve at  2018 / 05 / 10　下午5:10
 '''
                    _ooOoo_ 
                   o8888888o 
@@ -394,34 +394,6 @@ if __name__ == '__main__':
         plt.legend()
 
 
-    # plot dx list
-
-    # if len(rkf.dx_dict) > 0:
-    #     dx_matrix = np.zeros(shape=(len(rkf.dx_dict), len(rkf.dx_dict[1]), 15))
-    #
-    #     for i in range(dx_matrix.shape[0]):
-    #         for j in range(dx_matrix.shape[1]):
-    #             dx_matrix[i, j, :] = rkf.dx_dict[i][j]
-    #
-    #     plt.figure()
-    #     plt.title('dx')
-    #     for i in range(dx_matrix.shape[0]):
-    #         # plt.plot(dx_matrix[i,:,0],dx_matrix[i,:,1],'-.',label=str(i))
-    #         plt.plot(np.linalg.norm(dx_matrix[i, :, 0:3], axis=1), '-+', label=str(i))
-    #     plt.grid()
-    #     plt.legend()
-
-    # #
-    # aux_plot(imu_data[:, 1:4], 'acc')
-    # aux_plot(imu_data[:, 4:7], 'gyr')
-    # aux_plot(imu_data[:, 7:10], 'mag')
-    # aux_plot(trace, 'trace')
-    # aux_plot(vel, 'vel')
-    # aux_plot(ang, 'ang')
-    # aux_plot(ba, 'ba')
-    # aux_plot(bg, 'bg')
-
-    # aux_plot(iner_acc, 'inner acc')
 
     plt.figure()
     plt.plot(trace[:, 0], trace[:, 1], '-', label='fusing')
@@ -499,12 +471,5 @@ if __name__ == '__main__':
     ax.grid()
     ax.legend()
 
-    # plt.figure()
-    # plt.title('uwb')
-    # for i in range(1, uwb_data.shape[1]):
-    #     plt.plot(uwb_data[:, 0], uwb_data[:, i], '+-', label=str(i))
-    # plt.plot(uwb_data[:, 0], uwb_opt_res, '+-', label='res error')
-    # plt.grid()
-    # plt.legend()
 
     plt.show()
