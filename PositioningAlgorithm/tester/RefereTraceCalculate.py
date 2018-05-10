@@ -358,7 +358,7 @@ if __name__ == '__main__':
                     pose = drkf.state[0:3]
                     ref_dis = np.linalg.norm(pose - beacon_set, axis=1)
                     for j in range(1, uwb_data.shape[1]):
-                        if abs(ref_dis[j - 1] - uwb_data[uwb_index, j]) > 1.0:
+                        if abs(ref_dis[j - 1] - uwb_data[uwb_index, j]) > 0.3:
                             uwb_data_back[uwb_index, j] = -10.0
 
                     # for j in range(1,uwb_data.shape[1]):
@@ -481,14 +481,14 @@ if __name__ == '__main__':
     for i in range(uwb_data.shape[0]):
         if i is 0:
             uwb_trace_b[i, :], uwb_opt_res_b[i] = \
-                uol.iter_positioning((0, 0, 0),
-                                     uwb_data_back[i, 1:])
+                uol.positioning_function((0, 0, 0),
+                                         uwb_data_back[i, 1:])
         else:
             uwb_trace_b[i, :], uwb_opt_res_b[i] = \
-                uol.iter_positioning(uwb_trace[i - 1, :],
-                                     uwb_data_back[i, 1:])
+                uol.positioning_function(uwb_trace[i - 1, :],
+                                         uwb_data_back[i, 1:])
     plt.figure()
-    plt.plot(uwb_trace_b[:,0],uwb_trace_b[:,1])
+    plt.plot(uwb_trace_b[:, 0], uwb_trace_b[:, 1])
 
     plt.figure()
     plt.subplot(211)
@@ -496,11 +496,10 @@ if __name__ == '__main__':
     plt.plot(uwb_opt_res_b)
     plt.subplot(212)
     plt.title('m')
-    for i in range(1,uwb_data_back.shape[1]):
-        if uwb_data_back[:,i].max() > 0.0:
-            plt.plot(uwb_data_back[:,0],uwb_data_back[:,1],label=str(i))
+    for i in range(1, uwb_data_back.shape[1]):
+        if uwb_data_back[:, i].max() > 0.0:
+            plt.plot(uwb_data_back[:, 0], uwb_data_back[:, i], label=str(i))
     plt.grid()
     plt.legend()
-
 
     plt.show()
