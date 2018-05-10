@@ -75,7 +75,6 @@ if __name__ == '__main__':
     beacon_set = np.loadtxt(dir_name + 'beaconset_no_mac.csv', delimiter=',')
     beacon_set = np.loadtxt(dir_name + 'beaconset_fill.csv', delimiter=',')
 
-
     uwb_valid = list()
     for i in range(1, uwb_data.shape[1]):
         if uwb_data[:, i].max() > 0.0:
@@ -94,7 +93,6 @@ if __name__ == '__main__':
     uwb_est_data[:, 1:] = uwb_est_data[:, 1:] - 10.0
     uwb_est_prob = np.zeros_like(uwb_est_data)
 
-
     uol = UwbOptimizeLocation(beacon_set)
     uwb_trace = np.zeros([uwb_data.shape[0], 3])
     uwb_opt_res = np.zeros([uwb_data.shape[0]])
@@ -107,7 +105,6 @@ if __name__ == '__main__':
             uwb_trace[i, :], uwb_opt_res[i] = \
                 uol.iter_positioning(uwb_trace[i - 1, :],
                                      uwb_data[i, 1:])
-
 
     # ref_trace = np.loadtxt(dir_name + 'ref_trace.csv', delimiter=',')
 
@@ -142,9 +139,9 @@ if __name__ == '__main__':
         ti += 1
     # initial_orientation = math.atan2(ref_trace[ti, 2] - ref_trace[0, 2],
     #                                  ref_trace[ti, 1] - ref_trace[0, 1]) - 10.0 * np.pi / 180.0  # 35
-    initial_orientation = math.atan2(ref_trace[ti, 2] - ref_trace[0, 2],
-                                     ref_trace[ti, 1] - ref_trace[0, 1]) + 150.0 * np.pi / 180.0  # 32
-    # initial_orientation = 80.0 * np.pi / 180.0#38-45
+    # initial_orientation = math.atan2(ref_trace[ti, 2] - ref_trace[0, 2],
+    #                                  ref_trace[ti, 1] - ref_trace[0, 1]) + 150.0 * np.pi / 180.0  # 32
+    initial_orientation = 110.0 * np.pi / 180.0  # 38-45
 
     #  initial_orientation = 200.0 / 180.0 * np.pi
 
@@ -253,6 +250,8 @@ if __name__ == '__main__':
 
     uwb_index = 0
 
+    uwb_data_back = uwb_data * 1.0
+
     for i in range(imu_data.shape[0]):
         # print('i:',i)
 
@@ -355,6 +354,13 @@ if __name__ == '__main__':
                     drkf.measurement_uwb_iterate(np.asarray(uwb_est_data[uwb_index, 1:]),
                                                  np.ones(1) * 0.1,
                                                  beacon_set, ref_trace)
+
+                    pose = drkf.state[0:3]
+                    ref_dis = np.linalg.norm(pose - beacon_set, axis=1)
+                    for j in range(1, uwb_data.shape[1]):
+                        if abs(ref_dis[j - 1] - uwb_data[uwb_index, j]) > 1.0:
+                            uwb_data_back[uwb_index, j] = -10.0
+
                     # for j in range(1,uwb_data.shape[1]):
                     #     if uwb_filter_list[j-1].m > -1000.0:
                     #         uwb_filter_list[j-1].state_estimate(drkf.state[0:3],drkf.prob_state[0:3,0:3])
@@ -391,7 +397,6 @@ if __name__ == '__main__':
             plt.plot(data[:, i], label=str(i))
         plt.grid()
         plt.legend()
-
 
 
     plt.figure()
@@ -469,6 +474,33 @@ if __name__ == '__main__':
     ax.plot(uwb_trace[:, 0], uwb_trace[:, 1], uwb_trace[:, 2], '+', label='uwb')
     ax.grid()
     ax.legend()
+
+    uol_b = UwbOptimizeLocation(beacon_set)
+    uwb_trace_b = np.zeros([uwb_data.shape[0], 3])
+    uwb_opt_res_b = np.zeros([uwb_data.shape[0]])
+    for i in range(uwb_data.shape[0]):
+        if i is 0:
+            uwb_trace_b[i, :], uwb_opt_res_b[i] = \
+                uol.iter_positioning((0, 0, 0),
+                                     uwb_data_back[i, 1:])
+        else:
+            uwb_trace_b[i, :], uwb_opt_res_b[i] = \
+                uol.iter_positioning(uwb_trace[i - 1, :],
+                                     uwb_data_back[i, 1:])
+    plt.figure()
+    plt.plot(uwb_trace_b[:,0],uwb_trace_b[:,1])
+
+    plt.figure()
+    plt.subplot(211)
+    plt.title('res')
+    plt.plot(uwb_opt_res_b)
+    plt.subplot(212)
+    plt.title('m')
+    for i in range(1,uwb_data_back.shape[1]):
+        if uwb_data_back[:,i].max() > 0.0:
+            plt.plot(uwb_data_back[:,0],uwb_data_back[:,1],label=str(i))
+    plt.grid()
+    plt.legend()
 
 
     plt.show()

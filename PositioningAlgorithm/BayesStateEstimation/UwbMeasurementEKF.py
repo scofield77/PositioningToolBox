@@ -228,8 +228,8 @@ class UwbRangeEKF:
                 # self.uwb_eta_dict[beacon_id].pop()
 
         cov_m = np.asarray((R_k))
-        print('-------------')
-        print(iter_counter, 'in uwb measurement ekf robust')
+        # print('-------------')
+        # print(iter_counter, 'in uwb measurement ekf robust')
 
         self.m = np.asarray((self.m))
 
