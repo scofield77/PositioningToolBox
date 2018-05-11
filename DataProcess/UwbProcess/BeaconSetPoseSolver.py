@@ -135,12 +135,12 @@ if __name__ == '__main__':
 
     import os
     import re
+
     for sub_dir in os.listdir(dir_name):
         dm = re.compile('^[0-9]{4}$')
         print(sub_dir)
         if dm.match(sub_dir):
-            print(dir_name+sub_dir+'/beaconset_fill.csv')
-            np.savetxt(dir_name+sub_dir+'/beaconset_fill.csv',beacon_set,delimiter=',')
-
+            print(dir_name + sub_dir + '/beaconset_fill.csv')
+            np.savetxt(dir_name + sub_dir + '/beaconset_fill.csv', beacon_set, delimiter=',')
 
     plt.show()
