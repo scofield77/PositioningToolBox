@@ -146,7 +146,7 @@ if __name__ == '__main__':
     # initial_orientation = math.atan2(ref_trace[ti, 2] - ref_trace[0, 2],
     #                                  ref_trace[ti, 1] - ref_trace[0, 1]) + 150.0 * np.pi / 180.0  # 32
     # initial_orientation = 80.0 * np.pi / 180.0#38-45
-    initial_orientation = 60.0 * np.pi / 180.0#38-45
+    initial_orientation = 125.0 * np.pi / 180.0#39
 
     #  initial_orientation = 200.0 / 180.0 * np.pi
 
