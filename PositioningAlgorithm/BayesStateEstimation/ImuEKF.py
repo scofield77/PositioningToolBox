@@ -417,8 +417,8 @@ class ImuEKFComplex:
             dx = K.dot((measurement - y - H.dot(xminus - xop)) * mask)
             xplus = xminus + dx
             # print('it')
-        print('-----')
-        print(ite_counter)
+        # print('-----')
+        # print(ite_counter)
 
         self.state = self.state + dx
 
