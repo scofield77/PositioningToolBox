@@ -314,7 +314,7 @@ if __name__ == '__main__':
                     #                        beacon_set, ref_trace)
                     orkf.measurement_uwb_iterate(np.asarray(uwb_data[uwb_index, 1:]),
                                                  np.ones(1) * 0.01,
-                                                 beacon_set, ref_trace,ka_squard=10.0)
+                                                 beacon_set, ref_trace, ka_squard=10.0)
                     uwb_index += 1
                     for j in range(1, uwb_data.shape[1]):
                         # right
