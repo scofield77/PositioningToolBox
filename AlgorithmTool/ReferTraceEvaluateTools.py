@@ -66,6 +66,7 @@ if __name__ == '__main__':
     score = np.zeros(shape=(ref_trace.shape[0]))
     for i in range(ref_trace.shape[0]):
         score[i] = rs.eval_point2d(ref_trace[i,1:3])
+    print(np.mean(score),np.std(score))
 
 
     plt.figure()
