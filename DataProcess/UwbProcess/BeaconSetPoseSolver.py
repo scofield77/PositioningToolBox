@@ -133,39 +133,77 @@ if __name__ == '__main__':
 
     print(beacon_set)
 
-    import os
-    import re
 
-    for sub_dir in os.listdir(dir_name):
-        dm = re.compile('^[0-9]{4}$')
-        print(sub_dir)
-        if dm.match(sub_dir):
-            print(dir_name + sub_dir + '/beaconset_fill.csv')
-            np.savetxt(dir_name + sub_dir + '/beaconset_fill.csv', beacon_set, delimiter=',')
+    def save_file():
+        import os
+        import re
+
+        for sub_dir in os.listdir(dir_name):
+            dm = re.compile('^[0-9]{4}$')
+            # print(sub_dir)
+            if dm.match(sub_dir):
+                # print(dir_name + sub_dir + '/beaconset_fill.csv')
+                np.savetxt(dir_name + sub_dir + '/beaconset_fill.csv', beacon_set, delimiter=',')
+
+
+    save_file()
 
 
     def generate_score_matrix():
         # line_pare = np.zeros(shape=(7, 2))
         line_pare = np.asarray((
-            1,2,
-            1,5,
-            2,4,
-            4,5,
-            4,0,
-            0,3,
-            5,3
-        ))
+            1, 2,
+            1, 5,
+            2, 4,
+            4, 5,
+            4, 0,
+            0, 3,
+            5, 3
+        ), dtype=np.int32).reshape(-1, 2)
 
         map_range = np.asarray(
-            (38.0,70.0,15.0,50.0)
-        )
+            (0.0, 0.0, 15.0, 50.0)
+        ).reshape(-1, 2)
 
-        relution = 1.0/10.0
+        relution = 1.0 / 10.0
         # map_matrix = np.zeros()
 
         import array
 
+        surf_array = array.array('d')
+
+        x_pos = map_range[0, 0]
+        y_pos = map_range[1, 0]
+
+        while x_pos < map_range[0, 1]:
+            y_pos = map_range[1, 0]
+            while y_pos < map_range[1, 1]:
+                surf_array.append(x_pos)
+                surf_array.append(y_pos)
+
+                y_pos+=0.1
+            x_pos+=0.1
+
+        return line_pare
 
 
+    plt.figure()
+    plt.plot(unknow_beacon[:, 0], unknow_beacon[:, 1], 'r*')
+
+    for i in range(unknow_beacon.shape[0]):
+        plt.text(unknow_beacon[i, 0], unknow_beacon[i, 1], s=str(i))
+
+    plt.plot(know_beacon[:, 0], know_beacon[:, 1], 'b*')
+
+    for i in range(know_beacon.shape[0]):
+        plt.text(know_beacon[i, 0], know_beacon[i, 1], s='know-' + str(i))
+
+    lp = generate_score_matrix()
+    for i in range(lp.shape[0]):
+        plt.plot(unknow_beacon[lp[i, :], 0], unknow_beacon[lp[i, :], 1], label='line' + str(i))
+
+    plt.legend()
+
+    plt.grid()
 
     plt.show()
