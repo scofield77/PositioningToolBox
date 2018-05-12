@@ -231,7 +231,7 @@ if __name__ == '__main__':
             if dm.match(sub_dir):
                 # print(dir_name + sub_dir + '/beaconset_fill.csv')
                 np.savetxt(dir_name + sub_dir + '/beaconset_fill.csv', beacon_set, delimiter=',')
-                np.save(dir_name + sub_dir + '{0}-{1}-{2}-{3}'.format(map_range[0, 0],
+                np.save(dir_name + sub_dir + '/{0}-{1}-{2}-{3}'.format(map_range[0, 0],
                                                                       map_range[0, 1],
                                                                       map_range[1, 0],
                                                                       map_range[1, 1]),
