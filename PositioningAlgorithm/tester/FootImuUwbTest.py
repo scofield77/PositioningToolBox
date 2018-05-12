@@ -73,7 +73,7 @@ if __name__ == '__main__':
     # beacon_set = np.loadtxt(dir_name + 'beaconSet.csv', delimiter=',')
     uwb_data = np.loadtxt(dir_name + 'uwb_data.csv', delimiter=',')
     beacon_set = np.loadtxt(dir_name + 'beaconset_no_mac.csv', delimiter=',')
-    beacon_set = np.loadtxt(dir_name + 'beaconset_fill.csv', delimiter=',')
+    # beacon_set = np.loadtxt(dir_name + 'beaconset_fill.csv', delimiter=',')
 
 
     uwb_valid = list()
@@ -146,7 +146,7 @@ if __name__ == '__main__':
     # initial_orientation = math.atan2(ref_trace[ti, 2] - ref_trace[0, 2],
     #                                  ref_trace[ti, 1] - ref_trace[0, 1]) + 150.0 * np.pi / 180.0  # 32
     # initial_orientation = 80.0 * np.pi / 180.0#38-45
-    initial_orientation = 125.0 * np.pi / 180.0#39
+    initial_orientation = 110.0 * np.pi / 180.0#39
 
     #  initial_orientation = 200.0 / 180.0 * np.pi
 
