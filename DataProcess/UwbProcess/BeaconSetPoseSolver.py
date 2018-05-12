@@ -129,40 +129,19 @@ if __name__ == '__main__':
         plt.text(know_beacon[i, 0], know_beacon[i, 1], s='know-' + str(i))
     plt.grid()
 
-    dir_name = '/home/steve/Data/NewFusingLocationData/'
-    beacon_set[14, :] = unknow_beacon[0, :]
-    beacon_set[37:, :] = unknow_beacon[1:-1, :]
 
-    print(beacon_set)
-
-
-    def save_file():
-        import os
-        import re
-
-        for sub_dir in os.listdir(dir_name):
-            dm = re.compile('^[0-9]{4}$')
-            # print(sub_dir)
-            if dm.match(sub_dir):
-                # print(dir_name + sub_dir + '/beaconset_fill.csv')
-                np.savetxt(dir_name + sub_dir + '/beaconset_fill.csv', beacon_set, delimiter=',')
-
-
-    save_file()
-
-
-    @jit
+    @jit(nopython=True)
     def p2line(p, p0, p1):
         dis = ((p0[1] - p1[1]) * p[0] + (p1[0] - p0[0]) * p[1] + p0[0] * p1[1] - p1[0] * p0[1]) / np.linalg.norm(
             p1 - p0)
         dis = abs(dis)
 
-        c = np.linalg.norm(p1-p0)
-        a=np.linalg.norm(p-p0)
-        b = np.linalg.norm(p-p1)
-        if a**2.0 > c**2.0 + b ** 2.0:
+        c = np.linalg.norm(p1 - p0)
+        a = np.linalg.norm(p - p0)
+        b = np.linalg.norm(p - p1)
+        if a ** 2.0 > c ** 2.0 + b ** 2.0:
             dis = b
-        if b**2.0 > a**2.0 + c**2.0:
+        if b ** 2.0 > a ** 2.0 + c ** 2.0:
             dis = a
 
         return dis
@@ -185,7 +164,7 @@ if __name__ == '__main__':
              15.0, 50.0)
         ).reshape(-1, 2)
 
-        relution = 1.0 / 100.0
+        relution = 1.0 / 20.0
         # map_matrix = np.zeros()
 
         import array
@@ -195,8 +174,8 @@ if __name__ == '__main__':
         x_pos = map_range[0, 0]
         y_pos = map_range[1, 0]
         print(map_range[0, 1] - map_range[0, 0], map_range[1, 1] - map_range[1, 0])
-        full_array = np.zeros(shape=(int((map_range[0, 1] - map_range[0, 0]) * 10.0),
-                                     int((map_range[1, 1] - map_range[1, 0]) * 10.0)))
+        full_array = np.zeros(shape=(int((map_range[0, 1] - map_range[0, 0]) * 1.0 / relution),
+                                     int((map_range[1, 1] - map_range[1, 0]) * 1.0 / relution)))
 
         while x_pos < map_range[0, 1]:
             y_pos = map_range[1, 0]
@@ -212,7 +191,8 @@ if __name__ == '__main__':
                                         unknow_beacon[line_pare[i, 1], :2])
                 surf_array.append(np.min(all_dis))
                 # print(x_pos, y_pos, (all_dis))
-                full_array[int((x_pos - map_range[0, 0]) * 10.0), int((y_pos - map_range[1, 0]) * 10.0)] = np.min(
+                full_array[int((x_pos - map_range[0, 0]) * 1.0 / relution), int(
+                    (y_pos - map_range[1, 0]) * 1.0 / relution)] = np.min(
                     all_dis)
                 y_pos += relution
             x_pos += relution
@@ -223,10 +203,10 @@ if __name__ == '__main__':
         # plt.axes(((map_range[0,0],map_range[0,1]),(map_range[1,0],map_range[1,1])))
         plt.colorbar()
 
-        return line_pare, surf_mat, full_array
+        return line_pare, surf_mat, full_array, map_range
 
 
-    lp, surf_mat, full_array = generate_score_matrix()
+    lp, surf_mat, full_array, map_range = generate_score_matrix()
     print(surf_mat.shape)
 
     # fig = plt.figure()
@@ -234,6 +214,31 @@ if __name__ == '__main__':
     # ax.plot_surface(surf_mat[:, 0], surf_mat[:, 1], surf_mat[:, 2])
     # ax.scatter(surf_mat[:, 0], surf_mat[:, 1], surf_mat[:, 2])
     # ax.grid()
+    dir_name = '/home/steve/Data/NewFusingLocationData/'
+    beacon_set[14, :] = unknow_beacon[0, :]
+    beacon_set[37:, :] = unknow_beacon[1:-1, :]
+
+    print(beacon_set)
+
+
+    def save_file(dir_name):
+        import os
+        import re
+
+        for sub_dir in os.listdir(dir_name):
+            dm = re.compile('^[0-9]{4}$')
+            # print(sub_dir)
+            if dm.match(sub_dir):
+                # print(dir_name + sub_dir + '/beaconset_fill.csv')
+                np.savetxt(dir_name + sub_dir + '/beaconset_fill.csv', beacon_set, delimiter=',')
+                np.save(dir_name + sub_dir + '{0}-{1}-{2}-{3}'.format(map_range[0, 0],
+                                                                      map_range[0, 1],
+                                                                      map_range[1, 0],
+                                                                      map_range[1, 1]),
+                        full_array)
+
+
+    save_file(dir_name)
 
     plt.figure()
     plt.plot(unknow_beacon[:, 0], unknow_beacon[:, 1], 'r*')
