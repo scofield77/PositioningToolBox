@@ -143,4 +143,29 @@ if __name__ == '__main__':
             print(dir_name + sub_dir + '/beaconset_fill.csv')
             np.savetxt(dir_name + sub_dir + '/beaconset_fill.csv', beacon_set, delimiter=',')
 
+
+    def generate_score_matrix():
+        # line_pare = np.zeros(shape=(7, 2))
+        line_pare = np.asarray((
+            1,2,
+            1,5,
+            2,4,
+            4,5,
+            4,0,
+            0,3,
+            5,3
+        ))
+
+        map_range = np.asarray(
+            (38.0,70.0,15.0,50.0)
+        )
+
+        relution = 1.0/10.0
+        # map_matrix = np.zeros()
+
+        import array
+
+
+
+
     plt.show()
