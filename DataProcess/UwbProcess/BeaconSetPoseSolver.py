@@ -149,6 +149,13 @@ if __name__ == '__main__':
     save_file()
 
 
+    # @jit
+    def p2line(p, p0, p1):
+        dis = ((p0[1] - p1[1]) * p[0] + (p1[0] - p0[0]) * p[1] + p0[0] * p1[1] - p1[0] * p0[1]) / np.linalg.norm(
+            p1 - p0)
+        return abs(dis)
+
+
     def generate_score_matrix():
         # line_pare = np.zeros(shape=(7, 2))
         line_pare = np.asarray((
@@ -162,7 +169,8 @@ if __name__ == '__main__':
         ), dtype=np.int32).reshape(-1, 2)
 
         map_range = np.asarray(
-            (0.0, 0.0, 15.0, 50.0)
+            (40.0, 65.0,
+             15.0, 50.0)
         ).reshape(-1, 2)
 
         relution = 1.0 / 10.0
@@ -174,18 +182,44 @@ if __name__ == '__main__':
 
         x_pos = map_range[0, 0]
         y_pos = map_range[1, 0]
+        full_array = np.zeros(shape=(int((map_range[0, 1] - map_range[0, 0]) * 10.0),
+                                     int((map_range[1, 1] - map_range[1, 0] * 10.0))))
 
         while x_pos < map_range[0, 1]:
             y_pos = map_range[1, 0]
             while y_pos < map_range[1, 1]:
-                surf_array.append(x_pos)
-                surf_array.append(y_pos)
+                surf_array.append(x_pos * 1.0)
+                surf_array.append(y_pos * 1.0)
 
-                y_pos+=0.1
-            x_pos+=0.1
+                all_dis = np.zeros(line_pare.shape[0])
 
-        return line_pare
+                for i in range(all_dis.shape[0]):
+                    all_dis[i] = p2line(np.asarray((x_pos, y_pos)),
+                                        unknow_beacon[line_pare[i, 0], :2],
+                                        unknow_beacon[line_pare[i, 1], :2])
+                surf_array.append(np.min(all_dis))
+                # print(x_pos, y_pos, (all_dis))
+                full_array[int((x_pos - map_range[0, 0]) * 1.0), int((y_pos - map_range[1, 0]) * 10.0)] = np.min(
+                    all_dis)
+                y_pos += relution
+            x_pos += relution
 
+        surf_mat = np.frombuffer(surf_array, dtype=np.float64).reshape(-1, 3)
+
+        return line_pare, surf_mat, full_array
+
+
+    lp, surf_mat, full_array = generate_score_matrix()
+    print(surf_mat.shape)
+
+    # fig = plt.figure()
+    # ax = fig.add_subplot(111, projection='3d')
+    # ax.plot_surface(surf_mat[:, 0], surf_mat[:, 1], surf_mat[:, 2])
+    # ax.scatter(surf_mat[:, 0], surf_mat[:, 1], surf_mat[:, 2])
+    # ax.grid()
+    plt.figure()
+    plt.imshow(full_array)
+    plt.colorbar()
 
     plt.figure()
     plt.plot(unknow_beacon[:, 0], unknow_beacon[:, 1], 'r*')
@@ -198,7 +232,7 @@ if __name__ == '__main__':
     for i in range(know_beacon.shape[0]):
         plt.text(know_beacon[i, 0], know_beacon[i, 1], s='know-' + str(i))
 
-    lp = generate_score_matrix()
+    # lp = generate_score_matrix()
     for i in range(lp.shape[0]):
         plt.plot(unknow_beacon[lp[i, :], 0], unknow_beacon[lp[i, :], 1], label='line' + str(i))
 
