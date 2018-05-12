@@ -42,7 +42,7 @@ class Refscor:
                 name = name.split('.npy')[0]
                 self.map_range = np.asarray(
                     ([float(x) for x in name.split('-')])
-                )
+                ).reshape(2,2)
                 self.relution = (self.map_range[0,1]-self.map_range[0,0])/float(self.score_data.shape[0])
                 # print(self.map_range)
                 print(self.relution)
