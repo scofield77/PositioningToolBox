@@ -30,6 +30,8 @@ from scipy.optimize import minimize
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
+from numba import jit
+
 if __name__ == '__main__':
     beacon_set = np.loadtxt('/home/steve/Data/NewFusingLocationData/0044/beaconset_no_mac.csv', delimiter=',')
 
@@ -149,11 +151,21 @@ if __name__ == '__main__':
     save_file()
 
 
-    # @jit
+    @jit
     def p2line(p, p0, p1):
         dis = ((p0[1] - p1[1]) * p[0] + (p1[0] - p0[0]) * p[1] + p0[0] * p1[1] - p1[0] * p0[1]) / np.linalg.norm(
             p1 - p0)
-        return abs(dis)
+        dis = abs(dis)
+
+        c = np.linalg.norm(p1-p0)
+        a=np.linalg.norm(p-p0)
+        b = np.linalg.norm(p-p1)
+        if a**2.0 > c**2.0 + b ** 2.0:
+            dis = b
+        if b**2.0 > a**2.0 + c**2.0:
+            dis = a
+
+        return dis
 
 
     def generate_score_matrix():
@@ -173,7 +185,7 @@ if __name__ == '__main__':
              15.0, 50.0)
         ).reshape(-1, 2)
 
-        relution = 1.0 / 10.0
+        relution = 1.0 / 100.0
         # map_matrix = np.zeros()
 
         import array
@@ -182,8 +194,9 @@ if __name__ == '__main__':
 
         x_pos = map_range[0, 0]
         y_pos = map_range[1, 0]
+        print(map_range[0, 1] - map_range[0, 0], map_range[1, 1] - map_range[1, 0])
         full_array = np.zeros(shape=(int((map_range[0, 1] - map_range[0, 0]) * 10.0),
-                                     int((map_range[1, 1] - map_range[1, 0] * 10.0))))
+                                     int((map_range[1, 1] - map_range[1, 0]) * 10.0)))
 
         while x_pos < map_range[0, 1]:
             y_pos = map_range[1, 0]
@@ -199,12 +212,16 @@ if __name__ == '__main__':
                                         unknow_beacon[line_pare[i, 1], :2])
                 surf_array.append(np.min(all_dis))
                 # print(x_pos, y_pos, (all_dis))
-                full_array[int((x_pos - map_range[0, 0]) * 1.0), int((y_pos - map_range[1, 0]) * 10.0)] = np.min(
+                full_array[int((x_pos - map_range[0, 0]) * 10.0), int((y_pos - map_range[1, 0]) * 10.0)] = np.min(
                     all_dis)
                 y_pos += relution
             x_pos += relution
 
         surf_mat = np.frombuffer(surf_array, dtype=np.float64).reshape(-1, 3)
+        plt.figure()
+        plt.imshow(full_array.transpose())
+        # plt.axes(((map_range[0,0],map_range[0,1]),(map_range[1,0],map_range[1,1])))
+        plt.colorbar()
 
         return line_pare, surf_mat, full_array
 
@@ -217,9 +234,6 @@ if __name__ == '__main__':
     # ax.plot_surface(surf_mat[:, 0], surf_mat[:, 1], surf_mat[:, 2])
     # ax.scatter(surf_mat[:, 0], surf_mat[:, 1], surf_mat[:, 2])
     # ax.grid()
-    plt.figure()
-    plt.imshow(full_array)
-    plt.colorbar()
 
     plt.figure()
     plt.plot(unknow_beacon[:, 0], unknow_beacon[:, 1], 'r*')
