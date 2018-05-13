@@ -334,6 +334,7 @@ if __name__ == '__main__':
     plt.plot(rs.eval_points(ortrace), label='ortrace')
     # plt.plot(rs.eval_points(dtrace), label='dtrace')
     # plt.plot(rs.eval_points(ref_trace[:,1:]), label='ref')
+    plt.grid()
     plt.legend()
 
     print('uwb:', np.mean(rs.eval_points(uwb_trace)))
