@@ -68,6 +68,7 @@ class Refscor:
         scores = np.zeros(shape=(points.shape[0]))
         for i in range(scores.shape[0]):
             scores[i] = self.eval_point2d(points[:, :2])
+        return scores
 
 
 if __name__ == '__main__':

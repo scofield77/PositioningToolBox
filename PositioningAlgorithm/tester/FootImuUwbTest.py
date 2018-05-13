@@ -49,6 +49,9 @@ import time
 from PositioningAlgorithm.BayesStateEstimation.UwbMeasurementEKF import UwbRangeEKF
 from PositioningAlgorithm.OptimizationAlgorithm.UwbOptimizeLocation import UwbOptimizeLocation
 
+
+from AlgorithmTool.ReferTraceEvaluateTools import *
+
 # from mayavi import mlab
 
 if __name__ == '__main__':
@@ -499,6 +502,9 @@ if __name__ == '__main__':
     ax.plot(uwb_trace[:, 0], uwb_trace[:, 1], uwb_trace[:, 2], '+', label='uwb')
     ax.grid()
     ax.legend()
+
+
+
 
     # plt.figure()
     # plt.title('uwb')
