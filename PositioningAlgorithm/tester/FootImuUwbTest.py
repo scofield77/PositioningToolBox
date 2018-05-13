@@ -61,7 +61,7 @@ if __name__ == '__main__':
     start_time = time.time()
     # dir_name = '/home/steve/Data/FusingLocationData/0017/'
     # dir_name = '/home/steve/Data/FusingLocationData/0013/'
-    dir_name = '/home/steve/Data/NewFusingLocationData/0045/'
+    dir_name = '/home/steve/Data/NewFusingLocationData/0040/'
     # dir_name = 'D:/Data/NewFusingLocationData/0033/'
 
     imu_data = np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=',')
@@ -82,9 +82,9 @@ if __name__ == '__main__':
         if uwb_data[:, i].max() > 0.0:
             uwb_valid.append(i)
     random_index = np.random.randint(0, len(uwb_valid) - 1, len(uwb_valid))
-    # for i in range(min(random_index.shape[0], 1)):
-    #     uwb_data[:, uwb_valid[random_index[i]]] *= 0.0
-    #     uwb_data[:, uwb_valid[random_index[i]]] -= 10.0
+    for i in range(min(random_index.shape[0], 3)):# delete parts of data of
+        uwb_data[:, uwb_valid[random_index[i]]] *= 0.0
+        uwb_data[:, uwb_valid[random_index[i]]] -= 10.0
 
     uwb_filter_list = list()
     for i in range(1, uwb_data.shape[1]):
@@ -502,6 +502,7 @@ if __name__ == '__main__':
     rs = Refscor(dir_name)
     plt.figure()
 
+    start_time = time.time()
     # plt.plot(rs.eval_points(uwb_trace), label='uwb')
     plt.plot(rs.eval_points(trace), label='fusing')
     plt.plot(rs.eval_points(rtrace), label='rtrace')
@@ -516,6 +517,7 @@ if __name__ == '__main__':
     print('ortrace:', np.mean(rs.eval_points(ortrace)))
     print('dtrace:', np.mean(rs.eval_points(dtrace)))
     print('ref:',np.mean(rs.eval_points(ref_trace[:,1:])))
+    print('eval cost time:',time.time()-start_time)
 
     # plt.figure()
     # plt.title('uwb')

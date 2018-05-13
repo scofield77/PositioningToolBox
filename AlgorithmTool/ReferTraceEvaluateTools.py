@@ -60,7 +60,10 @@ class Refscor:
         point = point.reshape(-1)
         pos_x = int((point[0] - self.map_range[0, 0]) / self.relution)
         pos_y = int((point[1] - self.map_range[1, 0]) / self.relution)
-        return self.score_data[pos_x, pos_y] * 1.0
+        if -1 < pos_x < self.score_data.shape[0] and -1 < pos_y < self.score_data.shape[1]:
+            return self.score_data[pos_x, pos_y] * 1.0
+        else:
+            return self.max_score
 
     def eval_points(self, points):
         '''
@@ -69,14 +72,16 @@ class Refscor:
         :return:
         '''
         scores = np.zeros(shape=(points.shape[0]))
+        scores  = scores + self.max_score
 
-        # @njit(parallel=True)
-        @njit(parallel=True, nopython=True)
+        # @jit(parallel=True, nopython=True)
+        @njit(parallel=True)
         def scores_cal(ss, pts, map_range, relution, sd):
             for i in prange(ss.shape[0]):
                 # ss[i] = rf.eval_point2d(pts[i, :2])
-                ss[i] = sd[int((pts[i, 0] - map_range[0, 0]) / relution),
-                           int((pts[i, 1] - map_range[1, 0]) / relution)]
+                if map_range[0,0]<pts[i,0] <map_range[0,1] and map_range[1,0]<pts[i,1]<map_range[1,1]:
+                    ss[i] = sd[int((pts[i, 0] - map_range[0, 0]) / relution),
+                               int((pts[i, 1] - map_range[1, 0]) / relution)]
             return ss
 
         return scores_cal(ss=scores, pts=points,

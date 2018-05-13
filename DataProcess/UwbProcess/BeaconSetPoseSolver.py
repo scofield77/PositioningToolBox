@@ -148,7 +148,12 @@ if __name__ == '__main__':
 
 
     def generate_score_matrix():
+        '''
+        Generate score matrix(min distance to reference trajectory)
+        :return:
+        '''
         # line_pare = np.zeros(shape=(7, 2))
+        # index of lines contained by ref trajectory
         line_pare = np.asarray((
             1, 2,
             1, 5,
@@ -164,7 +169,7 @@ if __name__ == '__main__':
              15.0, 50.0)
         ).reshape(-1, 2)
 
-        relution = 1.0 / 20.0
+        relution = 1.0 / 50.0#relusiont
         # map_matrix = np.zeros()
 
         import array
