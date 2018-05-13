@@ -25,7 +25,7 @@
 
 import numpy as np
 import scipy as sp
-from numba import jit,njit,prange
+from numba import jit, njit, prange
 
 import math
 import matplotlib.pyplot as plt
@@ -111,6 +111,8 @@ if __name__ == '__main__':
     uwb_trace = np.zeros([uwb_data.shape[0], 3])
     uwb_opt_res = np.zeros([uwb_data.shape[0]])
     stime = time.time()
+
+
     # @jit(parallel=True)
     def cal(uwb_trace):
         for i in prange(uwb_data.shape[0]):
@@ -123,8 +125,10 @@ if __name__ == '__main__':
                     uol.iter_positioning(uwb_trace[i - 1, :],
                                          uwb_data[i, 1:])
         return uwb_trace
-    uwb_trace=cal(uwb_trace)
-    print('uwb coast time:',time.time()-stime)
+
+
+    uwb_trace = cal(uwb_trace)
+    print('uwb coast time:', time.time() - stime)
 
     # ref_trace = np.loadtxt(dir_name + 'ref_trace.csv', delimiter=',')
 
@@ -342,7 +346,7 @@ if __name__ == '__main__':
                         # right
 
                         if uwb_filter_list[j - 1].m > -1000.0:
-                            uwb_filter_list[j - 1].state_transmition_2d(drkf.state[0:3], drkf.prob_state[0:3, 0:3])
+                            uwb_filter_list[j - 1].state_transmition_2d(orkf.state[0:3], orkf.prob_state[0:3, 0:3])
                             # uwb_filter_list[j - 1].state_estimate(rkf.state[0:3], rkf.prob_state[0:3, 0:3])
                             uwb_est_data[uwb_index, j] = uwb_filter_list[j - 1].m
                             uwb_est_prob[uwb_index, j] = uwb_filter_list[j - 1].cov
@@ -368,7 +372,7 @@ if __name__ == '__main__':
                             rkf.measurement_uwb_robust(uwb_data[uwb_index, j],
                                                        np.ones(1) * 0.1,
                                                        np.transpose(beacon_set[j - 1, :]),
-                                                       j, 6.0, 1.0)
+                                                       j, 7.0, 2.0)
                             # if uwb_filter_list[j-1].cov<0.02:
                             #     rkf.measurement_uwb(uwb_filter_list[j - 1].m,
                             #                         uwb_filter_list[j - 1].cov,
@@ -401,7 +405,7 @@ if __name__ == '__main__':
         # print('finished:', rate * 100.0, "% ", i, imu_data.shape[0])
 
     end_time = time.time()
-    print('totally time:', end_time - start_time, 'data time:', imu_data[-1, 0] - imu_data[0, 0])
+    print('all ekf totally time:', end_time - start_time, 'data time:', imu_data[-1, 0] - imu_data[0, 0])
 
 
     def aux_plot(data: np.ndarray, name: str):
@@ -531,6 +535,7 @@ if __name__ == '__main__':
     # plt.plot(rs.eval_points(ref_trace[:,1:]), label='ref')
     plt.legend()
 
+    print('dir name:', dir_name)
     print('uwb:', np.mean(rs.eval_points(uwb_trace)))
     print('fusing:', np.mean(rs.eval_points(trace)))
     print('rtrace:', np.mean(rs.eval_points(rtrace)))

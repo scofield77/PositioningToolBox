@@ -328,7 +328,7 @@ if __name__ == '__main__':
     plt.figure()
 
     start_time = time.time()
-    plt.plot(rs.eval_points(uwb_trace), label='uwb')
+    # plt.plot(rs.eval_points(uwb_trace), label='uwb')
     # plt.plot(rs.eval_points(trace), label='fusing')
     # plt.plot(rs.eval_points(rtrace), label='rtrace')
     plt.plot(rs.eval_points(ortrace), label='ortrace')
