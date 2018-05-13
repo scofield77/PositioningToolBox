@@ -169,7 +169,7 @@ if __name__ == '__main__':
     #                                  ref_trace[ti, 1] - ref_trace[0, 1]) - 10.0 * np.pi / 180.0  # 35
     # initial_orientation = math.atan2(ref_trace[ti, 2] - ref_trace[0, 2],
     #                                  ref_trace[ti, 1] - ref_trace[0, 1]) + 150.0 * np.pi / 180.0  # 32
-    initial_orientation = 80.0 * np.pi / 180.0#38-45
+    initial_orientation = 80.0 * np.pi / 180.0  # 38-45
     # initial_orientation = 110.0 * np.pi / 180.0  # 39
 
     #  initial_orientation = 200.0 / 180.0 * np.pi
@@ -380,7 +380,7 @@ if __name__ == '__main__':
                             #                         np.transpose(beacon_set[j - 1, :]))
                     drkf.measurement_uwb_iterate(np.asarray(uwb_est_data[uwb_index, 1:]),
                                                  np.ones(1) * 0.1,
-                                                 beacon_set, ref_trace,ka_squard=6.0)
+                                                 beacon_set, ref_trace, ka_squard=6.0)
                     # for j in range(1,uwb_data.shape[1]):
                     #     if uwb_filter_list[j-1].m > -1000.0:
                     #         uwb_filter_list[j-1].state_estimate(drkf.state[0:3],drkf.prob_state[0:3,0:3])
