@@ -49,10 +49,25 @@ class Refscor:
         self.max_score = np.max(self.score_data)
 
     def eval_point2d(self, point):
+        '''
+        compute score based on save score distribution matrix.
+        :param point:
+        :return:
+        '''
         point = point.reshape(-1)
         pos_x = int((point[0] - self.map_range[0, 0]) / self.relution)
         pos_y = int((point[1] - self.map_range[1, 0]) / self.relution)
         return self.score_data[pos_x, pos_y]
+
+    def eval_points(self, points):
+        '''
+        eval score for whole trace
+        :param points: points should be a array with 3-d or 2-d positioin.
+        :return:
+        '''
+        scores = np.zeros(shape=(points.shape[0]))
+        for i in range(scores.shape[0]):
+            scores[i] = self.eval_point2d(points[:, :2])
 
 
 if __name__ == '__main__':
