@@ -44,7 +44,7 @@ if __name__ == '__main__':
     start_time = time.time()
     # dir_name = '/home/steve/Data/FusingLocationData/0017/'
     # dir_name = '/home/steve/Data/FusingLocationData/0013/'
-    dir_name = '/home/steve/Data/NewFusingLocationData/0038/'
+    dir_name = '/home/steve/Data/NewFusingLocationData/0045/'
 
     # uwb_data = np.loadtxt(dir_name + 'uwb_result.csv', delimiter=',')
     # beacon_set = np.loadtxt(dir_name + 'beaconSet.csv', delimiter=',')
@@ -88,20 +88,7 @@ if __name__ == '__main__':
 
     t_trace = np.zeros_like(uwb_trace)
     for i in range(uwb_trace.shape[0]):
-
-        # if (uwb_opt_res[i] > 0.2 or abs(uwb_trace[i, 2] - average_high) > 0.1) and i > -1:
-        #     t_trace[i,:] =
-        # t_trace[i, 0] = t_trace[i, 0]
-        # else:
-        #     if i > 2 and i < uwb_trace.shape[0] - 2:
-        #         diff = uwb_trace[i + 1, :] + uwb_trace[i - 1, :] - 2.0 * uwb_trace[i, :]
-        #         if np.linalg.norm(diff) > 1.0:
-        #             continue
-        #
-        #     t_trace[i, :] = uwb_trace[i, :]
-        #     t_file.write("%15.15f,%15.15f,%15.15f,%15.15f\n" % (
-        #     uwb_data[i, 0], uwb_trace[i, 0], uwb_trace[i, 1], uwb_trace[i, 2]))
-        if rc.eval_point2d(uwb_trace[i, :2]) < 0.4 and abs(uwb_trace[i, 2] - average_high) < 0.2:
+       if rc.eval_point2d(uwb_trace[i, :2]) < 0.5 and abs(uwb_trace[i, 2] - average_high) < 0.5:
             t_trace[i, :] = uwb_trace[i, :]
             t_file.write("%15.15f,%15.15f,%15.15f,%15.15f\n" % (
                 uwb_data[i, 0], uwb_trace[i, 0], uwb_trace[i, 1], uwb_trace[i, 2]))
