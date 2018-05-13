@@ -49,7 +49,6 @@ import time
 from PositioningAlgorithm.BayesStateEstimation.UwbMeasurementEKF import UwbRangeEKF
 from PositioningAlgorithm.OptimizationAlgorithm.UwbOptimizeLocation import UwbOptimizeLocation
 
-
 from AlgorithmTool.ReferTraceEvaluateTools import *
 
 # from mayavi import mlab
@@ -62,7 +61,7 @@ if __name__ == '__main__':
     start_time = time.time()
     # dir_name = '/home/steve/Data/FusingLocationData/0017/'
     # dir_name = '/home/steve/Data/FusingLocationData/0013/'
-    dir_name = '/home/steve/Data/NewFusingLocationData/0039/'
+    dir_name = '/home/steve/Data/NewFusingLocationData/0045/'
     # dir_name = 'D:/Data/NewFusingLocationData/0033/'
 
     imu_data = np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=',')
@@ -77,7 +76,6 @@ if __name__ == '__main__':
     uwb_data = np.loadtxt(dir_name + 'uwb_data.csv', delimiter=',')
     beacon_set = np.loadtxt(dir_name + 'beaconset_no_mac.csv', delimiter=',')
     # beacon_set = np.loadtxt(dir_name + 'beaconset_fill.csv', delimiter=',')
-
 
     uwb_valid = list()
     for i in range(1, uwb_data.shape[1]):
@@ -97,7 +95,6 @@ if __name__ == '__main__':
     uwb_est_data[:, 1:] = uwb_est_data[:, 1:] - 10.0
     uwb_est_prob = np.zeros_like(uwb_est_data)
 
-
     uol = UwbOptimizeLocation(beacon_set)
     uwb_trace = np.zeros([uwb_data.shape[0], 3])
     uwb_opt_res = np.zeros([uwb_data.shape[0]])
@@ -111,11 +108,10 @@ if __name__ == '__main__':
                 uol.iter_positioning(uwb_trace[i - 1, :],
                                      uwb_data[i, 1:])
 
+    # ref_trace = np.loadtxt(dir_name + 'ref_trace.csv', delimiter=',')
 
-    ref_trace = np.loadtxt(dir_name + 'ref_trace.csv', delimiter=',')
-
-    # ref_trace = np.zeros(shape=(uwb_trace.shape[0], uwb_trace.shape[1] + 1))
-    # ref_trace[:, 1:] = uwb_trace * 1.0
+    ref_trace = np.zeros(shape=(uwb_trace.shape[0], uwb_trace.shape[1] + 1))
+    ref_trace[:, 1:] = uwb_trace * 1.0
     # initial_state = get_initial_state(imu_data[:40, 1:4], np.asarray((0, 0, 0)), 0.0, 9)
 
     trace = np.zeros([imu_data.shape[0], 3])
@@ -149,7 +145,7 @@ if __name__ == '__main__':
     # initial_orientation = math.atan2(ref_trace[ti, 2] - ref_trace[0, 2],
     #                                  ref_trace[ti, 1] - ref_trace[0, 1]) + 150.0 * np.pi / 180.0  # 32
     # initial_orientation = 80.0 * np.pi / 180.0#38-45
-    initial_orientation = 110.0 * np.pi / 180.0#39
+    initial_orientation = 110.0 * np.pi / 180.0  # 39
 
     #  initial_orientation = 200.0 / 180.0 * np.pi
 
@@ -506,22 +502,20 @@ if __name__ == '__main__':
     rs = Refscor(dir_name)
     plt.figure()
 
-    plt.plot(rs.eval_points(uwb_trace),label='uwb')
-    plt.plot(rs.eval_points(trace),label='fusing')
-    plt.plot(rs.eval_points(rtrace),label='rtrace')
-    plt.plot(rs.eval_points(ortrace),label='ortrace')
-    plt.plot(rs.eval_points(dtrace),label='dtrace')
+    # plt.plot(rs.eval_points(uwb_trace), label='uwb')
+    plt.plot(rs.eval_points(trace), label='fusing')
+    plt.plot(rs.eval_points(rtrace), label='rtrace')
+    plt.plot(rs.eval_points(ortrace), label='ortrace')
+    plt.plot(rs.eval_points(dtrace), label='dtrace')
+    plt.plot(rs.eval_points(ref_trace[:,1:]), label='ref')
     plt.legend()
 
-
-    print('uwb:',np.mean(rs.eval_points(uwb_trace)))
-    print('fusing:',np.mean(rs.eval_points(trace)))
-    print('rtrace:',np.mean(rs.eval_points(rtrace)))
-    print('ortrace:',np.mean(rs.eval_points(ortrace)))
-    print('dtrace:',np.mean(rs.eval_points(dtrace)))
-
-
-
+    print('uwb:', np.mean(rs.eval_points(uwb_trace)))
+    print('fusing:', np.mean(rs.eval_points(trace)))
+    print('rtrace:', np.mean(rs.eval_points(rtrace)))
+    print('ortrace:', np.mean(rs.eval_points(ortrace)))
+    print('dtrace:', np.mean(rs.eval_points(dtrace)))
+    print('ref:',np.mean(rs.eval_points(ref_trace[:,1:])))
 
     # plt.figure()
     # plt.title('uwb')

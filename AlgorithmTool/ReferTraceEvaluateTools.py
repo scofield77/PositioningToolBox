@@ -32,13 +32,15 @@ from mpl_toolkits.mplot3d import Axes3D
 import os
 import re
 
+from numba import jit, prange,njit
+
 
 class Refscor:
     def __init__(self, file_dir):
         for name in os.listdir(file_dir):
             rem = re.compile('[0-9\.\-]{1,100}npy$')
             if rem.match(name):
-                self.score_data = np.load(dir_name + name)
+                self.score_data = np.load(file_dir + name)
                 name = name.split('.npy')[0]
                 self.map_range = np.asarray(
                     ([float(x) for x in name.split('-')])
@@ -54,6 +56,7 @@ class Refscor:
         :param point:
         :return:
         '''
+
         point = point.reshape(-1)
         pos_x = int((point[0] - self.map_range[0, 0]) / self.relution)
         pos_y = int((point[1] - self.map_range[1, 0]) / self.relution)
@@ -66,9 +69,14 @@ class Refscor:
         :return:
         '''
         scores = np.zeros(shape=(points.shape[0]))
-        for i in range(scores.shape[0]):
-            scores[i] = self.eval_point2d(points[:, :2])
-        return scores
+
+        @njit(parallel=True, nopython=True)
+        def scores_cal(scores, pts, rf):
+            for i in prange(scores.shape[0]):
+                scores[i] = rf.eval_point2d(pts[:, :2])
+            return scores
+
+        return scores_cal(scores, pts=points, rf=self)
 
 
 if __name__ == '__main__':
