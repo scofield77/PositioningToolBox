@@ -197,6 +197,8 @@ class UwbRangeEKF:
         iter_counter = 0
         while robust_loop_flag:
             iter_counter += 1
+            # if iter_counter>1:
+            #     break
             robust_loop_flag = False
 
             P_v = (self.H.dot(self.cov)).dot(np.transpose(self.H)) + R_k
@@ -226,6 +228,7 @@ class UwbRangeEKF:
                         R_k = eta_k / ka_squard * R_k
                         # print('R_k')
                 # self.uwb_eta_dict[beacon_id].pop()
+
 
         cov_m = np.asarray((R_k))
         # print('-------------')

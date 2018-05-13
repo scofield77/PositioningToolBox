@@ -61,7 +61,7 @@ if __name__ == '__main__':
     start_time = time.time()
     # dir_name = '/home/steve/Data/FusingLocationData/0017/'
     # dir_name = '/home/steve/Data/FusingLocationData/0013/'
-    dir_name = '/home/steve/Data/NewFusingLocationData/0040/'
+    dir_name = '/home/steve/Data/NewFusingLocationData/0039/'
 
     # dir_name = 'D:/Data/NewFusingLocationData/0033/'
 
@@ -373,7 +373,7 @@ if __name__ == '__main__':
                             rkf.measurement_uwb_robust(uwb_data[uwb_index, j],
                                                        np.ones(1) * 0.1,
                                                        np.transpose(beacon_set[j - 1, :]),
-                                                       j, 7.0, 2.0)
+                                                       j, 6.0, 2.0)
                             # if uwb_filter_list[j-1].cov<0.02:
                             #     rkf.measurement_uwb(uwb_filter_list[j - 1].m,
                             #                         uwb_filter_list[j - 1].cov,
@@ -453,7 +453,7 @@ if __name__ == '__main__':
     plt.plot(ftrace[:, 0], ftrace[:, 1], '-', label='foot')
     plt.plot(rtrace[:, 0], rtrace[:, 1], '-', label='robust')
     plt.plot(ortrace[:, 0], ortrace[:, 1], '-', label='own robust')
-    plt.plot(dtrace[:, 0], dtrace[:, 1], '-', label='d ekf')
+    # plt.plot(dtrace[:, 0], dtrace[:, 1], '-', label='d ekf')
     plt.plot(uwb_trace[:, 0], uwb_trace[:, 1], '+', label='uwb')
     # plt.plot(ref_trace[:, 1], ref_trace[:, 2], '-', label='ref')
     for i in range(beacon_set.shape[0]):
@@ -469,7 +469,7 @@ if __name__ == '__main__':
     plt.plot(ortrace[:, 0], ortrace[:, 1], '-+', label='own robust')
     plt.plot(dtrace[:, 0], dtrace[:, 1], '-+', label='d ekf')
     plt.plot(uwb_trace[:, 0], uwb_trace[:, 1], '+', label='uwb')
-    plt.plot(ref_trace[:, 1], ref_trace[:, 2], '-', label='ref')
+    # plt.plot(ref_trace[:, 1], ref_trace[:, 2], '-', label='ref')
     for i in range(beacon_set.shape[0]):
         plt.text(beacon_set[i, 0], beacon_set[i, 1], s=str(i + 1))
     plt.legend()
