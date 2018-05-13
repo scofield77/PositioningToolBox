@@ -49,6 +49,9 @@ import time
 from PositioningAlgorithm.BayesStateEstimation.UwbMeasurementEKF import UwbRangeEKF
 from PositioningAlgorithm.OptimizationAlgorithm.UwbOptimizeLocation import UwbOptimizeLocation
 
+
+from AlgorithmTool.ReferTraceEvaluateTools import  *
+
 # from mayavi import mlab
 
 if __name__ == '__main__':

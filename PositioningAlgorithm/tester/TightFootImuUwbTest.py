@@ -41,6 +41,7 @@ from PositioningAlgorithm.BayesStateEstimation.KalmanFIlterBase import *
 from scipy.optimize import minimize
 
 from AlgorithmTool.ImuTools import *
+from AlgorithmTool.ReferTraceEvaluateTools import *
 
 from PositioningAlgorithm.BayesStateEstimation.ImuEKF import *
 # from gr import pygr
@@ -206,23 +207,23 @@ if __name__ == '__main__':
     # rkf.initial_state(imu_data[:50, 1:7],
     #                   pos=initial_pos,
     #                   ori=initial_orientation)
-    # orkf = ImuEKFComplex(np.diag((
-    #     0.001,
-    #     0.001,
-    #     0.001,
-    #     0.001,
-    #     0.001,
-    #     0.001,
-    #     0.001 * np.pi / 180.0, 0.001 * np.pi / 180.0, 0.001 * np.pi / 180.0,
-    #     0.0001,
-    #     0.0001,
-    #     0.0001,
-    #     0.0001 * np.pi / 180.0,
-    #     0.0001 * np.pi / 180.0,
-    #     0.0001 * np.pi / 180.0
-    # )),
-    #     local_g=-9.81, time_interval=average_time_interval)
-    #
+    orkf = ImuEKFComplex(np.diag((
+        0.001,
+        0.001,
+        0.001,
+        0.001,
+        0.001,
+        0.001,
+        0.001 * np.pi / 180.0, 0.001 * np.pi / 180.0, 0.001 * np.pi / 180.0,
+        0.0001,
+        0.0001,
+        0.0001,
+        0.0001 * np.pi / 180.0,
+        0.0001 * np.pi / 180.0,
+        0.0001 * np.pi / 180.0
+    )),
+        local_g=-9.81, time_interval=average_time_interval)
+
     # orkf.initial_state(imu_data[:50, 1:7],
     #                    pos=initial_pos,
     #                    ori=initial_orientation)
@@ -277,12 +278,12 @@ if __name__ == '__main__':
         #                                         0.01 * np.pi / 180.0,
         #                                         0.01 * np.pi / 180.0))
         #                                )
-        # orkf.state_transaction_function(imu_data[i, 1:7],
-        #                                 np.diag((0.01, 0.01, 0.01,
-        #                                          0.01 * np.pi / 180.0,
-        #                                          0.01 * np.pi / 180.0,
-        #                                          0.01 * np.pi / 180.0))
-        #                                 )
+        orkf.state_transaction_function(imu_data[i, 1:7],
+                                        np.diag((0.01, 0.01, 0.01,
+                                                 0.01 * np.pi / 180.0,
+                                                 0.01 * np.pi / 180.0,
+                                                 0.01 * np.pi / 180.0))
+                                        )
         # drkf.state_transaction_function(imu_data[i, 1:7],
         #                                 np.diag((0.01, 0.01, 0.01,
         #                                          0.01 * np.pi / 180.0,
@@ -301,8 +302,8 @@ if __name__ == '__main__':
                 #                            np.diag((0.0001, 0.0001, 0.0001)))
                 # rkf.measurement_function_zv(np.asarray((0, 0, 0)),
                 #                             np.diag((0.0001, 0.0001, 0.0001)))
-                # orkf.measurement_function_zv(np.asarray((0, 0, 0)),
-                #                              np.diag((0.0001, 0.0001, 0.0001)))
+                orkf.measurement_function_zv(np.asarray((0, 0, 0)),
+                                             np.diag((0.0001, 0.0001, 0.0001)))
                 # drkf.measurement_function_zv(np.asarray((0, 0, 0)),
                 #                              np.diag((0.0001, 0.0001, 0.0001)))
                 a=1
@@ -501,6 +502,27 @@ if __name__ == '__main__':
     ax.plot(uwb_trace[:, 0], uwb_trace[:, 1], uwb_trace[:, 2], '+', label='uwb')
     ax.grid()
     ax.legend()
+
+    rs = Refscor(dir_name)
+    plt.figure()
+
+    start_time = time.time()
+    # plt.plot(rs.eval_points(uwb_trace), label='uwb')
+    plt.plot(rs.eval_points(trace), label='fusing')
+    plt.plot(rs.eval_points(rtrace), label='rtrace')
+    plt.plot(rs.eval_points(ortrace), label='ortrace')
+    plt.plot(rs.eval_points(dtrace), label='dtrace')
+    # plt.plot(rs.eval_points(ref_trace[:,1:]), label='ref')
+    plt.legend()
+
+    print('uwb:', np.mean(rs.eval_points(uwb_trace)))
+    print('fusing:', np.mean(rs.eval_points(trace)))
+    print('rtrace:', np.mean(rs.eval_points(rtrace)))
+    print('ortrace:', np.mean(rs.eval_points(ortrace)))
+    print('dtrace:', np.mean(rs.eval_points(dtrace)))
+    print('ref:', np.mean(rs.eval_points(ref_trace[:, 1:])))
+    print('eval cost time:', time.time() - start_time)
+
 
     # plt.figure()
     # plt.title('uwb')
