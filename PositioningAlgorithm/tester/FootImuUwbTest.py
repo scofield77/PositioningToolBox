@@ -503,6 +503,23 @@ if __name__ == '__main__':
     ax.grid()
     ax.legend()
 
+    rs = Refscor(dir_name)
+    plt.figure()
+
+    plt.plot(rs.eval_points(uwb_trace),label='uwb')
+    plt.plot(rs.eval_points(trace),label='fusing')
+    plt.plot(rs.eval_points(rtrace),label='rtrace')
+    plt.plot(rs.eval_points(ortrace),label='ortrace')
+    plt.plot(rs.eval_points(dtrace),label='dtrace')
+    plt.legend()
+
+
+    print('uwb:',np.mean(rs.eval_points(uwb_trace)))
+    print('fusing:',np.mean(rs.eval_points(trace)))
+    print('rtrace:',np.mean(rs.eval_points(rtrace)))
+    print('ortrace:',np.mean(rs.eval_points(ortrace)))
+    print('dtrace:',np.mean(rs.eval_points(dtrace)))
+
 
 
 
