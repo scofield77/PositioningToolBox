@@ -159,6 +159,11 @@ if __name__ == '__main__':
         0.0001 * np.pi / 180.0
     )),
         local_g=-9.81, time_interval=average_time_interval)
+    orkf.initial_state(
+        imu_data[:50, 1:7],
+        pos=initial_pos,
+        ori=initial_orientation
+    )
 
     zv_state = GLRT_Detector(imu_data[:, 1:7],
                              sigma_a=1.0,
@@ -194,6 +199,7 @@ if __name__ == '__main__':
                                                  np.ones(1) * 0.1,
                                                  beacon_set, ref_trace)
                     uwb_index += 1
+                    # print(orkf.state.transpose())
 
         ortrace[i, :] = orkf.state[0:3]
 

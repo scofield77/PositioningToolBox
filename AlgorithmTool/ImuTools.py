@@ -411,7 +411,7 @@ def q2dcm(q_in):
     return R
 
 
-@jit(nopython=True)
+@jit(nopython=True,cache=True)
 def dcm2euler(R):
     euler = np.zeros(3)
     euler[0] = math.atan2(R[2, 1], R[2, 2])

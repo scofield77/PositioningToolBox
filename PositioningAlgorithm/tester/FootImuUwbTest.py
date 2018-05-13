@@ -25,7 +25,7 @@
 
 import numpy as np
 import scipy as sp
-from numba import jit
+from numba import jit,njit,prange
 
 import math
 import matplotlib.pyplot as plt
@@ -110,15 +110,21 @@ if __name__ == '__main__':
     uol = UwbOptimizeLocation(beacon_set)
     uwb_trace = np.zeros([uwb_data.shape[0], 3])
     uwb_opt_res = np.zeros([uwb_data.shape[0]])
-    for i in range(uwb_data.shape[0]):
-        if i is 0:
-            uwb_trace[i, :], uwb_opt_res[i] = \
-                uol.iter_positioning((0, 0, 0),
-                                     uwb_data[i, 1:])
-        else:
-            uwb_trace[i, :], uwb_opt_res[i] = \
-                uol.iter_positioning(uwb_trace[i - 1, :],
-                                     uwb_data[i, 1:])
+    stime = time.time()
+    # @jit(parallel=True)
+    def cal(uwb_trace):
+        for i in prange(uwb_data.shape[0]):
+            if i is 0:
+                uwb_trace[i, :], uwb_opt_res[i] = \
+                    uol.iter_positioning((0, 0, 0),
+                                         uwb_data[i, 1:])
+            else:
+                uwb_trace[i, :], uwb_opt_res[i] = \
+                    uol.iter_positioning(uwb_trace[i - 1, :],
+                                         uwb_data[i, 1:])
+        return uwb_trace
+    uwb_trace=cal(uwb_trace)
+    print('uwb coast time:',time.time()-stime)
 
     # ref_trace = np.loadtxt(dir_name + 'ref_trace.csv', delimiter=',')
 
