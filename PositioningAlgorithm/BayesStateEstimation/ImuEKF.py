@@ -292,6 +292,14 @@ class ImuEKFComplex:
         self.prob_state = (np.identity(kh.shape[0]) - kh).dot(self.prob_state)
 
     def measurement_uwb_iterate_standard(self, measurement, cov_m, beacon_set, ref_trace):
+        '''
+        Standard IEKF measurement function.
+        :param measurement:
+        :param cov_m:
+        :param beacon_set:
+        :param ref_trace:
+        :return:
+        '''
 
         pminus = self.prob_state * 1.0
         pplus = pminus * 1.0
@@ -316,7 +324,6 @@ class ImuEKFComplex:
         dx = np.zeros(self.state.shape[0])
 
 
-        mask = np.zeros(measurement.shape[0])
         ite_counter = 0
         while np.linalg.norm(xplus - xop) > 0.01 and ite_counter < 30:
             ite_counter += 1
@@ -344,6 +351,15 @@ class ImuEKFComplex:
         self.prob_state = pplus
 
     def measurement_uwb_iterate(self, measurement, cov_m, beacon_set, ref_trace, ka_squard = 10.0):
+        '''
+        Robust iekf based uwb measurement
+        :param measurement:
+        :param cov_m:
+        :param beacon_set:
+        :param ref_trace:
+        :param ka_squard:
+        :return:
+        '''
 
         pminus = self.prob_state * 1.0
         pplus = pminus * 1.0
@@ -368,6 +384,7 @@ class ImuEKFComplex:
         dx = np.zeros(self.state.shape[0])
 
 
+        # weight for dx.
         mask = np.zeros(measurement.shape[0])
         ite_counter = 0
         while np.linalg.norm(xplus - xop) > 0.001 and ite_counter < 30:
