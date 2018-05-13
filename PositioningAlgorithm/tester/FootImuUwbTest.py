@@ -61,7 +61,8 @@ if __name__ == '__main__':
     start_time = time.time()
     # dir_name = '/home/steve/Data/FusingLocationData/0017/'
     # dir_name = '/home/steve/Data/FusingLocationData/0013/'
-    dir_name = '/home/steve/Data/NewFusingLocationData/0037/'
+    dir_name = '/home/steve/Data/NewFusingLocationData/0040/'
+
     # dir_name = 'D:/Data/NewFusingLocationData/0033/'
 
     # imu_data = np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=',')
@@ -340,13 +341,13 @@ if __name__ == '__main__':
                     #                        beacon_set, ref_trace)
                     orkf.measurement_uwb_iterate(np.asarray(uwb_data[uwb_index, 1:]),
                                                  np.ones(1) * 0.1,
-                                                 beacon_set, ref_trace, ka_squard=6.0)
+                                                 beacon_set, ref_trace)
                     uwb_index += 1
                     for j in range(1, uwb_data.shape[1]):
                         # right
 
                         if uwb_filter_list[j - 1].m > -1000.0:
-                            uwb_filter_list[j - 1].state_transmition_2d(orkf.state[0:3], orkf.prob_state[0:3, 0:3])
+                            uwb_filter_list[j - 1].state_transmition_2d(drkf.state[0:3], drkf.prob_state[0:3, 0:3])
                             # uwb_filter_list[j - 1].state_estimate(rkf.state[0:3], rkf.prob_state[0:3, 0:3])
                             uwb_est_data[uwb_index, j] = uwb_filter_list[j - 1].m
                             uwb_est_prob[uwb_index, j] = uwb_filter_list[j - 1].cov
@@ -379,7 +380,7 @@ if __name__ == '__main__':
                             #                         np.transpose(beacon_set[j - 1, :]))
                     drkf.measurement_uwb_iterate(np.asarray(uwb_est_data[uwb_index, 1:]),
                                                  np.ones(1) * 0.1,
-                                                 beacon_set, ref_trace)
+                                                 beacon_set, ref_trace,ka_squard=6.0)
                     # for j in range(1,uwb_data.shape[1]):
                     #     if uwb_filter_list[j-1].m > -1000.0:
                     #         uwb_filter_list[j-1].state_estimate(drkf.state[0:3],drkf.prob_state[0:3,0:3])
