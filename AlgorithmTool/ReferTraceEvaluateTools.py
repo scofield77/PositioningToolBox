@@ -32,7 +32,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import os
 import re
 
-from numba import jit, prange,njit
+from numba import jit, prange, njit
 
 
 class Refscor:
@@ -60,7 +60,7 @@ class Refscor:
         point = point.reshape(-1)
         pos_x = int((point[0] - self.map_range[0, 0]) / self.relution)
         pos_y = int((point[1] - self.map_range[1, 0]) / self.relution)
-        return self.score_data[pos_x, pos_y]
+        return self.score_data[pos_x, pos_y] * 1.0
 
     def eval_points(self, points):
         '''
@@ -70,13 +70,19 @@ class Refscor:
         '''
         scores = np.zeros(shape=(points.shape[0]))
 
+        # @njit(parallel=True)
         @njit(parallel=True, nopython=True)
-        def scores_cal(scores, pts, rf):
-            for i in prange(scores.shape[0]):
-                scores[i] = rf.eval_point2d(pts[:, :2])
-            return scores
+        def scores_cal(ss, pts, map_range, relution, sd):
+            for i in prange(ss.shape[0]):
+                # ss[i] = rf.eval_point2d(pts[i, :2])
+                ss[i] = sd[int((pts[i, 0] - map_range[0, 0]) / relution),
+                           int((pts[i, 1] - map_range[1, 0]) / relution)]
+            return ss
 
-        return scores_cal(scores, pts=points, rf=self)
+        return scores_cal(ss=scores, pts=points,
+                          map_range=self.map_range,
+                          relution=self.relution,
+                          sd=self.score_data)
 
 
 if __name__ == '__main__':
@@ -90,14 +96,22 @@ if __name__ == '__main__':
     for i in range(ref_trace.shape[0]):
         score[i] = rs.eval_point2d(ref_trace[i, 1:3])
 
+    score2 = rs.eval_points(ref_trace[:, 1:])
+
     print(np.mean(score), np.std(score))
+    print(np.mean(score2), np.std(score2))
 
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
-    ax.plot(ref_trace[:, 1], ref_trace[:, 2], score[:], '-+')
+    ax.plot(ref_trace[:, 1], ref_trace[:, 2], score[:], '-+', label='score')
+    ax.plot(ref_trace[:, 1], ref_trace[:, 2], score2[:], '-+', label='score2')
+    ax.legend()
     ax.grid()
 
     plt.figure()
-    plt.plot(score)
+    plt.plot(score, label='score')
+    plt.plot(score2, label='score2')
+    plt.legend()
     plt.grid()
+
     plt.show()
