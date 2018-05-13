@@ -1,5 +1,5 @@
 # -*- coding:utf-8 -*-
-# carete by steve at  2018 / 05 / 03　下午4:47
+# carete by steve at  2018 / 05 / 13　下午2:37
 '''
                    _ooOoo_ 
                   o8888888o 
@@ -35,7 +35,6 @@ from mpl_toolkits.mplot3d import Axes3D
 import time
 
 from PositioningAlgorithm.OptimizationAlgorithm.UwbOptimizeLocation import UwbOptimizeLocation
-
 
 from AlgorithmTool.ReferTraceEvaluateTools import *
 
@@ -85,23 +84,28 @@ if __name__ == '__main__':
 
     # write acceptable data to file
     t_file = open(dir_name + 'selected_uwb_trace.csv', 'w')
+    rc = Refscor(dir_name)
 
     t_trace = np.zeros_like(uwb_trace)
     for i in range(uwb_trace.shape[0]):
 
-
-        if (uwb_opt_res[i] > 0.2 or abs(uwb_trace[i, 2] - average_high) > 0.1) and i > -1:
-            # t_trace[i,:] =
-            t_trace[i, 0] = t_trace[i, 0]
-        else:
-            if i > 2 and i < uwb_trace.shape[0] - 2:
-                diff = uwb_trace[i + 1, :] + uwb_trace[i - 1, :] - 2.0 * uwb_trace[i, :]
-                if np.linalg.norm(diff) > 1.0:
-                    continue
-
+        # if (uwb_opt_res[i] > 0.2 or abs(uwb_trace[i, 2] - average_high) > 0.1) and i > -1:
+        #     t_trace[i,:] =
+        # t_trace[i, 0] = t_trace[i, 0]
+        # else:
+        #     if i > 2 and i < uwb_trace.shape[0] - 2:
+        #         diff = uwb_trace[i + 1, :] + uwb_trace[i - 1, :] - 2.0 * uwb_trace[i, :]
+        #         if np.linalg.norm(diff) > 1.0:
+        #             continue
+        #
+        #     t_trace[i, :] = uwb_trace[i, :]
+        #     t_file.write("%15.15f,%15.15f,%15.15f,%15.15f\n" % (
+        #     uwb_data[i, 0], uwb_trace[i, 0], uwb_trace[i, 1], uwb_trace[i, 2]))
+        if rc.eval_point2d(uwb_trace[i, :2]) < 0.4 and abs(uwb_trace[i, 2] - average_high) < 0.2:
             t_trace[i, :] = uwb_trace[i, :]
             t_file.write("%15.15f,%15.15f,%15.15f,%15.15f\n" % (
-            uwb_data[i, 0], uwb_trace[i, 0], uwb_trace[i, 1], uwb_trace[i, 2]))
+                uwb_data[i, 0], uwb_trace[i, 0], uwb_trace[i, 1], uwb_trace[i, 2]))
+
     t_file.close()
 
     plt.figure()
@@ -133,8 +137,6 @@ if __name__ == '__main__':
     ax.grid()
     ax.legend()
 
-
-
     # ref_trace = np.loadtxt(dir_name+'selected_uwb_trace.csv',delimiter=',')
     # smooth_fac = 0.5
     # xf = sp.interpolate.UnivariateSpline(ref_trace[:,0],ref_trace[:,1])
@@ -148,6 +150,5 @@ if __name__ == '__main__':
     # plt.plot(xf(uwb_data[:,0]),yf(uwb_data[:,0]),label='inter')
     # plt.grid()
     # plt.legend()
-
 
     plt.show()

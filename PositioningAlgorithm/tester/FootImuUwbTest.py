@@ -85,15 +85,15 @@ if __name__ == '__main__':
         if uwb_data[:, i].max() > 0.0 and beacon_set[i - 1, 0] < 5000.0:
             uwb_valid.append(i)
     random_index = np.random.randint(0, len(uwb_valid) - 1, len(uwb_valid))
-    for i in range(min(random_index.shape[0], 3)):  # delete parts of beacons's data
-        uwb_data[:, uwb_valid[random_index[i]]] *= 0.0
-        uwb_data[:, uwb_valid[random_index[i]]] -= 10.0
+    # for i in range(min(random_index.shape[0], 3)):  # delete parts of beacons's data
+    #     uwb_data[:, uwb_valid[random_index[i]]] *= 0.0
+    #     uwb_data[:, uwb_valid[random_index[i]]] -= 10.0
     after_valid_list = list()
     for i in range(1, uwb_data.shape[1]):
         if uwb_data[:, i].max() > 0.0 and beacon_set[i - 1, 0] < 5000.0:
             after_valid_list.append(i)
     print('before valid:', len(uwb_valid), uwb_valid)
-    print('after  valid:', len(uwb_valid), after_valid_list)
+    print('after  valid:', len(after_valid_list), after_valid_list)
     '''
     END
     '''
@@ -330,7 +330,7 @@ if __name__ == '__main__':
                     #                        beacon_set, ref_trace)
                     orkf.measurement_uwb_iterate(np.asarray(uwb_data[uwb_index, 1:]),
                                                  np.ones(1) * 0.1,
-                                                 beacon_set, ref_trace)
+                                                 beacon_set, ref_trace, ka_squard=6.0)
                     uwb_index += 1
                     for j in range(1, uwb_data.shape[1]):
                         # right
