@@ -27,6 +27,7 @@ import numpy as np
 import scipy as sp
 
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
 import os
 import re
@@ -55,7 +56,7 @@ class Refscor:
 
 
 if __name__ == '__main__':
-    dir_name = '/home/steve/Data/NewFusingLocationData/0038/'
+    dir_name = '/home/steve/Data/NewFusingLocationData/0039/'
     ref_trace = np.loadtxt(dir_name + 'ref_trace.csv', delimiter=',')
 
     # print(ref_trace)
@@ -64,7 +65,13 @@ if __name__ == '__main__':
     score = np.zeros(shape=(ref_trace.shape[0]))
     for i in range(ref_trace.shape[0]):
         score[i] = rs.eval_point2d(ref_trace[i, 1:3])
+
     print(np.mean(score), np.std(score))
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    ax.plot(ref_trace[:, 1], ref_trace[:, 2], score[:], '-+')
+    ax.grid()
 
     plt.figure()
     plt.plot(score)
