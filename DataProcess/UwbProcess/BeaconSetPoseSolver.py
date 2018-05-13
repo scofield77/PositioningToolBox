@@ -169,7 +169,7 @@ if __name__ == '__main__':
              15.0, 50.0)
         ).reshape(-1, 2)
 
-        relution = 1.0 / 50.0#relusiont
+        relution = 1.0 / 10.0#relusiont
         # map_matrix = np.zeros()
 
         import array
@@ -243,7 +243,7 @@ if __name__ == '__main__':
                         full_array)
 
 
-    save_file(dir_name)
+    # save_file(dir_name)
 
     plt.figure()
     plt.plot(unknow_beacon[:, 0], unknow_beacon[:, 1], 'r*')

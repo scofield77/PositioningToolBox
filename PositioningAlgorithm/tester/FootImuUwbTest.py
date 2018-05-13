@@ -61,7 +61,7 @@ if __name__ == '__main__':
     start_time = time.time()
     # dir_name = '/home/steve/Data/FusingLocationData/0017/'
     # dir_name = '/home/steve/Data/FusingLocationData/0013/'
-    dir_name = '/home/steve/Data/NewFusingLocationData/0040/'
+    dir_name = '/home/steve/Data/NewFusingLocationData/0036/'
     # dir_name = 'D:/Data/NewFusingLocationData/0033/'
 
     imu_data = np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=',')
@@ -77,14 +77,26 @@ if __name__ == '__main__':
     beacon_set = np.loadtxt(dir_name + 'beaconset_no_mac.csv', delimiter=',')
     # beacon_set = np.loadtxt(dir_name + 'beaconset_fill.csv', delimiter=',')
 
+    '''
+    Delete some beacon's data randomly.
+    '''
     uwb_valid = list()
     for i in range(1, uwb_data.shape[1]):
-        if uwb_data[:, i].max() > 0.0:
+        if uwb_data[:, i].max() > 0.0 and beacon_set[i - 1, 0] < 5000.0:
             uwb_valid.append(i)
     random_index = np.random.randint(0, len(uwb_valid) - 1, len(uwb_valid))
-    for i in range(min(random_index.shape[0], 3)):# delete parts of data of
+    for i in range(min(random_index.shape[0], 3)):  # delete parts of beacons's data
         uwb_data[:, uwb_valid[random_index[i]]] *= 0.0
         uwb_data[:, uwb_valid[random_index[i]]] -= 10.0
+    after_valid_list = list()
+    for i in range(1, uwb_data.shape[1]):
+        if uwb_data[:, i].max() > 0.0 and beacon_set[i - 1, 0] < 5000.0:
+            after_valid_list.append(i)
+    print('before valid:', len(uwb_valid), uwb_valid)
+    print('after  valid:', len(uwb_valid), after_valid_list)
+    '''
+    END
+    '''
 
     uwb_filter_list = list()
     for i in range(1, uwb_data.shape[1]):
@@ -135,8 +147,10 @@ if __name__ == '__main__':
     average_time_interval = (imu_data[-1, 0] - imu_data[0, 0]) / float(imu_data.shape[0])
     print('average time interval ', average_time_interval)
 
-    initial_pos = ref_trace[0, 1:]
-
+    # initial_pos = ref_trace[0, 1:]
+    initial_pos = np.asarray((48.19834796,
+                              44.89176719,
+                              2.0))
     ti = 1
     while np.linalg.norm(ref_trace[ti, 1:] - ref_trace[0, 1:]) < 5.0:
         ti += 1
@@ -343,12 +357,12 @@ if __name__ == '__main__':
                                     print('error', uwb_filter_list[j - 1].beacon_set, beacon_set[j - 1, :])
 
                             kf.measurement_uwb(np.asarray(uwb_data[uwb_index, j]),
-                                               np.ones(1) * 1.0,
+                                               np.ones(1) * 0.1,
                                                np.transpose(beacon_set[j - 1, :]))
                             rkf.measurement_uwb_robust(uwb_data[uwb_index, j],
                                                        np.ones(1) * 0.1,
                                                        np.transpose(beacon_set[j - 1, :]),
-                                                       j, 7.0, 1.0)
+                                                       j, 6.0, 1.0)
                             # if uwb_filter_list[j-1].cov<0.02:
                             #     rkf.measurement_uwb(uwb_filter_list[j - 1].m,
                             #                         uwb_filter_list[j - 1].cov,
@@ -508,7 +522,7 @@ if __name__ == '__main__':
     plt.plot(rs.eval_points(rtrace), label='rtrace')
     plt.plot(rs.eval_points(ortrace), label='ortrace')
     plt.plot(rs.eval_points(dtrace), label='dtrace')
-    plt.plot(rs.eval_points(ref_trace[:,1:]), label='ref')
+    # plt.plot(rs.eval_points(ref_trace[:,1:]), label='ref')
     plt.legend()
 
     print('uwb:', np.mean(rs.eval_points(uwb_trace)))
@@ -516,8 +530,8 @@ if __name__ == '__main__':
     print('rtrace:', np.mean(rs.eval_points(rtrace)))
     print('ortrace:', np.mean(rs.eval_points(ortrace)))
     print('dtrace:', np.mean(rs.eval_points(dtrace)))
-    print('ref:',np.mean(rs.eval_points(ref_trace[:,1:])))
-    print('eval cost time:',time.time()-start_time)
+    print('ref:', np.mean(rs.eval_points(ref_trace[:, 1:])))
+    print('eval cost time:', time.time() - start_time)
 
     # plt.figure()
     # plt.title('uwb')
