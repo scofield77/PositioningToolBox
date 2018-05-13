@@ -23,8 +23,6 @@
          佛祖保佑       永无BUG 
 '''
 
-
-
 import numpy as np
 import scipy as sp
 import matplotlib.pyplot as plt
@@ -36,7 +34,7 @@ from AlgorithmTool.ImuTools import *
 
 
 class ImuEKFComplex:
-    def __init__(self, initial_prob,uwb_number, local_g=-9.8, time_interval=0.01):
+    def __init__(self, initial_prob, uwb_number, local_g=-9.8, time_interval=0.01):
         '''
 
         :param initial_prob:
@@ -44,7 +42,7 @@ class ImuEKFComplex:
         :param time_interval:
         '''
         self.rotation_q = np.zeros([4])
-        self.state = np.zeros([15+uwb_number])
+        self.state = np.zeros([15 + uwb_number])
         self.prob_state = initial_prob
         self.local_g = local_g
         self.time_interval = time_interval
@@ -74,6 +72,10 @@ class ImuEKFComplex:
         print('q:', self.rotation_q)
 
         self.I = np.identity(3)
+
+        # state
+        self.last_x = self.state * 1.0
+        self.last_P = self.prob_state * 1.0
 
     # @jit(nopython=True)
     def state_transaction_function(self,
@@ -149,62 +151,66 @@ class ImuEKFComplex:
 
         self.state[9:] = self.state[9:] + dx[9:]
 
-    def measurement_uwb(self,uwb_measurement, cov_m):
+    def measurement_uwb(self, uwb_measurement, cov_m):
+        print(uwb_measurement)
+        self.last_x = self.state * 1.0
+        self.last_P = self.prob_state * 1.0
 
-        @jit((float64[:, :], float64[:, :], float64[:, :], float64[:, :], float64), nopython=True, parallel=True)
-        def aux_build_F_G(F, G, St, Rb2t, time_interval):
-            '''
-            Build up Jacbian matrix for compute probability update
-            # O = np.diag((0.0, 0.0, 0.0))
-            # I = np.diag((1.0, 1.0, 1.0))
-            #
-            # Fc = np.zeros_like(self.F)
-            # Fc[0:3, 3:6] = self.I
-            #
-            # Fc[3:6, 6:9] = St
-            # Fc[3:6, 9:12] = Rb2t
-            #
-            # Fc[6:9, 12:15] = -1.0 * Rb2t
-            #
-            # Gc = np.zeros_like(self.G)
-            # Gc[3:6, 0:3] = Rb2t
-            # Gc[6:9, 3:6] = -1.0 * Rb2t
-            #
-            # # self.F = np.identity(self.F.shape[0]) + Fc * self.time_interval
-            #
-            # # self.G = Gc * self.time_interval
-            # tF = np.identity(self.F.shape[0]) + Fc * self.time_interval
-            # tG = Gc * self.time_interval
 
-            # self.F, self.G = aux_build_F_G(St, Rb2t, self.time_interval)
-            # self.G = np.zeros_like(self.G)
-            # self.F = np.identity(self.F.shape[0])
-            :param F:
-            :param G:
-            :param St:
-            :param Rb2t: rotation matrix represent
-            :param time_interval:
-            :return:
-            '''
-            # F = np.identity(15)
-            # F = np.identity(15)
-            # G = np.zeros(shape=(15, 6))
+@jit((float64[:, :], float64[:, :], float64[:, :], float64[:, :], float64), nopython=True, parallel=True)
+def aux_build_F_G(F, G, St, Rb2t, time_interval):
+    '''
+    Build up Jacbian matrix for compute probability update
+    # O = np.diag((0.0, 0.0, 0.0))
+    # I = np.diag((1.0, 1.0, 1.0))
+    #
+    # Fc = np.zeros_like(self.F)
+    # Fc[0:3, 3:6] = self.I
+    #
+    # Fc[3:6, 6:9] = St
+    # Fc[3:6, 9:12] = Rb2t
+    #
+    # Fc[6:9, 12:15] = -1.0 * Rb2t
+    #
+    # Gc = np.zeros_like(self.G)
+    # Gc[3:6, 0:3] = Rb2t
+    # Gc[6:9, 3:6] = -1.0 * Rb2t
+    #
+    # # self.F = np.identity(self.F.shape[0]) + Fc * self.time_interval
+    #
+    # # self.G = Gc * self.time_interval
+    # tF = np.identity(self.F.shape[0]) + Fc * self.time_interval
+    # tG = Gc * self.time_interval
 
-            # G = np.zeros(shape=(15, 6))
-            for k in range(F.shape[0]):
-                F[k, k] = 1.0
+    # self.F, self.G = aux_build_F_G(St, Rb2t, self.time_interval)
+    # self.G = np.zeros_like(self.G)
+    # self.F = np.identity(self.F.shape[0])
+    :param F:
+    :param G:
+    :param St:
+    :param Rb2t: rotation matrix represent
+    :param time_interval:
+    :return:
+    '''
+    # F = np.identity(15)
+    # F = np.identity(15)
+    # G = np.zeros(shape=(15, 6))
 
-            for i in range(3):
+    # G = np.zeros(shape=(15, 6))
+    for k in range(F.shape[0]):
+        F[k, k] = 1.0
 
-                F[i, 3 + i] = time_interval
-                for j in range(3):
-                    # F[i, 3 + j] = 1.0 * time_interval
+    for i in range(3):
 
-                    F[3 + i, 6 + j] = St[i, j] * time_interval
-                    F[3 + i, 9 + j] = Rb2t[i, j] * time_interval
+        F[i, 3 + i] = time_interval
+        for j in range(3):
+            # F[i, 3 + j] = 1.0 * time_interval
 
-                    F[6 + i, 12 + j] = -1.0 * Rb2t[i, j] * time_interval
+            F[3 + i, 6 + j] = St[i, j] * time_interval
+            F[3 + i, 9 + j] = Rb2t[i, j] * time_interval
 
-                    G[3 + i, 0 + j] = Rb2t[i, j] * time_interval
-                    G[6 + i, 3 + j] = -1.0 * time_interval * Rb2t[i, j]
-            # return F, G
+            F[6 + i, 12 + j] = -1.0 * Rb2t[i, j] * time_interval
+
+            G[3 + i, 0 + j] = Rb2t[i, j] * time_interval
+            G[6 + i, 3 + j] = -1.0 * time_interval * Rb2t[i, j]
+    # return F, G
