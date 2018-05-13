@@ -163,12 +163,13 @@ class ImuEKFComplex:
 
 
 
+
         # update last x and last p
         self.last_x = self.state * 1.0
         self.last_P = self.prob_state * 1.0
 
     def measurement_uwb_normal(self,uwb_measurement, beacon_set):
-        H = np.zeros(shape=(uwb_measurement.shape[0],uwb_measurement.shape[0]))
+        H = np.zeros(shape=(uwb_measurement.shape[0], uwb_measurement.shape[0]))
 
 
 
