@@ -232,7 +232,7 @@ class TightIMUWBEKF:
 
         self.state[9:] = self.state[9:] + dx[9:]
 
-    def measurement_uwb_normal(self, uwb_measurement, beacon_set, cov_m):
+    def measurement_uwb_normal(self, uwb_measurement, beacon_set, cov_m, ka_squard=6.0):
         # print(uwb_measurement)
         H = np.zeros(shape=(uwb_measurement.shape[0], self.state.shape[0]))
         Rk = np.zeros(shape=(uwb_measurement.shape[0], uwb_measurement.shape[0]))
@@ -243,16 +243,55 @@ class TightIMUWBEKF:
         # print('uwb measurement H:', H)
 
         y = uwb_measurement - H.dot(self.state)
+        pminus = self.prob_state * 1.0
+        pplus = pminus * 1.0
+        xminus = self.state
 
-        K = (self.prob_state.dot(np.transpose(H))).dot(
-            np.linalg.inv((H.dot(self.prob_state).dot(np.transpose(H))) + Rk)
-        )
+        xplus = self.state
+        xop = self.state * 0.0
+
+        dx = np.zeros(self.state.shape[0])
+
+        ite_counter = 0
+        mask = np.zeros(uwb_measurement.shape[0])
+
+        while np.linalg.norm(xplus - xop) > 0.01 and ite_counter < 30:
+            ite_counter += 1
+            xop = xplus * 1.0
+            y = np.linalg.norm(xop[0:3] - beacon_set, axis=1)
+            # y = rou(y)
+            H = np.zeros(shape=(uwb_measurement.shape[0], self.state.shape[0]))
+            H[:, 0:3] = (xop[0:3] - beacon_set) / y.reshape(-1, 1)  # * d_rou(y.reshape(-1, 1))
+
+            v = uwb_measurement - y
+
+            index = np.argsort(np.abs(v))
+            break_flag = False
+
+            for i in range(index.shape[0]):
+                if mask[index[i]] < 100.01:
+                    pv = (H[index[i], :].dot(pplus)).dot(np.transpose(H[index[i], :])) + Rk[index[i], index[i]]
+                    gamma = v[index[i]] * v[index[i]] / pv
+                    # print(pv, v[index[i]])
+                    # ka_squard = 7.0
+
+                    if gamma < ka_squard:  # or i < np.floor(index.shape[0] / 2):
+                        # break_flag=True
+                        mask[index[i]] = 1.0
+                        # Rk[index[i],index[i]]=cov_m[0]
+                    else:
+                        # print('corrected Rk')
+                        mask[index[i]] = ka_squard / gamma * 1.0
+                        # mask[index[i]] = 0.5#ka_squard/gamma
+                        Rk[index[i], index[i]] = gamma / ka_squard * Rk[index[i], index[i]]
+                        # mask[index[i]] = 1.0 / gamma
+                    i = index.shape[0] + 1
 
         self.prob_state = (np.identity(self.prob_state.shape[0]) - K.dot(H)).dot(self.prob_state)
 
         self.prob_state = 0.5 * self.prob_state + 0.5 * np.transpose(self.prob_state)
 
-        dx = K.dot(y)
+        # dx = K.dot(y)
         # print('dx:', dx)
 
         self.state[0:6] = self.state[0:6] + dx[0:6]

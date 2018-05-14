@@ -61,7 +61,7 @@ if __name__ == '__main__':
     start_time = time.time()
     # dir_name = '/home/steve/Data/FusingLocationData/0017/'
     # dir_name = '/home/steve/Data/FusingLocationData/0013/'
-    dir_name = '/home/steve/Data/NewFusingLocationData/0036/'
+    dir_name = '/home/steve/Data/NewFusingLocationData/0039/'
     # dir_name = 'D:/Data/NewFusingLocationData/0033/'
 
     imu_data = np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=',')
@@ -240,9 +240,9 @@ if __name__ == '__main__':
                     orkf.measurement_uwb_iterate(np.asarray(uwb_data[uwb_index, 1:]),
                                                  np.ones(1) * 0.1,
                                                  beacon_set, ref_trace)
-                    tekf.measurement_uwb_special(uwb_data[uwb_index, 1:],
+                    tekf.measurement_uwb_normal(uwb_data[uwb_index, 1:],
                                                  beacon_set,
-                                                 1.0)
+                                                 0.2)
                     uwb_est_data[uwb_index,1:] = tekf.state[15:]
                     uwb_index += 1
                     # print(orkf.state.transpose())
