@@ -110,8 +110,6 @@ class TightIMUWBEKF:
         self.state[3:6] = self.state[3:6] + acc * self.time_interval
         self.state[6:9] = dcm2euler(q2dcm(self.rotation_q))
 
-
-
         self.state, mF = update_uwb_measurement(self.state, last_v, last_p, self.time_interval, self.beacon_set)
 
         f_t = Rb2t.dot(imu_data[0:3])
@@ -251,7 +249,7 @@ class TightIMUWBEKF:
                     if gamma < ka_squard:  # or i < np.floor(index.shape[0] / 2):
                         # break_flag=True
                         mask[index[i]] = 1.0
-                        if abs(v[i]) > np.linalg.norm(v)/float(v.shape[0]):
+                        if abs(v[i]) > np.linalg.norm(v) / float(v.shape[0]):
                             mask[index[i]] = 0.5
                         # mask[index[i]] = ka_squard / gamma * 1.0
                         # Rk[index[i],index[i]]=cov_m[0]
@@ -349,14 +347,12 @@ def aux_build_F_G(F, G, St, Rb2t, time_interval):
     # return F, G
 
 
-
 @njit(nopython=True)
 def update_uwb_measurement(x,
                            v,
                            p,
                            time_interval,
                            beacon_set):
-
     offset_num = 15
     mF = np.zeros(shape=(x.shape[0] - offset_num, x.shape[0]))
     D = v * time_interval
