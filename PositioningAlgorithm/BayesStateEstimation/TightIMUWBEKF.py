@@ -287,6 +287,14 @@ class TightIMUWBEKF:
                         # mask[index[i]] = 1.0 / gamma
                     i = index.shape[0] + 1
 
+            K = (pminus.dot(np.transpose(H))).dot(
+                np.linalg.inv(H.dot(pminus.dot(np.transpose(H))) + Rk))
+            kh = K.dot(H)
+            pplus = (np.identity(kh.shape[0]) - kh).dot(pminus)
+            # if tp_plus
+            dx = K.dot((uwb_measurement - y - H.dot(xminus - xop)) * mask)
+            xplus = xminus + dx
+
         self.prob_state = (np.identity(self.prob_state.shape[0]) - K.dot(H)).dot(self.prob_state)
 
         self.prob_state = 0.5 * self.prob_state + 0.5 * np.transpose(self.prob_state)

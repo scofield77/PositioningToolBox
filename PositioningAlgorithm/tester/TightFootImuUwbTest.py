@@ -205,8 +205,6 @@ if __name__ == '__main__':
 
     uwb_index = 0
 
-
-
     for i in range(imu_data.shape[0]):
         # print('i:',i)
 
@@ -241,9 +239,10 @@ if __name__ == '__main__':
                                                  np.ones(1) * 0.1,
                                                  beacon_set, ref_trace)
                     tekf.measurement_uwb_normal(uwb_data[uwb_index, 1:],
-                                                 beacon_set,
-                                                 0.2)
-                    uwb_est_data[uwb_index,1:] = tekf.state[15:]
+                                                beacon_set,
+                                                0.1,
+                                                5.0)
+                    uwb_est_data[uwb_index, 1:] = tekf.state[15:]
                     uwb_index += 1
                     # print(orkf.state.transpose())
 
