@@ -152,6 +152,13 @@ class ImuEKFComplex:
         self.state[9:] = self.state[9:] + dx[9:]
 
     def measurement_uwb_special(self, uwb_measurement, beacon_set, cov_m):
+        '''
+        Uwb measurement direct observed uwb measurement in system state.
+        :param uwb_measurement:
+        :param beacon_set:
+        :param cov_m:
+        :return:
+        '''
         print(uwb_measurement)
         H = np.zeros(shape=(uwb_measurement.shape[0], self.state.shape[0]))
         for i in range(uwb_measurement.shape[0]):
