@@ -127,9 +127,10 @@ class TightIMUWBEKF:
                 mF[i,i+offset_num] = last_m/m-ddotbp/last_bp/m
                 for j in range(3):
                     mF[i,j] = 0.5/m*(-1.0 * (ddotbp*(beacon_set[i,j]-p[j])/(last_bp**3.0))-1.0 * D[0]/last_bp)
-                    mF[i,j+3]= time_interval * (0.5/m*)
+                    mF[i,j+3]= time_interval * (0.5/m*(D[j]/np.linalg.norm(D)-2.0 * last_m*(beacon_set[i,j]-p[j])/last_bp))
 
             return x, mF
+        self.state, mF = update_uwb_measurement(self.state,se)
 
         f_t = Rb2t.dot(imu_data[0:3])
 
