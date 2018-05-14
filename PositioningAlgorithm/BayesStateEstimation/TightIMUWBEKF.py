@@ -76,7 +76,8 @@ class TightIMUWBEKF:
         self.I = np.identity(3)
 
         for i in range(15, self.state.shape[0]):
-            self.state[i] = np.linalg.norm(self.state[0:3] - self.beacon_set)
+            self.state[i] = np.linalg.norm(self.state[0:3] - self.beacon_set[i - 15, :])
+            print(self.state[i])
 
         # state
         self.last_x = self.state * 1.0
@@ -108,16 +109,19 @@ class TightIMUWBEKF:
         self.state[3:6] = self.state[3:6] + acc * self.time_interval
         self.state[6:9] = dcm2euler(q2dcm(self.rotation_q))
 
-        @jit(nopython=True)
+        @jit(nopython=True, parallel=True)
         def update_uwb_measurement(x,
                                    v,
                                    p,
                                    time_interval,
                                    beacon_set):
+
             offset_num = 15
             mF = np.zeros(shape=(x.shape[0] - offset_num, x.shape[0]))
             D = v * time_interval
-            for i in range(mF.shape[0]):
+            if np.linalg.norm(D) < 1e-3:
+                return x, mF
+            for i in prange(mF.shape[0]):
                 ddotbp = D[0] * (beacon_set[i, 0] - p[0]) + D[1] * (beacon_set[i, 1] - p[1]) + D[2] * (
                         beacon_set[i, 2] - p[2])
                 last_bp = np.linalg.norm(beacon_set[i, :] - p)
@@ -125,6 +129,7 @@ class TightIMUWBEKF:
                 m = math.sqrt(np.linalg.norm(D) + last_m * last_m - 2.0 * last_m * ddotbp / last_bp)
                 x[i + offset_num] = m
                 mF[i, i + offset_num] = last_m / m - ddotbp / last_bp / m
+                # print(m-last_m)
                 for j in range(3):
                     mF[i, j] = 0.5 / m * (
                             -1.0 * (ddotbp * (beacon_set[i, j] - p[j]) / (last_bp ** 3.0)) - 1.0 * D[0] / last_bp)
@@ -195,14 +200,14 @@ class TightIMUWBEKF:
         :param cov_m:
         :return:
         '''
-        print(uwb_measurement)
+        # print(uwb_measurement)
         H = np.zeros(shape=(uwb_measurement.shape[0], self.state.shape[0]))
         Rk = np.zeros(shape=(uwb_measurement.shape[0], uwb_measurement.shape[0]))
         for i in range(uwb_measurement.shape[0]):
             Rk[i, i] = cov_m
             if uwb_measurement[i] > 0.0 and beacon_set[i, 0] < 5000.0:
                 H[i, i + 15] = 1.0
-        print('uwb measurement H:', H)
+        # print('uwb measurement H:', H)
 
         y = uwb_measurement - H.dot(self.state)
 
@@ -215,6 +220,7 @@ class TightIMUWBEKF:
         self.prob_state = 0.5 * self.prob_state + 0.5 * np.transpose(self.prob_state)
 
         dx = K.dot(y)
+        # print('dx:', dx)
 
         self.state[0:6] = self.state[0:6] + dx[0:6]
         #
