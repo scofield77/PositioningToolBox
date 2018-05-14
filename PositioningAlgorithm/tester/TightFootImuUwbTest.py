@@ -74,18 +74,18 @@ if __name__ == '__main__':
     # uwb_data = np.loadtxt(dir_name + 'uwb_result.csv', delimiter=',')
     # beacon_set = np.loadtxt(dir_name + 'beaconSet.csv', delimiter=',')
     uwb_data = np.loadtxt(dir_name + 'uwb_data.csv', delimiter=',')
-    beacon_set = np.loadtxt(dir_name + 'beaconset_no_mac.csv', delimiter=',')
-    # beacon_set = np.loadtxt(dir_name + 'beaconset_fill.csv', delimiter=',')
+    # beacon_set = np.loadtxt(dir_name + 'beaconset_no_mac.csv', delimiter=',')
+    beacon_set = np.loadtxt(dir_name + 'beaconset_fill.csv', delimiter=',')
 
     uwb_valid = list()
     uwb_data_index = list()
     uwb_data_index.append(0)
     uwb_beacon_index = list()
     for i in range(1, uwb_data.shape[1]):
-        if uwb_data[:, i].max() > 0.0:
+        if uwb_data[:, i].max() > 0.0 and beacon_set[i - 1, 0] < 5000.0:
             uwb_valid.append(i)
             uwb_data_index.append(i)
-            uwb_beacon_index.append(i-1)
+            uwb_beacon_index.append(i - 1)
     random_index = np.random.randint(0, len(uwb_valid) - 1, len(uwb_valid))
     # for i in range(min(random_index.shape[0], 1)):
     #     uwb_data[:, uwb_valid[random_index[i]]] *= 0.0
@@ -93,9 +93,9 @@ if __name__ == '__main__':
     '''
     Delete invalid uwb data here.
     '''
-    uwb_data_t = uwb_data*1.0
-    uwb_data = uwb_data_t[:,uwb_data_index] * 1.0
-    beacon_set = beacon_set[uwb_beacon_index,:]
+    uwb_data_t = uwb_data * 1.0
+    uwb_data = uwb_data_t[:, uwb_data_index] * 1.0
+    beacon_set = beacon_set[uwb_beacon_index, :]
 
     uwb_filter_list = list()
     for i in range(1, uwb_data.shape[1]):
@@ -205,6 +205,8 @@ if __name__ == '__main__':
 
     uwb_index = 0
 
+
+
     for i in range(imu_data.shape[0]):
         # print('i:',i)
 
@@ -240,20 +242,21 @@ if __name__ == '__main__':
                                                  beacon_set, ref_trace)
                     tekf.measurement_uwb_special(uwb_data[uwb_index, 1:],
                                                  beacon_set,
-                                                 0.1)
+                                                 1.0)
+                    uwb_est_data[uwb_index,1:] = tekf.state[15:]
                     uwb_index += 1
                     # print(orkf.state.transpose())
 
         ortrace[i, :] = orkf.state[0:3]
         ttrace[i, :] = tekf.state[0:3]
-        vel[i, :] = tekf.state[3:6]
-        ang[i, :] = tekf.state[6:9]
-        ba[i, :] = tekf.state[9:12]
-        bg[i, :] = tekf.state[12:15]
+        # vel[i, :] = tekf.state[3:6]
+        # ang[i, :] = tekf.state[6:9]
+        # ba[i, :] = tekf.state[9:12]
+        # bg[i, :] = tekf.state[12:15]
 
-        if i%200 is 0:
-            rate = float(i)/float(imu_data.shape[0])
-            print('finished:', rate * 100.0, "% ", i, imu_data.shape[0])
+        # if i%200 is 0:
+        #     rate = float(i)/float(imu_data.shape[0])
+        #     print('finished:', rate * 100.0, "% ", i, imu_data.shape[0])
 
     end_time = time.time()
     print('totally time:', end_time - start_time, 'data time:', imu_data[-1, 0] - imu_data[0, 0])
@@ -290,11 +293,11 @@ if __name__ == '__main__':
     # aux_plot(imu_data[:, 1:4], 'acc')
     # aux_plot(imu_data[:, 4:7], 'gyr')
     # aux_plot(imu_data[:, 7:10], 'mag')
-    aux_plot(trace, 'trace')
-    aux_plot(vel, 'vel')
-    aux_plot(ang, 'ang')
-    aux_plot(ba, 'ba')
-    aux_plot(bg, 'bg')
+    # aux_plot(trace, 'trace')
+    # aux_plot(vel, 'vel')
+    # aux_plot(ang, 'ang')
+    # aux_plot(ba, 'ba')
+    # aux_plot(bg, 'bg')
 
     # aux_plot(iner_acc, 'inner acc')
 
@@ -312,52 +315,52 @@ if __name__ == '__main__':
     plt.legend()
     plt.grid()
 
-    plt.figure()
-    plt.title('clear compare')
+    # plt.figure()
+    # plt.title('clear compare')
     # plt.plot(trace[:, 0], trace[:, 1], '-', label='fusing')
     # plt.plot(ftrace[:, 0], ftrace[:, 1], '-', label='foot')
     # plt.plot(rtrace[:, 0], rtrace[:, 1], '-', label='robust')
-    plt.plot(ortrace[:, 0], ortrace[:, 1], '-+', label='own robust')
+    # plt.plot(ortrace[:, 0], ortrace[:, 1], '-+', label='own robust')
     # plt.plot(dtrace[:, 0], dtrace[:, 1], '-+', label='d ekf')
-    plt.plot(uwb_trace[:, 0], uwb_trace[:, 1], '+', label='uwb')
+    # plt.plot(uwb_trace[:, 0], uwb_trace[:, 1], '+', label='uwb')
     # plt.plot(ref_trace[:, 1], ref_trace[:, 2], '-', label='ref')
-    for i in range(beacon_set.shape[0]):
-        plt.text(beacon_set[i, 0], beacon_set[i, 1], s=str(i + 1))
+    # for i in range(beacon_set.shape[0]):
+    #     plt.text(beacon_set[i, 0], beacon_set[i, 1], s=str(i + 1))
+    # plt.legend()
+    # plt.grid()
+    #
+    plt.figure()
+    plt.subplot(411)
+    plt.title('uwb estimated')
+    for i in range(1, uwb_est_data.shape[1]):
+        if uwb_data[:, i].max() > 0.0 and beacon_set[i - 1, 0] < 5000.0:
+            plt.plot(uwb_est_data[:, 0], uwb_est_data[:, i], '-+', label=str(i))
     plt.legend()
     plt.grid()
-    #
-    # plt.figure()
-    # plt.subplot(411)
-    # plt.title('uwb estimated')
-    # for i in range(1, uwb_est_data.shape[1]):
-    #     if uwb_data[:, i].max() > 0.0 and beacon_set[i - 1, 0] < 5000.0:
-    #         plt.plot(uwb_est_data[:, 0], uwb_est_data[:, i], '-+', label=str(i))
-    # plt.legend()
-    # plt.grid()
-    # plt.subplot(412)
-    # plt.title('uwb')
-    # for i in range(1, uwb_est_data.shape[1]):
-    #     if uwb_data[:, i].max() > 0.0 and beacon_set[i - 1, 0] < 5000.0:
-    #         plt.plot(uwb_est_data[:, 0], uwb_data[:, i], '+', label=str(i))
-    # plt.legend()
-    # plt.grid()
-    # plt.subplot(413)
-    # plt.title('uwb dif')
-    # for i in range(1, uwb_est_data.shape[1]):
-    #     if uwb_data[:, i].max() > 0.0 and beacon_set[i - 1, 0] < 5000.0:
-    #         index_list = np.where(uwb_data[:, i] > 0.0)
-    #         # print(index_list)
-    #         plt.plot(uwb_est_data[index_list[0], 0], uwb_est_data[index_list[0], i] - uwb_data[index_list[0], i], '-+',
-    #                  label=str(i))
-    # plt.legend()
-    # plt.grid()
-    # plt.subplot(414)
-    # plt.title('uwb prob')
-    # for i in range(1, uwb_est_data.shape[1]):
-    #     if uwb_data[:, i].max() > 0.0 and beacon_set[i - 1, 0] < 5000.0:
-    #         plt.plot(uwb_est_data[:, 0], uwb_est_prob[:, i], '+', label=str(i))
-    # plt.legend()
-    # plt.grid()
+    plt.subplot(412)
+    plt.title('uwb')
+    for i in range(1, uwb_est_data.shape[1]):
+        if uwb_data[:, i].max() > 0.0 and beacon_set[i - 1, 0] < 5000.0:
+            plt.plot(uwb_est_data[:, 0], uwb_data[:, i], '+', label=str(i))
+    plt.legend()
+    plt.grid()
+    plt.subplot(413)
+    plt.title('uwb dif')
+    for i in range(1, uwb_est_data.shape[1]):
+        if uwb_data[:, i].max() > 0.0 and beacon_set[i - 1, 0] < 5000.0:
+            index_list = np.where(uwb_data[:, i] > 0.0)
+            # print(index_list)
+            plt.plot(uwb_est_data[index_list[0], 0], uwb_est_data[index_list[0], i] - uwb_data[index_list[0], i], '-+',
+                     label=str(i))
+    plt.legend()
+    plt.grid()
+    plt.subplot(414)
+    plt.title('uwb prob')
+    for i in range(1, uwb_est_data.shape[1]):
+        if uwb_data[:, i].max() > 0.0 and beacon_set[i - 1, 0] < 5000.0:
+            plt.plot(uwb_est_data[:, 0], uwb_est_prob[:, i], '+', label=str(i))
+    plt.legend()
+    plt.grid()
 
     # plt.figure()
     # plt.title('corrected result')
@@ -384,6 +387,7 @@ if __name__ == '__main__':
     # plt.plot(rs.eval_points(trace), label='fusing')
     # plt.plot(rs.eval_points(rtrace), label='rtrace')
     plt.plot(rs.eval_points(ortrace), label='ortrace')
+    plt.plot(rs.eval_points(ttrace), label='ttrace')
     # plt.plot(rs.eval_points(dtrace), label='dtrace')
     # plt.plot(rs.eval_points(ref_trace[:,1:]), label='ref')
     plt.grid()
@@ -393,6 +397,7 @@ if __name__ == '__main__':
     print('fusing:', np.mean(rs.eval_points(trace)))
     print('rtrace:', np.mean(rs.eval_points(rtrace)))
     print('ortrace:', np.mean(rs.eval_points(ortrace)))
+    print('ttrace:', np.mean(rs.eval_points(ttrace)))
     print('dtrace:', np.mean(rs.eval_points(dtrace)))
     print('ref:', np.mean(rs.eval_points(ref_trace[:, 1:])))
     print('eval cost time:', time.time() - start_time)

@@ -77,6 +77,7 @@ class TightIMUWBEKF:
 
         for i in range(15, self.state.shape[0]):
             self.state[i] = np.linalg.norm(self.state[0:3] - self.beacon_set[i - 15, :])
+            self.prob_state[i, 0:3] = (self.state[0:3] - self.beacon_set[i - 15, :]) / self.state[i]
             print(self.state[i])
 
         # state
@@ -231,19 +232,37 @@ class TightIMUWBEKF:
 
         self.state[9:] = self.state[9:] + dx[9:]
 
-        # update measurements and probability matrix.
+    def measurement_uwb_normal(self, uwb_measurement, beacon_set, cov_m):
+        # print(uwb_measurement)
+        H = np.zeros(shape=(uwb_measurement.shape[0], self.state.shape[0]))
+        Rk = np.zeros(shape=(uwb_measurement.shape[0], uwb_measurement.shape[0]))
+        for i in range(uwb_measurement.shape[0]):
+            Rk[i, i] = cov_m
+            if uwb_measurement[i] > 0.0 and beacon_set[i, 0] < 5000.0:
+                H[i, i + 15] = 1.0
+        # print('uwb measurement H:', H)
 
-        # @jit(nopython=True)
-        # def get_new_xp(x,last_x,beacon_set):
-        #     x = last_x +1.0
+        y = uwb_measurement - H.dot(self.state)
 
-        # update last x and last p
-        # self.last_x = self.state * 1.0
-        # self.last_P = self.prob_state * 1.0
+        K = (self.prob_state.dot(np.transpose(H))).dot(
+            np.linalg.inv((H.dot(self.prob_state).dot(np.transpose(H))) + Rk)
+        )
 
-    # def measurement_uwb_normal(self, uwb_measurement, beacon_set):
-    #     H = np.zeros(shape=(uwb_measurement.shape[0], uwb_measurement.shape[0]))
-    #     for i in rang
+        self.prob_state = (np.identity(self.prob_state.shape[0]) - K.dot(H)).dot(self.prob_state)
+
+        self.prob_state = 0.5 * self.prob_state + 0.5 * np.transpose(self.prob_state)
+
+        dx = K.dot(y)
+        # print('dx:', dx)
+
+        self.state[0:6] = self.state[0:6] + dx[0:6]
+        #
+        self.rotation_q = quaternion_left_update(self.rotation_q, dx[6:9], -1.0)
+        # self.rotation_q = quaternion_right_update(self.rotation_q, dx[6:9], 1.0)
+        #
+        self.state[6:9] = dcm2euler(q2dcm(self.rotation_q))
+
+        self.state[9:] = self.state[9:] + dx[9:]
 
 
 @jit((float64[:, :], float64[:, :], float64[:, :], float64[:, :], float64), nopython=True, parallel=True)
