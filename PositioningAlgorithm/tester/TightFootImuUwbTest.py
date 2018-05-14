@@ -174,6 +174,7 @@ if __name__ == '__main__':
     tekf = TightIMUWBEKF(
         t_P,
         beacon_set.shape[0],
+        beacon_set,
         local_g=-9.81,
         time_interval=average_time_interval
     )
