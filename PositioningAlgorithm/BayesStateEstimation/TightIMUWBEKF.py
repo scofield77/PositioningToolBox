@@ -270,7 +270,7 @@ class TightIMUWBEKF:
             dx = K.dot((uwb_measurement - y - H.dot(xminus - xop)) * mask)
             xplus = xminus + dx
 
-        print(ite_counter)
+        # print(ite_counter)
         self.prob_state = (np.identity(self.prob_state.shape[0]) - K.dot(H)).dot(self.prob_state)
 
         self.prob_state = 0.5 * self.prob_state + 0.5 * np.transpose(self.prob_state)
