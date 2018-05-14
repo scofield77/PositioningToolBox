@@ -151,8 +151,13 @@ class ImuEKFComplex:
 
         self.state[9:] = self.state[9:] + dx[9:]
 
-    def measurement_uwb_special(self, uwb_measurement, cov_m):
+    def measurement_uwb_special(self, uwb_measurement, beacon_set, cov_m):
         print(uwb_measurement)
+        H = np.zeros(shape=(uwb_measurement.shape[0], self.state.shape[0]))
+        for i in range(uwb_measurement.shape[0]):
+            if uwb_measurement[i] > 0.0 and beacon_set[i, 0] < 5000.0:
+                H[i, i + 15] = 1.0
+        print('uwb measurement H:', H)
 
         # update measurements and probability matrix.
 
@@ -160,20 +165,12 @@ class ImuEKFComplex:
         # def get_new_xp(x,last_x,beacon_set):
         #     x = last_x +1.0
 
-
-
-
-
         # update last x and last p
         self.last_x = self.state * 1.0
         self.last_P = self.prob_state * 1.0
 
-    def measurement_uwb_normal(self,uwb_measurement, beacon_set):
+    def measurement_uwb_normal(self, uwb_measurement, beacon_set):
         H = np.zeros(shape=(uwb_measurement.shape[0], uwb_measurement.shape[0]))
-
-
-
-
 
 
 @jit((float64[:, :], float64[:, :], float64[:, :], float64[:, :], float64), nopython=True, parallel=True)
