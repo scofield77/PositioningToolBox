@@ -42,6 +42,7 @@ from AlgorithmTool.ImuTools import *
 from AlgorithmTool.ReferTraceEvaluateTools import *
 
 from PositioningAlgorithm.BayesStateEstimation.ImuEKF import *
+from PositioningAlgorithm.BayesStateEstimation.TightIMUWBEKF import *
 # from gr import pygr
 
 # from AlgorithmTool
@@ -113,6 +114,7 @@ if __name__ == '__main__':
     ftrace = np.zeros([imu_data.shape[0], 3])
     rtrace = np.zeros([imu_data.shape[0], 3])
     ortrace = np.zeros([imu_data.shape[0], 3])
+    ttrace = np.zeros([imu_data.shape[0], 3])
     dtrace = np.zeros_like(trace)
     vel = np.zeros([imu_data.shape[0], 3])
     ang = np.zeros([imu_data.shape[0], 3])
@@ -165,6 +167,23 @@ if __name__ == '__main__':
         ori=initial_orientation
     )
 
+    t_P = np.zeros(shape=(15 + beacon_set.shape[0], 15 + beacon_set.shape[0]))
+    t_P[:15, :15] = orkf.prob_state * 1.0
+    for i in range(15, t_P.shape[0]):
+        t_P[i, i] = 0.1
+    tekf = TightIMUWBEKF(
+        t_P,
+        beacon_set.shape[0],
+        local_g=-9.81,
+        time_interval=average_time_interval
+    )
+
+    tekf.initial_state(
+        imu_data[:50, 1:7],
+        pos=initial_orientation,
+        ori=initial_orientation
+    )
+
     zv_state = GLRT_Detector(imu_data[:, 1:7],
                              sigma_a=1.0,
                              sigma_g=1.0 * np.pi / 180.0,
@@ -183,6 +202,12 @@ if __name__ == '__main__':
                                                  0.01 * np.pi / 180.0,
                                                  0.01 * np.pi / 180.0))
                                         )
+        tekf.state_transaction_function(imu_data[i, 1:7],
+                                        np.diag((0.01, 0.01, 0.01,
+                                                 0.01 * np.pi / 180.0,
+                                                 0.01 * np.pi / 180.0,
+                                                 0.01 * np.pi / 180.0))
+                                        )
 
         if (i > 5) and (i < imu_data.shape[0] - 5):
             # print('i:',i)
@@ -190,6 +215,9 @@ if __name__ == '__main__':
             if zv_state[i] > 0.5:
                 orkf.measurement_function_zv(np.asarray((0, 0, 0)),
                                              np.diag((0.0001, 0.0001, 0.0001)))
+                tekf.measurement_function_zv(np.asarray((0, 0, 0)),
+                                             np.diag((0.0001, 0.0001, 0.0001)))
+
                 a = 1
 
             if uwb_data[uwb_index, 0] < imu_data[i, 0]:
@@ -198,10 +226,14 @@ if __name__ == '__main__':
                     orkf.measurement_uwb_iterate(np.asarray(uwb_data[uwb_index, 1:]),
                                                  np.ones(1) * 0.1,
                                                  beacon_set, ref_trace)
+                    tekf.measurement_uwb_special(uwb_data[uwb_index, 1:],
+                                                 beacon_set,
+                                                 0.1)
                     uwb_index += 1
                     # print(orkf.state.transpose())
 
         ortrace[i, :] = orkf.state[0:3]
+        ttrace[i, :] = tekf.state[0:3]
 
         # print('finished:', rate * 100.0, "% ", i, imu_data.shape[0])
 
@@ -253,6 +285,7 @@ if __name__ == '__main__':
     # plt.plot(ftrace[:, 0], ftrace[:, 1], '-', label='foot')
     # plt.plot(rtrace[:, 0], rtrace[:, 1], '-', label='robust')
     plt.plot(ortrace[:, 0], ortrace[:, 1], '-', label='own robust')
+    plt.plot(ttrace[:, 0], ttrace[:, 1], '-', label='tight')
     # plt.plot(dtrace[:, 0], dtrace[:, 1], '-', label='d ekf')
     plt.plot(uwb_trace[:, 0], uwb_trace[:, 1], '+', label='uwb')
     # plt.plot(ref_trace[:, 1], ref_trace[:, 2], '-', label='ref')
@@ -320,6 +353,7 @@ if __name__ == '__main__':
     # ax.plot(trace[:, 0], trace[:, 1], trace[:, 2], '-+', label='trace')
     # ax.plot(rtrace[:, 0], rtrace[:, 1], rtrace[:, 2], '-+', label='robust')
     ax.plot(ortrace[:, 0], ortrace[:, 1], ortrace[:, 2], '-+', label='own robust')
+    ax.plot(ttrace[:, 0], ttrace[:, 1], ttrace[:, 2], '-+', label='tight')
     ax.plot(uwb_trace[:, 0], uwb_trace[:, 1], uwb_trace[:, 2], '+', label='uwb')
     ax.grid()
     ax.legend()

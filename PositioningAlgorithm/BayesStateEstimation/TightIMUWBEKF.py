@@ -108,6 +108,7 @@ class TightIMUWBEKF:
         self.state[3:6] = self.state[3:6] + acc * self.time_interval
         self.state[6:9] = dcm2euler(q2dcm(self.rotation_q))
 
+        @jit(nopython=True)
         def update_uwb_measurement(x,
                                    v,
                                    p,
@@ -118,18 +119,21 @@ class TightIMUWBEKF:
             D = v * time_interval
             for i in range(mF.shape[0]):
                 ddotbp = D[0] * (beacon_set[i, 0] - p[0]) + D[1] * (beacon_set[i, 1] - p[1]) + D[2] * (
-                            beacon_set[i, 2] - p[2])
+                        beacon_set[i, 2] - p[2])
                 last_bp = np.linalg.norm(beacon_set[i, :] - p)
                 last_m = x[i + offset_num]
                 m = math.sqrt(np.linalg.norm(D) + last_m * last_m - 2.0 * last_m * ddotbp / last_bp)
                 x[i + offset_num] = m
-                mF[i,i+offset_num] = last_m/m-ddotbp/last_bp/m
+                mF[i, i + offset_num] = last_m / m - ddotbp / last_bp / m
                 for j in range(3):
-                    mF[i,j] = 0.5/m*(-1.0 * (ddotbp*(beacon_set[i,j]-p[j])/(last_bp**3.0))-1.0 * D[0]/last_bp)
-                    mF[i,j+3]= time_interval * (0.5/m*(D[j]/np.linalg.norm(D)-2.0 * last_m*(beacon_set[i,j]-p[j])/last_bp))
+                    mF[i, j] = 0.5 / m * (
+                            -1.0 * (ddotbp * (beacon_set[i, j] - p[j]) / (last_bp ** 3.0)) - 1.0 * D[0] / last_bp)
+                    mF[i, j + 3] = time_interval * (0.5 / m * (
+                            D[j] / np.linalg.norm(D) - 2.0 * last_m * (beacon_set[i, j] - p[j]) / last_bp))
 
             return x, mF
-        self.state, mF = update_uwb_measurement(self.state,last_v,last_p,self.time_interval,self.beacon_set)
+
+        self.state, mF = update_uwb_measurement(self.state, last_v, last_p, self.time_interval, self.beacon_set)
 
         f_t = Rb2t.dot(imu_data[0:3])
 
@@ -141,6 +145,8 @@ class TightIMUWBEKF:
 
         aux_build_F_G(self.F, self.G, St, q2dcm(self.rotation_q), self.time_interval)
         # print('G shape:', self.G.shape)
+
+        self.F[15:, :] = mF * 1.0
 
         self.prob_state = (self.F.dot(self.prob_state)).dot(np.transpose(self.F)) + (self.G.dot(noise_matrix)).dot(
             np.transpose(self.G))
@@ -191,10 +197,33 @@ class TightIMUWBEKF:
         '''
         print(uwb_measurement)
         H = np.zeros(shape=(uwb_measurement.shape[0], self.state.shape[0]))
+        Rk = np.zeros(shape=(uwb_measurement.shape[0], uwb_measurement.shape[0]))
         for i in range(uwb_measurement.shape[0]):
+            Rk[i, i] = cov_m
             if uwb_measurement[i] > 0.0 and beacon_set[i, 0] < 5000.0:
                 H[i, i + 15] = 1.0
         print('uwb measurement H:', H)
+
+        y = uwb_measurement - H.dot(self.state)
+
+        K = (self.prob_state.dot(np.transpose(H))).dot(
+            np.linalg.inv((H.dot(self.prob_state).dot(np.transpose(H))) + Rk)
+        )
+
+        self.prob_state = (np.identity(self.prob_state.shape[0]) - K.dot(H)).dot(self.prob_state)
+
+        self.prob_state = 0.5 * self.prob_state + 0.5 * np.transpose(self.prob_state)
+
+        dx = K.dot(y)
+
+        self.state[0:6] = self.state[0:6] + dx[0:6]
+        #
+        self.rotation_q = quaternion_left_update(self.rotation_q, dx[6:9], -1.0)
+        # self.rotation_q = quaternion_right_update(self.rotation_q, dx[6:9], 1.0)
+        #
+        self.state[6:9] = dcm2euler(q2dcm(self.rotation_q))
+
+        self.state[9:] = self.state[9:] + dx[9:]
 
         # update measurements and probability matrix.
 
@@ -203,11 +232,12 @@ class TightIMUWBEKF:
         #     x = last_x +1.0
 
         # update last x and last p
-        self.last_x = self.state * 1.0
-        self.last_P = self.prob_state * 1.0
+        # self.last_x = self.state * 1.0
+        # self.last_P = self.prob_state * 1.0
 
-    def measurement_uwb_normal(self, uwb_measurement, beacon_set):
-        H = np.zeros(shape=(uwb_measurement.shape[0], uwb_measurement.shape[0]))
+    # def measurement_uwb_normal(self, uwb_measurement, beacon_set):
+    #     H = np.zeros(shape=(uwb_measurement.shape[0], uwb_measurement.shape[0]))
+    #     for i in rang
 
 
 @jit((float64[:, :], float64[:, :], float64[:, :], float64[:, :], float64), nopython=True, parallel=True)
