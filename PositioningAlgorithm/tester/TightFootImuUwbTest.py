@@ -61,7 +61,7 @@ if __name__ == '__main__':
     start_time = time.time()
     # dir_name = '/home/steve/Data/FusingLocationData/0017/'
     # dir_name = '/home/steve/Data/FusingLocationData/0013/'
-    dir_name = '/home/steve/Data/NewFusingLocationData/0039/'
+    dir_name = '/home/steve/Data/NewFusingLocationData/0042/'
     # dir_name = 'D:/Data/NewFusingLocationData/0033/'
 
     imu_data = np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=',')
@@ -109,7 +109,7 @@ if __name__ == '__main__':
     uol = UwbOptimizeLocation(beacon_set)
     uwb_trace = np.zeros([uwb_data.shape[0], 3])
     uwb_opt_res = np.zeros([uwb_data.shape[0]])
-    for i in range(uwb_data.shape[0]):
+    for i in prange(uwb_data.shape[0]):
         if i is 0:
             uwb_trace[i, :], uwb_opt_res[i] = \
                 uol.iter_positioning((0, 0, 0),
@@ -119,7 +119,10 @@ if __name__ == '__main__':
                 uol.iter_positioning(uwb_trace[i - 1, :],
                                      uwb_data[i, 1:])
 
-    ref_trace = np.loadtxt(dir_name + 'ref_trace.csv', delimiter=',')
+    # ref_trace = np.loadtxt(dir_name + 'ref_trace.csv', delimiter=',')
+    ref_trace = np.zeros(shape=(uwb_trace.shape[0], uwb_trace.shape[1] + 1))
+    ref_trace[:, 1:] = uwb_trace * 1.0
+
 
     trace = np.zeros([imu_data.shape[0], 3])
     ftrace = np.zeros([imu_data.shape[0], 3])
@@ -241,7 +244,7 @@ if __name__ == '__main__':
                     tekf.measurement_uwb_normal(uwb_data[uwb_index, 1:],
                                                 beacon_set,
                                                 0.1,
-                                                5.0)
+                                                6.0)
                     uwb_est_data[uwb_index, 1:] = tekf.state[15:]
                     uwb_index += 1
                     # print(orkf.state.transpose())

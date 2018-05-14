@@ -281,11 +281,12 @@ class TightIMUWBEKF:
                         # Rk[index[i],index[i]]=cov_m[0]
                     else:
                         # print('corrected Rk')
-                        mask[index[i]] = ka_squard / gamma * 1.0
-                        # mask[index[i]] = 0.5#ka_squard/gamma
+                        # mask[index[i]] = ka_squard / gamma * 1.0
+                        mask[index[i]] = 0.5  # ka_squard/gamma
                         Rk[index[i], index[i]] = gamma / ka_squard * Rk[index[i], index[i]]
                         # mask[index[i]] = 1.0 / gamma
                     i = index.shape[0] + 1
+            mask = mask / np.sum(mask) * float(mask.shape[0])
 
             K = (pminus.dot(np.transpose(H))).dot(
                 np.linalg.inv(H.dot(pminus.dot(np.transpose(H))) + Rk))
@@ -295,6 +296,7 @@ class TightIMUWBEKF:
             dx = K.dot((uwb_measurement - y - H.dot(xminus - xop)) * mask)
             xplus = xminus + dx
 
+        print(ite_counter)
         self.prob_state = (np.identity(self.prob_state.shape[0]) - K.dot(H)).dot(self.prob_state)
 
         self.prob_state = 0.5 * self.prob_state + 0.5 * np.transpose(self.prob_state)
