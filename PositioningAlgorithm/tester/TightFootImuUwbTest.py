@@ -75,16 +75,27 @@ if __name__ == '__main__':
     # beacon_set = np.loadtxt(dir_name + 'beaconSet.csv', delimiter=',')
     uwb_data = np.loadtxt(dir_name + 'uwb_data.csv', delimiter=',')
     beacon_set = np.loadtxt(dir_name + 'beaconset_no_mac.csv', delimiter=',')
-    beacon_set = np.loadtxt(dir_name + 'beaconset_fill.csv', delimiter=',')
+    # beacon_set = np.loadtxt(dir_name + 'beaconset_fill.csv', delimiter=',')
 
     uwb_valid = list()
+    uwb_data_index = list()
+    uwb_data_index.append(0)
+    uwb_beacon_index = list()
     for i in range(1, uwb_data.shape[1]):
         if uwb_data[:, i].max() > 0.0:
             uwb_valid.append(i)
+            uwb_data_index.append(i)
+            uwb_beacon_index.append(i-1)
     random_index = np.random.randint(0, len(uwb_valid) - 1, len(uwb_valid))
     # for i in range(min(random_index.shape[0], 1)):
     #     uwb_data[:, uwb_valid[random_index[i]]] *= 0.0
     #     uwb_data[:, uwb_valid[random_index[i]]] -= 10.0
+    '''
+    Delete invalid uwb data here.
+    '''
+    uwb_data_t = uwb_data*1.0
+    uwb_data = uwb_data_t[:,uwb_data_index] * 1.0
+    beacon_set = beacon_set[uwb_beacon_index,:]
 
     uwb_filter_list = list()
     for i in range(1, uwb_data.shape[1]):
