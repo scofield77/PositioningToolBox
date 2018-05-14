@@ -251,6 +251,8 @@ class TightIMUWBEKF:
                     if gamma < ka_squard:  # or i < np.floor(index.shape[0] / 2):
                         # break_flag=True
                         mask[index[i]] = 1.0
+                        if abs(v[i]) > np.linalg.norm(v)/float(v.shape[0]):
+                            mask[index[i]] = 0.5
                         # mask[index[i]] = ka_squard / gamma * 1.0
                         # Rk[index[i],index[i]]=cov_m[0]
                     else:
