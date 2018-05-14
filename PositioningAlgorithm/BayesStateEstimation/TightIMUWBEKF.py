@@ -33,8 +33,8 @@ from numba import jit
 from AlgorithmTool.ImuTools import *
 
 
-class ImuEKFComplex:
-    def __init__(self, initial_prob, uwb_number, local_g=-9.8, time_interval=0.01):
+class TightIMUWBEKF:
+    def __init__(self, initial_prob, uwb_number, beacon_set, local_g=-9.8, time_interval=0.01):
         '''
 
         :param initial_prob:
@@ -49,6 +49,8 @@ class ImuEKFComplex:
 
         self.F = np.zeros([self.state.shape[0], self.state.shape[0]])
         self.G = np.zeros([self.state.shape[0], 6])
+
+        self.beacon_set = beacon_set * 1.0
 
         self.uwb_eta_dict = dict()
         self.dx_dict = dict()
@@ -73,6 +75,9 @@ class ImuEKFComplex:
 
         self.I = np.identity(3)
 
+        for i in range(15, self.state.shape[0]):
+            self.state[i] = np.linalg.norm(self.state[0:3] - self.beacon_set)
+
         # state
         self.last_x = self.state * 1.0
         self.last_P = self.prob_state * 1.0
@@ -80,7 +85,8 @@ class ImuEKFComplex:
     # @jit(nopython=True)
     def state_transaction_function(self,
                                    imu_data,
-                                   noise_matrix):
+                                   noise_matrix,
+                                   beacon_set):
         '''
         State transaction function. 15 state, with bias of acc and gyr
         :param imu_data: acc(m/s^2), gyr(rad /s)
@@ -96,10 +102,34 @@ class ImuEKFComplex:
         # print('acc:',acc)
         self.acc = acc
 
+        last_v = self.state[3:6] * 1.0
+        last_p = self.state[0:3] * 1.0
+
         self.state[0:3] = self.state[0:3] + self.state[3:6] * self.time_interval
         self.state[3:6] = self.state[3:6] + acc * self.time_interval
-
         self.state[6:9] = dcm2euler(q2dcm(self.rotation_q))
+
+        def update_uwb_measurement(x,
+                                   v,
+                                   p,
+                                   time_interval,
+                                   beacon_set):
+            offset_num = 15
+            mF = np.zeros(shape=(x.shape[0] - offset_num, x.shape[0]))
+            D = v * time_interval
+            for i in range(mF.shape[0]):
+                ddotbp = D[0] * (beacon_set[i, 0] - p[0]) + D[1] * (beacon_set[i, 1] - p[1]) + D[2] * (
+                            beacon_set[i, 2] - p[2])
+                last_bp = np.linalg.norm(beacon_set[i, :] - p)
+                last_m = x[i + offset_num]
+                m = math.sqrt(np.linalg.norm(D) + last_m * last_m - 2.0 * last_m * ddotbp / last_bp)
+                x[i + offset_num] = m
+                mF[i,i+offset_num] = last_m/m-ddotbp/last_bp/m
+                for j in range(3):
+                    mF[i,j] = 0.5/m*(-1.0 * (ddotbp*(beacon_set[i,j]-p[j])/(last_bp**3.0))-1.0 * D[0]/last_bp)
+                    mF[i,j+3]= time_interval * (0.5/m*)
+
+            return x, mF
 
         f_t = Rb2t.dot(imu_data[0:3])
 
