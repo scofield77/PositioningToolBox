@@ -181,7 +181,7 @@ if __name__ == '__main__':
 
     tekf.initial_state(
         imu_data[:50, 1:7],
-        pos=initial_orientation,
+        pos=initial_pos,
         ori=initial_orientation
     )
 
