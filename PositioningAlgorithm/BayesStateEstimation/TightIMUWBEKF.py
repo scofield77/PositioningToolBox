@@ -85,8 +85,7 @@ class TightIMUWBEKF:
     # @jit(nopython=True)
     def state_transaction_function(self,
                                    imu_data,
-                                   noise_matrix,
-                                   beacon_set):
+                                   noise_matrix):
         '''
         State transaction function. 15 state, with bias of acc and gyr
         :param imu_data: acc(m/s^2), gyr(rad /s)
@@ -130,7 +129,7 @@ class TightIMUWBEKF:
                     mF[i,j+3]= time_interval * (0.5/m*(D[j]/np.linalg.norm(D)-2.0 * last_m*(beacon_set[i,j]-p[j])/last_bp))
 
             return x, mF
-        self.state, mF = update_uwb_measurement(self.state,se)
+        self.state, mF = update_uwb_measurement(self.state,last_v,last_p,self.time_interval,self.beacon_set)
 
         f_t = Rb2t.dot(imu_data[0:3])
 
