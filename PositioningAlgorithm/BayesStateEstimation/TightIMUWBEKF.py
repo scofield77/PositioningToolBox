@@ -110,34 +110,7 @@ class TightIMUWBEKF:
         self.state[3:6] = self.state[3:6] + acc * self.time_interval
         self.state[6:9] = dcm2euler(q2dcm(self.rotation_q))
 
-        # @njit(nopython=True, cache=True)
-        def update_uwb_measurement(x,
-                                   v,
-                                   p,
-                                   time_interval,
-                                   beacon_set):
 
-            offset_num = 15
-            mF = np.zeros(shape=(x.shape[0] - offset_num, x.shape[0]))
-            D = v * time_interval
-            if np.linalg.norm(D) < 1e-3:
-                return x, mF
-            for i in prange(mF.shape[0]):
-                ddotbp = D[0] * (beacon_set[i, 0] - p[0]) + D[1] * (beacon_set[i, 1] - p[1]) + D[2] * (
-                        beacon_set[i, 2] - p[2])
-                last_bp = np.linalg.norm(beacon_set[i, :] - p)
-                last_m = x[i + offset_num]
-                m = math.sqrt(np.linalg.norm(D) + last_m * last_m - 2.0 * last_m * ddotbp / last_bp)
-                x[i + offset_num] = m
-                mF[i, i + offset_num] = last_m / m - ddotbp / last_bp / m
-                # print(m-last_m)
-                for j in range(3):
-                    mF[i, j] = 0.5 / m * (
-                            -1.0 * (ddotbp * (beacon_set[i, j] - p[j]) / (last_bp ** 3.0)) - 1.0 * D[0] / last_bp)
-                    mF[i, j + 3] = time_interval * (0.5 / m * (
-                            D[j] / np.linalg.norm(D) - 2.0 * last_m * (beacon_set[i, j] - p[j]) / last_bp))
-
-            return x, mF
 
         self.state, mF = update_uwb_measurement(self.state, last_v, last_p, self.time_interval, self.beacon_set)
 
@@ -278,11 +251,12 @@ class TightIMUWBEKF:
                     if gamma < ka_squard:  # or i < np.floor(index.shape[0] / 2):
                         # break_flag=True
                         mask[index[i]] = 1.0
+                        # mask[index[i]] = ka_squard / gamma * 1.0
                         # Rk[index[i],index[i]]=cov_m[0]
                     else:
                         # print('corrected Rk')
-                        # mask[index[i]] = ka_squard / gamma * 1.0
-                        mask[index[i]] = 0.5  # ka_squard/gamma
+                        # mask[index[i]] = (ka_squard / gamma * 1.0)**4.0
+                        mask[index[i]] = 0.2  # ka_squard/gamma
                         Rk[index[i], index[i]] = gamma / ka_squard * Rk[index[i], index[i]]
                         # mask[index[i]] = 1.0 / gamma
                     i = index.shape[0] + 1
@@ -371,3 +345,34 @@ def aux_build_F_G(F, G, St, Rb2t, time_interval):
             G[3 + i, 0 + j] = Rb2t[i, j] * time_interval
             G[6 + i, 3 + j] = -1.0 * time_interval * Rb2t[i, j]
     # return F, G
+
+
+
+@njit(nopython=True)
+def update_uwb_measurement(x,
+                           v,
+                           p,
+                           time_interval,
+                           beacon_set):
+
+    offset_num = 15
+    mF = np.zeros(shape=(x.shape[0] - offset_num, x.shape[0]))
+    D = v * time_interval
+    if np.linalg.norm(D) < 1e-3:
+        return x, mF
+    for i in prange(mF.shape[0]):
+        ddotbp = D[0] * (beacon_set[i, 0] - p[0]) + D[1] * (beacon_set[i, 1] - p[1]) + D[2] * (
+                beacon_set[i, 2] - p[2])
+        last_bp = np.linalg.norm(beacon_set[i, :] - p)
+        last_m = x[i + offset_num]
+        m = math.sqrt(np.linalg.norm(D) + last_m * last_m - 2.0 * last_m * ddotbp / last_bp)
+        x[i + offset_num] = m
+        mF[i, i + offset_num] = last_m / m - ddotbp / last_bp / m
+        # print(m-last_m)
+        for j in range(3):
+            mF[i, j] = 0.5 / m * (
+                    -1.0 * (ddotbp * (beacon_set[i, j] - p[j]) / (last_bp ** 3.0)) - 1.0 * D[0] / last_bp)
+            mF[i, j + 3] = time_interval * (0.5 / m * (
+                    D[j] / np.linalg.norm(D) - 2.0 * last_m * (beacon_set[i, j] - p[j]) / last_bp))
+
+    return x, mF

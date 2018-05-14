@@ -61,7 +61,7 @@ if __name__ == '__main__':
     start_time = time.time()
     # dir_name = '/home/steve/Data/FusingLocationData/0017/'
     # dir_name = '/home/steve/Data/FusingLocationData/0013/'
-    dir_name = '/home/steve/Data/NewFusingLocationData/0042/'
+    dir_name = '/home/steve/Data/NewFusingLocationData/0036/'
     # dir_name = 'D:/Data/NewFusingLocationData/0033/'
 
     imu_data = np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=',')
@@ -243,7 +243,7 @@ if __name__ == '__main__':
                                                  beacon_set, ref_trace)
                     tekf.measurement_uwb_normal(uwb_data[uwb_index, 1:],
                                                 beacon_set,
-                                                0.1,
+                                                0.02,
                                                 6.0)
                     uwb_est_data[uwb_index, 1:] = tekf.state[15:]
                     uwb_index += 1
@@ -395,6 +395,7 @@ if __name__ == '__main__':
     plt.grid()
     plt.legend()
 
+    print(dir_name)
     print('uwb:', np.mean(rs.eval_points(uwb_trace)))
     print('fusing:', np.mean(rs.eval_points(trace)))
     print('rtrace:', np.mean(rs.eval_points(rtrace)))
