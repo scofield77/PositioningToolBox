@@ -27,7 +27,7 @@ import numpy as np
 import scipy as sp
 import matplotlib.pyplot as plt
 
-from numba import jit
+from numba import jit, prange, njit
 # from numba import float64,jitclass
 
 from AlgorithmTool.ImuTools import *
@@ -109,7 +109,7 @@ class TightIMUWBEKF:
         self.state[3:6] = self.state[3:6] + acc * self.time_interval
         self.state[6:9] = dcm2euler(q2dcm(self.rotation_q))
 
-        @jit(nopython=True, parallel=True)
+        # @njit(nopython=True, cache=True)
         def update_uwb_measurement(x,
                                    v,
                                    p,

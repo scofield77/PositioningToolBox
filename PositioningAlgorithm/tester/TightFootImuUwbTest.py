@@ -235,8 +235,14 @@ if __name__ == '__main__':
 
         ortrace[i, :] = orkf.state[0:3]
         ttrace[i, :] = tekf.state[0:3]
+        vel[i, :] = tekf.state[3:6]
+        ang[i, :] = tekf.state[6:9]
+        ba[i, :] = tekf.state[9:12]
+        bg[i, :] = tekf.state[12:15]
 
-        # print('finished:', rate * 100.0, "% ", i, imu_data.shape[0])
+        if i%200 is 0:
+            rate = float(i)/float(imu_data.shape[0])
+            print('finished:', rate * 100.0, "% ", i, imu_data.shape[0])
 
     end_time = time.time()
     print('totally time:', end_time - start_time, 'data time:', imu_data[-1, 0] - imu_data[0, 0])
@@ -273,11 +279,11 @@ if __name__ == '__main__':
     # aux_plot(imu_data[:, 1:4], 'acc')
     # aux_plot(imu_data[:, 4:7], 'gyr')
     # aux_plot(imu_data[:, 7:10], 'mag')
-    # aux_plot(trace, 'trace')
-    # aux_plot(vel, 'vel')
-    # aux_plot(ang, 'ang')
-    # aux_plot(ba, 'ba')
-    # aux_plot(bg, 'bg')
+    aux_plot(trace, 'trace')
+    aux_plot(vel, 'vel')
+    aux_plot(ang, 'ang')
+    aux_plot(ba, 'ba')
+    aux_plot(bg, 'bg')
 
     # aux_plot(iner_acc, 'inner acc')
 
