@@ -61,7 +61,7 @@ if __name__ == '__main__':
     start_time = time.time()
     # dir_name = '/home/steve/Data/FusingLocationData/0017/'
     # dir_name = '/home/steve/Data/FusingLocationData/0013/'
-    dir_name = '/home/steve/Data/NewFusingLocationData/0039/'
+    dir_name = '/home/steve/Data/NewFusingLocationData/0037/'
 
     # dir_name = 'D:/Data/NewFusingLocationData/0033/'
 
@@ -368,12 +368,12 @@ if __name__ == '__main__':
                                     print('error', uwb_filter_list[j - 1].beacon_set, beacon_set[j - 1, :])
 
                             kf.measurement_uwb(np.asarray(uwb_data[uwb_index, j]),
-                                               np.ones(1) * 0.1,
+                                               np.ones(1) * 0.5,
                                                np.transpose(beacon_set[j - 1, :]))
                             rkf.measurement_uwb_robust(uwb_data[uwb_index, j],
                                                        np.ones(1) * 0.1,
                                                        np.transpose(beacon_set[j - 1, :]),
-                                                       j, 6.0, 2.0)
+                                                       j, 6.0, 1.0)
                             # if uwb_filter_list[j-1].cov<0.02:
                             #     rkf.measurement_uwb(uwb_filter_list[j - 1].m,
                             #                         uwb_filter_list[j - 1].cov,
