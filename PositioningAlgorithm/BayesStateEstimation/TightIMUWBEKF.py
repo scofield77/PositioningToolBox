@@ -263,7 +263,7 @@ class TightIMUWBEKF:
                 H[i, i + 15] = 1.0
                 Rk[i, i] = get_vk_eta(uwb_measurement[i],
                                       self.state,
-                                      np.asarray((cov_m)),
+                                      np.asarray((cov_m)).reshape(-1),
                                       self.prob_state, i)
 
         # print('uwb measurement H:', H)
