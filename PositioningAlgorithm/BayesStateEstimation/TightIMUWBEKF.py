@@ -268,6 +268,7 @@ class TightIMUWBEKF:
             return R_k[0]
 
         # print(uwb_measurement)
+        R_list = list()
         H = np.zeros(shape=(uwb_measurement.shape[0], self.state.shape[0]))
         Rk = np.zeros(shape=(uwb_measurement.shape[0], uwb_measurement.shape[0]))
         for i in range(uwb_measurement.shape[0]):
@@ -278,8 +279,13 @@ class TightIMUWBEKF:
                                       self.state,
                                       np.asarray((cov_m)).reshape(-1),
                                       self.prob_state, i, ka_squard, Td)
+                R_list.append(Rk[i, i])
+
                 # if abs(uwb_measurement[i]-self.state[i+15]) > 2.0:
                 #     H[i, i + 15] = 0.0
+        if np.std(np.asarray(R_list)) > 2.0:
+            for i in range(uwb_measurement.shape[0]):
+                Rk[i, i] = Rk[i,i]/np.mean(np.asarray(R_list))
 
         # print('uwb measurement H:', H)
 
