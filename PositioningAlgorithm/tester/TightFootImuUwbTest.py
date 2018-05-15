@@ -61,7 +61,7 @@ if __name__ == '__main__':
     start_time = time.time()
     # dir_name = '/home/steve/Data/FusingLocationData/0017/'
     # dir_name = '/home/steve/Data/FusingLocationData/0013/'
-    dir_name = '/home/steve/Data/NewFusingLocationData/0036/'
+    dir_name = '/home/steve/Data/NewFusingLocationData/0041/'
     # dir_name = 'D:/Data/NewFusingLocationData/0033/'
 
     imu_data = np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=',')
@@ -236,6 +236,19 @@ if __name__ == '__main__':
         pos=initial_pos,
         ori=initial_orientation
     )
+    tskf = TightIMUWBEKF(
+        t_P,
+        beacon_set.shape[0],
+        beacon_set,
+        local_g=-9.81,
+        time_interval=average_time_interval
+    )
+
+    tskf.initial_state(
+        imu_data[:50, 1:7],
+        pos=initial_pos,
+        ori=initial_orientation
+    )
 
     zv_state = GLRT_Detector(imu_data[:, 1:7],
                              sigma_a=1.0,
@@ -267,6 +280,12 @@ if __name__ == '__main__':
                                                  0.01 * np.pi / 180.0,
                                                  0.01 * np.pi / 180.0))
                                         )
+        tskf.state_transaction_function(imu_data[i, 1:7],
+                                        np.diag((0.01, 0.01, 0.01,
+                                                 0.01 * np.pi / 180.0,
+                                                 0.01 * np.pi / 180.0,
+                                                 0.01 * np.pi / 180.0))
+                                        )
 
         if (i > 5) and (i < imu_data.shape[0] - 5):
             # print('i:',i)
@@ -278,6 +297,8 @@ if __name__ == '__main__':
                                              np.diag((0.0001, 0.0001, 0.0001)))
                 trkf.measurement_function_zv(np.asarray((0, 0, 0)),
                                              np.diag((0.0001, 0.0001, 0.0001)))
+                tskf.measurement_function_zv(np.asarray((0, 0, 0)),
+                                             np.diag((0.0001, 0.0001, 0.0001)))
 
                 a = 1
 
@@ -288,14 +309,18 @@ if __name__ == '__main__':
                                                  np.ones(1) * 0.1,
                                                  beacon_set, ref_trace,
                                                  6.0)
+                    tskf.measurement_uwb_direct(uwb_data[uwb_index, 1:],
+                                                beacon_set,
+                                                1.0)
                     tekf.measurement_uwb_ite_robust(uwb_data[uwb_index, 1:],
                                                     beacon_set,
                                                     0.02,
                                                     6.0)
                     trkf.measurement_uwb_robust(uwb_data[uwb_index, 1:],
                                                 beacon_set,
-                                                0.02,
-                                                6.0, 1.0)
+                                                0.1,
+                                                6.0,
+                                                1.0)
 
                     uwb_est_data[uwb_index, 1:] = tekf.state[15:]
                     uwb_index += 1
@@ -303,7 +328,8 @@ if __name__ == '__main__':
 
         ortrace[i, :] = orkf.state[0:3]
         ttrace[i, :] = tekf.state[0:3]
-        trtrace[i,:] = trkf.state[0:3]
+        trtrace[i, :] = trkf.state[0:3]
+        trace[i, :] = tskf.state[0:3]
         # vel[i, :] = tekf.state[3:6]
         # ang[i, :] = tekf.state[6:9]
         # ba[i, :] = tekf.state[9:12]
@@ -357,12 +383,12 @@ if __name__ == '__main__':
     # aux_plot(iner_acc, 'inner acc')
 
     plt.figure()
-    # plt.plot(trace[:, 0], trace[:, 1], '-', label='fusing')
+    plt.plot(trace[:, 0], trace[:, 1], '-', label='fusing')
     # plt.plot(ftrace[:, 0], ftrace[:, 1], '-', label='foot')
     # plt.plot(rtrace[:, 0], rtrace[:, 1], '-', label='robust')
     plt.plot(ortrace[:, 0], ortrace[:, 1], '-', label='own robust')
     plt.plot(ttrace[:, 0], ttrace[:, 1], '-', label='tight itea')
-    plt.plot(trtrace[:,0],trtrace[:,1],'-',label='tight robust')
+    plt.plot(trtrace[:, 0], trtrace[:, 1], '-', label='tight robust')
     # plt.plot(dtrace[:, 0], dtrace[:, 1], '-', label='d ekf')
     plt.plot(uwb_trace[:, 0], uwb_trace[:, 1], '+', label='uwb')
     # plt.plot(ref_trace[:, 1], ref_trace[:, 2], '-', label='ref')
@@ -441,11 +467,11 @@ if __name__ == '__main__':
 
     start_time = time.time()
     # plt.plot(rs.eval_points(uwb_trace), label='uwb')
-    # plt.plot(rs.eval_points(trace), label='fusing')
+    plt.plot(rs.eval_points(trace), label='fusing')
     # plt.plot(rs.eval_points(rtrace), label='rtrace')
     plt.plot(rs.eval_points(ortrace), label='ortrace')
     plt.plot(rs.eval_points(ttrace), label='ttrace itea')
-    plt.plot(rs.eval_points(trtrace),label='tight robust')
+    plt.plot(rs.eval_points(trtrace), label='tight robust')
     # plt.plot(rs.eval_points(dtrace), label='dtrace')
     # plt.plot(rs.eval_points(ref_trace[:,1:]), label='ref')
     plt.grid()
