@@ -86,9 +86,9 @@ if __name__ == '__main__':
         if uwb_data[:, i].max() > 0.0 and beacon_set[i - 1, 0] < 5000.0:
             uwb_valid.append(i)
     random_index = np.random.randint(0, len(uwb_valid) - 1, len(uwb_valid))
-    # for i in range(min(random_index.shape[0], 10)):  # delete parts of beacons's data
-    #     uwb_data[:, uwb_valid[random_index[i]]] *= 0.0
-    #     uwb_data[:, uwb_valid[random_index[i]]] -= 10.0
+    for i in range(min(random_index.shape[0], 8)):  # delete parts of beacons's data
+        uwb_data[:, uwb_valid[random_index[i]]] *= 0.0
+        uwb_data[:, uwb_valid[random_index[i]]] -= 10.0
     after_valid_list = list()
     for i in range(1, uwb_data.shape[1]):
         if uwb_data[:, i].max() > 0.0 and beacon_set[i - 1, 0] < 5000.0:
@@ -319,7 +319,7 @@ if __name__ == '__main__':
                         1.0)
                     tekf.measurement_uwb_ite_robust(uwb_data[uwb_index, 1:],
                                                     beacon_set,
-                                                    0.02,
+                                                    0.01,
                                                     6.0)
                     trkf.measurement_uwb_robust(uwb_data[uwb_index, 1:],
                                                 beacon_set,
@@ -497,21 +497,20 @@ if __name__ == '__main__':
     print('ref:', np.mean(rs.eval_points(ref_trace[:, 1:])))
     print('eval cost time:', time.time() - start_time)
 
-
     tt_error = rs.eval_points(ttrace)
     ort_error = rs.eval_points(ortrace)
 
     import statsmodels.api as sm
-    ecdf_tt =sm.distributions.ECDF(tt_error)
+
+    ecdf_tt = sm.distributions.ECDF(tt_error)
     ecdf_ort = sm.distributions.ECDF(ort_error)
-    x = np.linspace(0.0,10.0)
+    x = np.linspace(0.0, max(np.max(tt_error),np.max(ort_error)))
     plt.figure()
-    plt.step(x,ecdf_tt(x),label='ttrace error')
-    plt.step(x,ecdf_ort(x),label='ortrace error')
+    plt.step(x, ecdf_tt(x), label='ttrace error')
+    plt.step(x, ecdf_ort(x), label='ortrace error')
 
     plt.legend()
     plt.grid()
-
 
     # plt.figure()
     # plt.title('uwb')
