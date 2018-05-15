@@ -61,7 +61,7 @@ if __name__ == '__main__':
     start_time = time.time()
     # dir_name = '/home/steve/Data/FusingLocationData/0017/'
     # dir_name = '/home/steve/Data/FusingLocationData/0013/'
-    dir_name = '/home/steve/Data/NewFusingLocationData/0036/'
+    dir_name = '/home/steve/Data/NewFusingLocationData/0039/'
     # dir_name = 'D:/Data/NewFusingLocationData/0033/'
 
     imu_data = np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=',')
@@ -332,7 +332,7 @@ if __name__ == '__main__':
         ttrace[i, :] = tekf.state[0:3]
         trtrace[i, :] = trkf.state[0:3]
         trace[i, :] = tskf.state[0:3]
-        # vel[i, :] = tekf.state[3:6]
+        # vel[i, :] = tekf.state[3:6]huozh
         # ang[i, :] = tekf.state[6:9]
         # ba[i, :] = tekf.state[9:12]
         # bg[i, :] = tekf.state[12:15]

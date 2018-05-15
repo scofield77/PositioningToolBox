@@ -278,8 +278,8 @@ class TightIMUWBEKF:
                                       self.state,
                                       np.asarray((cov_m)).reshape(-1),
                                       self.prob_state, i, ka_squard, Td)
-                if abs(uwb_measurement[i]-self.state[i+15]) > 2.0:
-                    H[i, i + 15] = 0.0
+                # if abs(uwb_measurement[i]-self.state[i+15]) > 2.0:
+                #     H[i, i + 15] = 0.0
 
         # print('uwb measurement H:', H)
 
