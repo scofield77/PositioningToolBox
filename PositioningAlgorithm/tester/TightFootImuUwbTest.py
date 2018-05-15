@@ -320,7 +320,7 @@ if __name__ == '__main__':
                                                     6.0)
                     trkf.measurement_uwb_robust(uwb_data[uwb_index, 1:],
                                                 beacon_set,
-                                                0.5,
+                                                0.1,
                                                 6.0,
                                                 1.0)
 
