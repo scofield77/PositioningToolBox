@@ -188,13 +188,13 @@ if __name__ == '__main__':
     # initial_orientation = 95.0 * np.pi / 180.0  # 44
 
     orkf = ImuEKFComplex(np.diag((
-        0.001,
-        0.001,
-        0.001,
-        0.001,
-        0.001,
-        0.001,
-        0.001 * np.pi / 180.0, 0.001 * np.pi / 180.0, 0.001 * np.pi / 180.0,
+        0.1,
+        0.1,
+        0.1,
+        0.1,
+        0.1,
+        0.1,
+        0.1 * np.pi / 180.0, 0.1 * np.pi / 180.0, 0.1 * np.pi / 180.0,
         0.0001,
         0.0001,
         0.0001,
@@ -312,9 +312,11 @@ if __name__ == '__main__':
                                                  np.ones(1) * 0.1,
                                                  beacon_set, ref_trace,
                                                  6.0)
-                    tskf.measurement_uwb_direct(uwb_data[uwb_index, 1:],
-                                                beacon_set,
-                                                1.0)
+                    tskf.measurement_uwb_direct(
+                        # np.linalg.norm(orkf.state[0:3] - beacon_set, axis=1),
+                        uwb_data[uwb_index, 1:],
+                        beacon_set,
+                        1.0)
                     tekf.measurement_uwb_ite_robust(uwb_data[uwb_index, 1:],
                                                     beacon_set,
                                                     0.02,
@@ -322,8 +324,12 @@ if __name__ == '__main__':
                     trkf.measurement_uwb_robust(uwb_data[uwb_index, 1:],
                                                 beacon_set,
                                                 0.1,
-                                                6.0,
+                                                4.0,
                                                 1.0)
+                    # trkf.measurement_uwb_direct(np.linalg.norm(orkf.state[0:3]-beacon_set,axis=1),
+                    #                             beacon_set,
+                    #                             0.1)
+                    # print(np.linalg.norm(orkf.state[0:3]-beacon_set,axis=1),uwb_data[uwb_index,1:])
 
                     uwb_est_data[uwb_index, 1:] = tekf.state[15:]
                     uwb_index += 1
@@ -338,9 +344,9 @@ if __name__ == '__main__':
         # ba[i, :] = tekf.state[9:12]
         # bg[i, :] = tekf.state[12:15]
 
-        if i % 200 is 0:
-            rate = float(i) / float(imu_data.shape[0])
-            print('finished:', rate * 100.0, "% ", i, imu_data.shape[0])
+        # if i % 200 is 0:
+        #     rate = float(i) / float(imu_data.shape[0])
+        #     print('finished:', rate * 100.0, "% ", i, imu_data.shape[0])
 
     end_time = time.time()
     print('totally time:', end_time - start_time, 'data time:', imu_data[-1, 0] - imu_data[0, 0])
@@ -490,6 +496,22 @@ if __name__ == '__main__':
     print('dtrace:', np.mean(rs.eval_points(dtrace)))
     print('ref:', np.mean(rs.eval_points(ref_trace[:, 1:])))
     print('eval cost time:', time.time() - start_time)
+
+
+    tt_error = rs.eval_points(ttrace)
+    ort_error = rs.eval_points(ortrace)
+
+    import statsmodels.api as sm
+    ecdf_tt =sm.distributions.ECDF(tt_error)
+    ecdf_ort = sm.distributions.ECDF(ort_error)
+    x = np.linspace(0.0,10.0)
+    plt.figure()
+    plt.step(x,ecdf_tt(x),label='ttrace error')
+    plt.step(x,ecdf_ort(x),label='ortrace error')
+
+    plt.legend()
+    plt.grid()
+
 
     # plt.figure()
     # plt.title('uwb')
