@@ -214,9 +214,11 @@ class TightIMUWBEKF:
         :return:
         '''
 
-        def get_vk_eta(measurement, state, cov, P, beacon_id):
+        def get_vk_eta(measurement, state, cov, P, beacon_id, self):
             if self.uwb_eta_dict.get(beacon_id) is None:
                 self.uwb_eta_dict[beacon_id] = list()
+            else:
+                print(self.uwb_eta_dict[beacon_id],type(self.uwb_eta_dict))
             z = np.zeros(1)
             y = np.zeros(1)
             z[0] = measurement
@@ -225,7 +227,7 @@ class TightIMUWBEKF:
             H = np.zeros(shape=(1, state.shape[0]))
             H[0, beacon_id + 15] = 1.0
 
-            R_k = np.asarray((cov[0] * 1.0))
+            R_k = np.asarray((cov[0] * 1.0)).reshape(-1)
             v_k = z - y
             eta_k = np.zeros(1)
 
@@ -243,7 +245,7 @@ class TightIMUWBEKF:
                     first_time = False
 
                 if eta_k[0] > ka_squard:
-                    self.uwb_eta_dict[beacon_id[-1]] = eta_k[0]
+                    self.uwb_eta_dict[beacon_id] = eta_k[0]
 
                     serial_length = 5
                     if len(self.uwb_eta_dict[beacon_id]) > serial_length:
@@ -264,7 +266,7 @@ class TightIMUWBEKF:
                 Rk[i, i] = get_vk_eta(uwb_measurement[i],
                                       self.state,
                                       np.asarray((cov_m)).reshape(-1),
-                                      self.prob_state, i)
+                                      self.prob_state, i, self=self)
 
         # print('uwb measurement H:', H)
 
