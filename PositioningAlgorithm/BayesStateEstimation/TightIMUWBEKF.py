@@ -214,13 +214,13 @@ class TightIMUWBEKF:
         :return:
         '''
 
-
+        # @jit(cache=True)
         def get_vk_eta(measurement, state, cov, P, beacon_id):
             if self.uwb_eta_dict.get(beacon_id) is None:
                 self.uwb_eta_dict[beacon_id] = list()
-                print('initial list',beacon_id)
-            else:
-                print(self.uwb_eta_dict[beacon_id],type(self.uwb_eta_dict))
+                # print('initial list',beacon_id)
+            # else:
+            #     print(self.uwb_eta_dict[beacon_id],type(self.uwb_eta_dict))
             z = np.zeros(1)
             y = np.zeros(1)
             z[0] = measurement
@@ -237,7 +237,7 @@ class TightIMUWBEKF:
             first_time = True
             while robust_loop_flag:
                 robust_loop_flag = False
-                print('while ', 'beacon id:',beacon_id)
+                # print('while ', 'beacon id:',beacon_id)
 
                 P_v = (H.dot(P)).dot(np.transpose(H)) + R_k
 
@@ -256,7 +256,7 @@ class TightIMUWBEKF:
                         if lambda_k > Td:
                             robust_loop_flag = True
                             R_k[0] = eta_k[0] / ka_squard * R_k[0]
-                            print(R_k[0])
+                            # print(R_k[0])
             return R_k[0]
 
         # print(uwb_measurement)
