@@ -55,6 +55,9 @@ class TightIMUWBEKF:
         self.uwb_eta_dict = dict()
         self.dx_dict = dict()
 
+
+        self.uwb_eta_list = list()
+
     def initial_state(self, imu_data: np.ndarray,
                       pos=np.asarray((0.0, 0.0, 0.0)),
                       ori: float = 0.0):
@@ -164,7 +167,7 @@ class TightIMUWBEKF:
 
         self.state[9:] = self.state[9:] + dx[9:]
 
-    def measurement_uwb_special(self, uwb_measurement, beacon_set, cov_m):
+    def measurement_uwb_direct(self, uwb_measurement, beacon_set, cov_m):
         '''
         Uwb measurement direct observed uwb measurement in system state.
         :param uwb_measurement:
@@ -203,7 +206,56 @@ class TightIMUWBEKF:
 
         self.state[9:] = self.state[9:] + dx[9:]
 
-    def measurement_uwb_normal(self, uwb_measurement, beacon_set, cov_m, ka_squard=6.0):
+     def measurement_uwb_robust(self, uwb_measurement, beacon_set, cov_m, ka_squard, Td):
+        '''
+        robust
+        :param uwb_measurement:
+        :param beacon_set:
+        :param cov_m:
+        :return:
+        '''
+        # print(uwb_measurement)
+        H = np.zeros(shape=(uwb_measurement.shape[0], self.state.shape[0]))
+        Rk = np.zeros(shape=(uwb_measurement.shape[0], uwb_measurement.shape[0]))
+        for i in range(uwb_measurement.shape[0]):
+            Rk[i, i] = cov_m
+            if uwb_measurement[i] > 0.0 and beacon_set[i, 0] < 5000.0:
+                H[i, i + 15] = 1.0
+        # print('uwb measurement H:', H)
+
+        y = uwb_measurement - H.dot(self.state)
+
+        K = (self.prob_state.dot(np.transpose(H))).dot(
+            np.linalg.inv((H.dot(self.prob_state).dot(np.transpose(H))) + Rk)
+        )
+
+        self.prob_state = (np.identity(self.prob_state.shape[0]) - K.dot(H)).dot(self.prob_state)
+
+        self.prob_state = 0.5 * self.prob_state + 0.5 * np.transpose(self.prob_state)
+
+        dx = K.dot(y)
+        # print('dx:', dx)
+
+        self.state[0:6] = self.state[0:6] + dx[0:6]
+        #
+        self.rotation_q = quaternion_left_update(self.rotation_q, dx[6:9], -1.0)
+        # self.rotation_q = quaternion_right_update(self.rotation_q, dx[6:9], 1.0)
+        #
+        self.state[6:9] = dcm2euler(q2dcm(self.rotation_q))
+
+        self.state[9:] = self.state[9:] + dx[9:]
+
+
+
+    def measurement_uwb_ite_robust(self, uwb_measurement, beacon_set, cov_m, ka_squard=6.0):
+        '''
+
+        :param uwb_measurement:
+        :param beacon_set:
+        :param cov_m:
+        :param ka_squard:
+        :return:
+        '''
         # print(uwb_measurement)
         H = np.zeros(shape=(uwb_measurement.shape[0], self.state.shape[0]))
         Rk = np.zeros(shape=(uwb_measurement.shape[0], uwb_measurement.shape[0]))
