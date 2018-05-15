@@ -242,7 +242,7 @@ class TightIMUWBEKF:
             first_time = True
             while robust_loop_flag:
                 robust_loop_flag = False
-                # print('while ', 'beacon id:',beacon_id)
+                print('while ', 'beacon id:',beacon_id)
 
                 P_v = (H.dot(P)).dot(np.transpose(H)) + R_k
 

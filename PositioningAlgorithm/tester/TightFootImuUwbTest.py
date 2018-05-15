@@ -314,11 +314,11 @@ if __name__ == '__main__':
                     tskf.measurement_uwb_direct(uwb_data[uwb_index, 1:],
                                                 beacon_set,
                                                 1.0)
-                    trkf.measurement_uwb_ite_robust(uwb_data[uwb_index, 1:],
+                    tekf.measurement_uwb_ite_robust(uwb_data[uwb_index, 1:],
                                                     beacon_set,
                                                     0.02,
                                                     6.0)
-                    tekf.measurement_uwb_robust(uwb_data[uwb_index, 1:],
+                    trkf.measurement_uwb_robust(uwb_data[uwb_index, 1:],
                                                 beacon_set,
                                                 1.0,
                                                 6.0,
