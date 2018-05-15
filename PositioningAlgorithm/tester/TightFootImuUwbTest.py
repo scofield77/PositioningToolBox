@@ -266,11 +266,11 @@ if __name__ == '__main__':
                                                  np.ones(1) * 0.1,
                                                  beacon_set, ref_trace,
                                                  6.0)
-                    # tekf.measurement_uwb_normal(uwb_data[uwb_index, 1:],
+                    # tekf.measurement_uwb_ite_robust(uwb_data[uwb_index, 1:],
                     #                             beacon_set,
                     #                             0.02,
                     #                             6.0)
-                    tekf.measurement_uwb_normal(uwb_data[uwb_index, 1:],
+                    tekf.measurement_uwb_robust(uwb_data[uwb_index, 1:],
                                                 beacon_set,
                                                 0.02,
                                                 6.0, 1.0)
@@ -286,9 +286,9 @@ if __name__ == '__main__':
         # ba[i, :] = tekf.state[9:12]
         # bg[i, :] = tekf.state[12:15]
 
-        # if i%200 is 0:
-        #     rate = float(i)/float(imu_data.shape[0])
-        #     print('finished:', rate * 100.0, "% ", i, imu_data.shape[0])
+        if i%200 is 0:
+            rate = float(i)/float(imu_data.shape[0])
+            print('finished:', rate * 100.0, "% ", i, imu_data.shape[0])
 
     end_time = time.time()
     print('totally time:', end_time - start_time, 'data time:', imu_data[-1, 0] - imu_data[0, 0])

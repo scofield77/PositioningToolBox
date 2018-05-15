@@ -55,7 +55,6 @@ class TightIMUWBEKF:
         self.uwb_eta_dict = dict()
         self.dx_dict = dict()
 
-
         # self.uwb_eta_list = list()
 
     def initial_state(self, imu_data: np.ndarray,
@@ -215,37 +214,35 @@ class TightIMUWBEKF:
         :return:
         '''
 
-        def get_vk_eta(measurement, state,cov,P,beacon_id):
+        def get_vk_eta(measurement, state, cov, P, beacon_id):
             if self.uwb_eta_dict.get(beacon_id) is None:
                 self.uwb_eta_dict[beacon_id] = list()
             z = np.zeros(1)
             y = np.zeros(1)
             z[0] = measurement
-            y[0] = state[beacon_id+15]
+            y[0] = state[beacon_id + 15]
 
-            H = np.zeros(shape=(1,state.shape[0]))
-            H[0,beacon_id+15] = 1.0
+            H = np.zeros(shape=(1, state.shape[0]))
+            H[0, beacon_id + 15] = 1.0
 
-
-            R_k = cov * 1.0
-            v_k = z-y
+            R_k = np.asarray((cov[0] * 1.0))
+            v_k = z - y
             eta_k = np.zeros(1)
 
             robust_loop_flag = True
             first_time = True
             while robust_loop_flag:
-                robust_loop_flag=False
+                robust_loop_flag = False
 
-                P_v = (H.dot(P)).dot(np.transpose(H))+R_k
+                P_v = (H.dot(P)).dot(np.transpose(H)) + R_k
 
                 eta_k[0] = (np.transpose(v_k).dot(np.linalg.inv(P_v))).dot(v_k)
 
-
                 if first_time:
                     self.uwb_eta_dict[beacon_id].append(eta_k[0])
-                    first_time=False
+                    first_time = False
 
-                if eta_k[0]>ka_squard:
+                if eta_k[0] > ka_squard:
                     self.uwb_eta_dict[beacon_id[-1]] = eta_k[0]
 
                     serial_length = 5
@@ -254,6 +251,7 @@ class TightIMUWBEKF:
                         if lambda_k > Td:
                             robust_loop_flag = True
                             R_k[0] = eta_k[0] / ka_squard * R_k[0]
+                            print(R_k[0])
             return R_k[0]
 
         # print(uwb_measurement)
@@ -263,7 +261,10 @@ class TightIMUWBEKF:
             Rk[i, i] = cov_m
             if uwb_measurement[i] > 0.0 and beacon_set[i, 0] < 5000.0:
                 H[i, i + 15] = 1.0
-                Rk[i,i] = get_vk_eta(uwb_measurement[i],self.state,cov_m,self.prob_state,i)
+                Rk[i, i] = get_vk_eta(uwb_measurement[i],
+                                      self.state,
+                                      np.asarray((cov_m)),
+                                      self.prob_state, i)
 
         # print('uwb measurement H:', H)
 
@@ -288,8 +289,6 @@ class TightIMUWBEKF:
         self.state[6:9] = dcm2euler(q2dcm(self.rotation_q))
 
         self.state[9:] = self.state[9:] + dx[9:]
-
-
 
     def measurement_uwb_ite_robust(self, uwb_measurement, beacon_set, cov_m, ka_squard=6.0):
         '''
