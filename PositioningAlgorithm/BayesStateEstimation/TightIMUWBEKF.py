@@ -206,7 +206,7 @@ class TightIMUWBEKF:
 
         self.state[9:] = self.state[9:] + dx[9:]
 
-     def measurement_uwb_robust(self, uwb_measurement, beacon_set, cov_m, ka_squard, Td):
+    def measurement_uwb_robust(self, uwb_measurement, beacon_set, cov_m, ka_squard, Td):
         '''
         robust
         :param uwb_measurement:
