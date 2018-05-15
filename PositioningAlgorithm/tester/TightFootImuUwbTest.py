@@ -61,7 +61,7 @@ if __name__ == '__main__':
     start_time = time.time()
     # dir_name = '/home/steve/Data/FusingLocationData/0017/'
     # dir_name = '/home/steve/Data/FusingLocationData/0013/'
-    dir_name = '/home/steve/Data/NewFusingLocationData/0037/'
+    dir_name = '/home/steve/Data/NewFusingLocationData/0036/'
     # dir_name = 'D:/Data/NewFusingLocationData/0033/'
 
     imu_data = np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=',')
@@ -140,7 +140,7 @@ if __name__ == '__main__':
                 uol.iter_positioning((0, 0, 0),
                                      uwb_data[i, 1:])
         else:
-            uwb_trace[i, :], uwb_opt_res[i]
+            uwb_trace[i, :], uwb_opt_res[i] = \
                 uol.iter_positioning(uwb_trace[i - 1, :],
                                      uwb_data[i, 1:])
 

@@ -285,7 +285,7 @@ class TightIMUWBEKF:
                 #     H[i, i + 15] = 0.0
         if np.std(np.asarray(R_list)) > 2.0:
             for i in range(uwb_measurement.shape[0]):
-                Rk[i, i] = Rk[i,i]/np.mean(np.asarray(R_list))
+                Rk[i, i] = Rk[i, i] / np.mean(np.asarray(R_list))
 
         # print('uwb measurement H:', H)
 
