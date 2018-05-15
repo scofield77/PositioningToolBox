@@ -61,7 +61,7 @@ if __name__ == '__main__':
     start_time = time.time()
     # dir_name = '/home/steve/Data/FusingLocationData/0017/'
     # dir_name = '/home/steve/Data/FusingLocationData/0013/'
-    dir_name = '/home/steve/Data/NewFusingLocationData/0042/'
+    dir_name = '/home/steve/Data/NewFusingLocationData/0036/'
     # dir_name = 'D:/Data/NewFusingLocationData/0033/'
 
     imu_data = np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=',')
@@ -182,8 +182,8 @@ if __name__ == '__main__':
     #                                  ref_trace[ti, 1] - ref_trace[0, 1]) - 10.0 * np.pi / 180.0  # 35
     # initial_orientation = math.atan2(ref_trace[ti, 2] - ref_trace[0, 2],
     #                                  ref_trace[ti, 1] - ref_trace[0, 1]) + 150.0 * np.pi / 180.0  # 32
-    # initial_orientation = 110.0 * np.pi / 180.0  # 39
-    initial_orientation = 120 * np.pi / 180.0  # 42
+    initial_orientation = 110.0 * np.pi / 180.0  # 39
+    # initial_orientation = 120 * np.pi / 180.0  # 42
     # initial_orientation = 95.0 * np.pi / 180.0  # 44
 
     orkf = ImuEKFComplex(np.diag((
@@ -320,7 +320,7 @@ if __name__ == '__main__':
                                                     6.0)
                     trkf.measurement_uwb_robust(uwb_data[uwb_index, 1:],
                                                 beacon_set,
-                                                1.0,
+                                                0.5,
                                                 6.0,
                                                 1.0)
 

@@ -236,13 +236,14 @@ class TightIMUWBEKF:
 
             R_k = np.asarray((cov[0] * 1.0)).reshape(-1)
             v_k = z - y
+            print(v_k)
             eta_k = np.zeros(1)
 
             robust_loop_flag = True
             first_time = True
             while robust_loop_flag:
                 robust_loop_flag = False
-                print('while ', 'beacon id:',beacon_id)
+                print('while ', 'beacon id:', beacon_id)
 
                 P_v = (H.dot(P)).dot(np.transpose(H)) + R_k
 
@@ -258,12 +259,12 @@ class TightIMUWBEKF:
                     serial_length = 5
                     if len(self.uwb_eta_dict[beacon_id]) > serial_length:
                         lambda_k = np.std(np.asarray(self.uwb_eta_dict[beacon_id][-serial_length:]))
-                        # print(lambda_k)
+                        print(lambda_k)
                         if lambda_k > Td:
                             robust_loop_flag = True
                             R_k[0] = eta_k[0] / ka_squard * R_k[0]
                             # print(R_k[0])
-            print(R_k)
+            print('R_k:', R_k, 'eta_k:', eta_k[0])
             return R_k[0]
 
         # print(uwb_measurement)
@@ -276,7 +277,9 @@ class TightIMUWBEKF:
                 Rk[i, i] = get_vk_eta(uwb_measurement[i],
                                       self.state,
                                       np.asarray((cov_m)).reshape(-1),
-                                      self.prob_state, i, ka_squard,Td)
+                                      self.prob_state, i, ka_squard, Td)
+                if abs(uwb_measurement[i]-self.state[i+15]) > 2.0:
+                    H[i, i + 15] = 0.0
 
         # print('uwb measurement H:', H)
 
