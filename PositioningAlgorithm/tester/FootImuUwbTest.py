@@ -61,9 +61,8 @@ if __name__ == '__main__':
     start_time = time.time()
     # dir_name = '/home/steve/Data/FusingLocationData/0017/'
     # dir_name = '/home/steve/Data/FusingLocationData/0013/'
-    dir_name = '/home/steve/Data/NewFusingLocationData/0037/'
-
-    # dir_name = 'D:/Data/NewFusingLocationData/0033/'
+    # dir_name = '/home/steve/Data/NewFusingLocationData/0037/'
+    dir_name = 'D:/Data/NewFusingLocationData/0037/'
 
     # imu_data = np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=',')
     imu_data = np.loadtxt(dir_name + 'LEFT_FOOT.data', delimiter=',')
@@ -86,9 +85,9 @@ if __name__ == '__main__':
         if uwb_data[:, i].max() > 0.0 and beacon_set[i - 1, 0] < 5000.0:
             uwb_valid.append(i)
     random_index = np.random.randint(0, len(uwb_valid) - 1, len(uwb_valid))
-    for i in range(min(random_index.shape[0], 10)):  # delete parts of beacons's data
-        uwb_data[:, uwb_valid[random_index[i]]] *= 0.0
-        uwb_data[:, uwb_valid[random_index[i]]] -= 10.0
+    # for i in range(min(random_index.shape[0], 10)):  # delete parts of beacons's data
+    #     uwb_data[:, uwb_valid[random_index[i]]] *= 0.0
+    #     uwb_data[:, uwb_valid[random_index[i]]] -= 10.0
     after_valid_list = list()
     for i in range(1, uwb_data.shape[1]):
         if uwb_data[:, i].max() > 0.0 and beacon_set[i - 1, 0] < 5000.0:
@@ -545,6 +544,17 @@ if __name__ == '__main__':
     print('ref:', np.mean(rs.eval_points(ref_trace[:, 1:])))
     print('eval cost time:', time.time() - start_time)
 
+    # import statsmodels.api as sm
+    #
+    # ecdf_tt = sm.distributions.ECDF(tt_error)
+    # ecdf_ort = sm.distributions.ECDF(ort_error)
+    # x = np.linspace(0.0, max(np.max(tt_error), np.max(ort_error)))
+    # plt.figure()
+    # plt.step(x, ecdf_tt(x), label='ttrace error')
+    # plt.step(x, ecdf_ort(x), label='ortrace error')
+    #
+    # plt.legend()
+    # plt.grid()
     # plt.figure()
     # plt.title('uwb')
     # for i in range(1, uwb_data.shape[1]):
