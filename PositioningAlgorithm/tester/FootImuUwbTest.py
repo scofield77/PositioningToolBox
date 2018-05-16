@@ -85,7 +85,7 @@ if __name__ == '__main__':
         if uwb_data[:, i].max() > 0.0 and beacon_set[i - 1, 0] < 5000.0:
             uwb_valid.append(i)
     random_index = np.random.randint(0, len(uwb_valid) - 1, len(uwb_valid))
-    # for i in range(min(random_index.shape[0], 10)):  # delete parts of beacons's data
+    # for i in range(min(random_index.shape[0], 7)):  # delete parts of beacons's data
     #     uwb_data[:, uwb_valid[random_index[i]]] *= 0.0
     #     uwb_data[:, uwb_valid[random_index[i]]] -= 10.0
     after_valid_list = list()
