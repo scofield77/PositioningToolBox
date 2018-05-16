@@ -62,7 +62,7 @@ if __name__ == '__main__':
     # dir_name = '/home/steve/Data/FusingLocationData/0017/'
     # dir_name = '/home/steve/Data/FusingLocationData/0013/'
     # dir_name = '/home/steve/Data/NewFusingLocationData/0037/'
-    dir_name = 'D:/Data/NewFusingLocationData/0037/'
+    dir_name = 'D:/Data/NewFusingLocationData/0036/'
 
     # imu_data = np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=',')
     imu_data = np.loadtxt(dir_name + 'LEFT_FOOT.data', delimiter=',')
@@ -85,7 +85,7 @@ if __name__ == '__main__':
         if uwb_data[:, i].max() > 0.0 and beacon_set[i - 1, 0] < 5000.0:
             uwb_valid.append(i)
     random_index = np.random.randint(0, len(uwb_valid) - 1, len(uwb_valid))
-    for i in range(min(random_index.shape[0], 8)):  # delete parts of beacons's data
+    for i in range(min(random_index.shape[0], 6)):  # delete parts of beacons's data
         uwb_data[:, uwb_valid[random_index[i]]] *= 0.0
         uwb_data[:, uwb_valid[random_index[i]]] -= 10.0
     after_valid_list = list()
@@ -168,7 +168,9 @@ if __name__ == '__main__':
     #                                  ref_trace[ti, 1] - ref_trace[0, 1]) - 10.0 * np.pi / 180.0  # 35
     # initial_orientation = math.atan2(ref_trace[ti, 2] - ref_trace[0, 2],
     #                                  ref_trace[ti, 1] - ref_trace[0, 1]) + 150.0 * np.pi / 180.0  # 32
-    initial_orientation = 80.0 * np.pi / 180.0  # 38-45
+    # initial_orientation = 80.0 * np.pi / 180.0  # 38-45
+    initial_orientation = 50.0 * np.pi / 180.0  # 36
+    # initial_orientation = 80.0 * np.pi / 180.0  # 37
     # initial_orientation = 110.0 * np.pi / 180.0  # 39
 
     #  initial_orientation = 200.0 / 180.0 * np.pi
