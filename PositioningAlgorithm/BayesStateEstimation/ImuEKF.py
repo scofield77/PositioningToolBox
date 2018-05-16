@@ -428,7 +428,7 @@ class ImuEKFComplex:
                     # i=index.shape[0]+1
             # if break_flag:
             #     break
-            print(mask)
+            # print(mask)
 
             K = (pminus.dot(np.transpose(H))).dot(
                 np.linalg.inv(H.dot(pminus.dot(np.transpose(H))) + Rk))
@@ -439,7 +439,7 @@ class ImuEKFComplex:
             xplus = xminus + dx
             # break
             # print('it')
-        print('-----')
+        # print('-----')
         # print(ite_counter)
 
         self.state = self.state + dx

@@ -85,9 +85,9 @@ if __name__ == '__main__':
         if uwb_data[:, i].max() > 0.0 and beacon_set[i - 1, 0] < 5000.0:
             uwb_valid.append(i)
     random_index = np.random.randint(0, len(uwb_valid) - 1, len(uwb_valid))
-    # for i in range(min(random_index.shape[0], 7)):  # delete parts of beacons's data
-    #     uwb_data[:, uwb_valid[random_index[i]]] *= 0.0
-    #     uwb_data[:, uwb_valid[random_index[i]]] -= 10.0
+    for i in range(min(random_index.shape[0], 8)):  # delete parts of beacons's data
+        uwb_data[:, uwb_valid[random_index[i]]] *= 0.0
+        uwb_data[:, uwb_valid[random_index[i]]] -= 10.0
     after_valid_list = list()
     for i in range(1, uwb_data.shape[1]):
         if uwb_data[:, i].max() > 0.0 and beacon_set[i - 1, 0] < 5000.0:
@@ -447,65 +447,66 @@ if __name__ == '__main__':
 
     # aux_plot(iner_acc, 'inner acc')
 
+    # plt.figure()
+    # plt.plot(trace[:, 0], trace[:, 1], '-', label='fusing')
+    # plt.plot(ftrace[:, 0], ftrace[:, 1], '-', label='foot')
+    # plt.plot(rtrace[:, 0], rtrace[:, 1], '-', label='robust')
+    # plt.plot(ortrace[:, 0], ortrace[:, 1], '-', label='own robust')
+    # # plt.plot(dtrace[:, 0], dtrace[:, 1], '-', label='d ekf')
+    # plt.plot(uwb_trace[:, 0], uwb_trace[:, 1], '+', label='uwb')
+    # # plt.plot(ref_trace[:, 1], ref_trace[:, 2], '-', label='ref')
+    # for i in range(beacon_set.shape[0]):
+    #     plt.text(beacon_set[i, 0], beacon_set[i, 1], s=str(i + 1))
+    # plt.legend()
+    # plt.grid()
+
     plt.figure()
+    plt.title('clear compare')
     plt.plot(trace[:, 0], trace[:, 1], '-', label='fusing')
     plt.plot(ftrace[:, 0], ftrace[:, 1], '-', label='foot')
     plt.plot(rtrace[:, 0], rtrace[:, 1], '-', label='robust')
     plt.plot(ortrace[:, 0], ortrace[:, 1], '-', label='own robust')
-    # plt.plot(dtrace[:, 0], dtrace[:, 1], '-', label='d ekf')
+    # plt.plot(dtrace[:, 0], dtrace[:, 1], '-+', label='d ekf')
     plt.plot(uwb_trace[:, 0], uwb_trace[:, 1], '+', label='uwb')
     # plt.plot(ref_trace[:, 1], ref_trace[:, 2], '-', label='ref')
     for i in range(beacon_set.shape[0]):
-        plt.text(beacon_set[i, 0], beacon_set[i, 1], s=str(i + 1))
+        if uwb_data[i + 1, :].max() > 0 and beacon_set[i, 0] < 5000.0:
+            plt.text(beacon_set[i, 0], beacon_set[i, 1], s=str(i + 1))
     plt.legend()
     plt.grid()
 
-    plt.figure()
-    plt.title('clear compare')
-    # plt.plot(trace[:, 0], trace[:, 1], '-', label='fusing')
-    # plt.plot(ftrace[:, 0], ftrace[:, 1], '-', label='foot')
-    plt.plot(rtrace[:, 0], rtrace[:, 1], '-', label='robust')
-    plt.plot(ortrace[:, 0], ortrace[:, 1], '-+', label='own robust')
-    plt.plot(dtrace[:, 0], dtrace[:, 1], '-+', label='d ekf')
-    plt.plot(uwb_trace[:, 0], uwb_trace[:, 1], '+', label='uwb')
-    # plt.plot(ref_trace[:, 1], ref_trace[:, 2], '-', label='ref')
-    for i in range(beacon_set.shape[0]):
-        plt.text(beacon_set[i, 0], beacon_set[i, 1], s=str(i + 1))
-    plt.legend()
-    plt.grid()
-
-    plt.figure()
-    plt.subplot(411)
-    plt.title('uwb estimated')
-    for i in range(1, uwb_est_data.shape[1]):
-        if uwb_data[:, i].max() > 0.0 and beacon_set[i - 1, 0] < 5000.0:
-            plt.plot(uwb_est_data[:, 0], uwb_est_data[:, i], '-+', label=str(i))
-    plt.legend()
-    plt.grid()
-    plt.subplot(412)
-    plt.title('uwb')
-    for i in range(1, uwb_est_data.shape[1]):
-        if uwb_data[:, i].max() > 0.0 and beacon_set[i - 1, 0] < 5000.0:
-            plt.plot(uwb_est_data[:, 0], uwb_data[:, i], '+', label=str(i))
-    plt.legend()
-    plt.grid()
-    plt.subplot(413)
-    plt.title('uwb dif')
-    for i in range(1, uwb_est_data.shape[1]):
-        if uwb_data[:, i].max() > 0.0 and beacon_set[i - 1, 0] < 5000.0:
-            index_list = np.where(uwb_data[:, i] > 0.0)
-            # print(index_list)
-            plt.plot(uwb_est_data[index_list[0], 0], uwb_est_data[index_list[0], i] - uwb_data[index_list[0], i], '-+',
-                     label=str(i))
-    plt.legend()
-    plt.grid()
-    plt.subplot(414)
-    plt.title('uwb prob')
-    for i in range(1, uwb_est_data.shape[1]):
-        if uwb_data[:, i].max() > 0.0 and beacon_set[i - 1, 0] < 5000.0:
-            plt.plot(uwb_est_data[:, 0], uwb_est_prob[:, i], '+', label=str(i))
-    plt.legend()
-    plt.grid()
+    # plt.figure()
+    # plt.subplot(411)
+    # plt.title('uwb estimated')
+    # for i in range(1, uwb_est_data.shape[1]):
+    #     if uwb_data[:, i].max() > 0.0 and beacon_set[i - 1, 0] < 5000.0:
+    #         plt.plot(uwb_est_data[:, 0], uwb_est_data[:, i], '-+', label=str(i))
+    # plt.legend()
+    # plt.grid()
+    # plt.subplot(412)
+    # plt.title('uwb')
+    # for i in range(1, uwb_est_data.shape[1]):
+    #     if uwb_data[:, i].max() > 0.0 and beacon_set[i - 1, 0] < 5000.0:
+    #         plt.plot(uwb_est_data[:, 0], uwb_data[:, i], '+', label=str(i))
+    # plt.legend()
+    # plt.grid()
+    # plt.subplot(413)
+    # plt.title('uwb dif')
+    # for i in range(1, uwb_est_data.shape[1]):
+    #     if uwb_data[:, i].max() > 0.0 and beacon_set[i - 1, 0] < 5000.0:
+    #         index_list = np.where(uwb_data[:, i] > 0.0)
+    #         # print(index_list)
+    #         plt.plot(uwb_est_data[index_list[0], 0], uwb_est_data[index_list[0], i] - uwb_data[index_list[0], i], '-+',
+    #                  label=str(i))
+    # plt.legend()
+    # plt.grid()
+    # plt.subplot(414)
+    # plt.title('uwb prob')
+    # for i in range(1, uwb_est_data.shape[1]):
+    #     if uwb_data[:, i].max() > 0.0 and beacon_set[i - 1, 0] < 5000.0:
+    #         plt.plot(uwb_est_data[:, 0], uwb_est_prob[:, i], '+', label=str(i))
+    # plt.legend()
+    # plt.grid()
 
     # plt.figure()
     # plt.title('corrected result')
@@ -514,15 +515,15 @@ if __name__ == '__main__':
     #     if uwb_data[:, i].max() > 0.0 and beacon_set[i - 1, 0] < 5000.0:
     #         plt.plot(uwb_est_data[:, 0], uwb_est_data[:, i], '-+', label=str(i))
 
-    fig = plt.figure()
-    ax = fig.add_subplot(111, projection='3d')
-    ax.plot(trace[:, 0], trace[:, 1], trace[:, 2], '-+', label='trace')
-    ax.plot(rtrace[:, 0], rtrace[:, 1], rtrace[:, 2], '-+', label='robust')
-    ax.plot(ortrace[:, 0], ortrace[:, 1], ortrace[:, 2], '-+', label='own robust')
-    ax.plot(uwb_trace[:, 0], uwb_trace[:, 1], uwb_trace[:, 2], '+', label='uwb')
-    ax.grid()
-    ax.legend()
-
+    # fig = plt.figure()
+    # ax = fig.add_subplot(111, projection='3d')
+    # ax.plot(trace[:, 0], trace[:, 1], trace[:, 2], '-+', label='trace')
+    # ax.plot(rtrace[:, 0], rtrace[:, 1], rtrace[:, 2], '-+', label='robust')
+    # ax.plot(ortrace[:, 0], ortrace[:, 1], ortrace[:, 2], '-+', label='own robust')
+    # ax.plot(uwb_trace[:, 0], uwb_trace[:, 1], uwb_trace[:, 2], '+', label='uwb')
+    # ax.grid()
+    # ax.legend()
+    #
     rs = Refscor(dir_name)
     plt.figure()
 
@@ -531,12 +532,14 @@ if __name__ == '__main__':
     plt.plot(rs.eval_points(trace), label='fusing')
     plt.plot(rs.eval_points(rtrace), label='rtrace')
     plt.plot(rs.eval_points(ortrace), label='ortrace')
-    plt.plot(rs.eval_points(dtrace), label='dtrace')
+    # plt.plot(rs.eval_points(dtrace), label='dtrace')
     # plt.plot(rs.eval_points(ref_trace[:,1:]), label='ref')
+    plt.grid()
     plt.legend()
 
     print('dir name:', dir_name)
     print('uwb:', np.mean(rs.eval_points(uwb_trace)))
+    print('foot:', np.mean(rs.eval_points(ftrace)))
     print('fusing:', np.mean(rs.eval_points(trace)))
     print('rtrace:', np.mean(rs.eval_points(rtrace)))
     print('ortrace:', np.mean(rs.eval_points(ortrace)))
@@ -544,17 +547,27 @@ if __name__ == '__main__':
     print('ref:', np.mean(rs.eval_points(ref_trace[:, 1:])))
     print('eval cost time:', time.time() - start_time)
 
-    # import statsmodels.api as sm
+    import statsmodels.api as sm
+
+    f_error = rs.eval_points(ftrace)
+    t_error = rs.eval_points(trace)
+    r_error = rs.eval_points(rtrace)
+    or_error = rs.eval_points(ortrace)
     #
-    # ecdf_tt = sm.distributions.ECDF(tt_error)
-    # ecdf_ort = sm.distributions.ECDF(ort_error)
-    # x = np.linspace(0.0, max(np.max(tt_error), np.max(ort_error)))
-    # plt.figure()
-    # plt.step(x, ecdf_tt(x), label='ttrace error')
-    # plt.step(x, ecdf_ort(x), label='ortrace error')
+    ecdf_f = sm.distributions.ECDF(f_error)
+    ecdf_t = sm.distributions.ECDF(t_error)
+    ecdf_r = sm.distributions.ECDF(r_error)
+    ecdf_or = sm.distributions.ECDF(or_error)
+    x = np.linspace(0.0, max(np.max(r_error), np.max(or_error)))
+    plt.figure()
+    plt.title('CDF')
+    plt.step(x, ecdf_f(x), label='foot imu error')
+    plt.step(x, ecdf_t(x), label='standard fusing')
+    plt.step(x, ecdf_r(x), label='robust ekf')
+    plt.step(x, ecdf_or(x), label='own robust iekf')
     #
-    # plt.legend()
-    # plt.grid()
+    plt.legend()
+    plt.grid()
     # plt.figure()
     # plt.title('uwb')
     # for i in range(1, uwb_data.shape[1]):
