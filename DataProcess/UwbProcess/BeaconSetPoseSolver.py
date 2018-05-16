@@ -33,7 +33,8 @@ from mpl_toolkits.mplot3d import Axes3D
 from numba import jit
 
 if __name__ == '__main__':
-    beacon_set = np.loadtxt('/home/steve/Data/NewFusingLocationData/0044/beaconset_no_mac.csv', delimiter=',')
+    # beacon_set = np.loadtxt('/home/steve/Data/NewFusingLocationData/0044/beaconset_no_mac.csv', delimiter=',')
+    beacon_set = np.loadtxt('D:/Data/NewFusingLocationData/0044/beaconset_no_mac.csv', delimiter=',')
 
     know_beacon = beacon_set[29:37, :]
     # 0 34483C38, 58.37, 40.35, 2.17
@@ -165,8 +166,8 @@ if __name__ == '__main__':
         ), dtype=np.int32).reshape(-1, 2)
 
         map_range = np.asarray(
-            (40.0, 65.0,
-             15.0, 50.0)
+            (0.0, 100.0,
+             0.0, 100.0)
         ).reshape(-1, 2)
 
         relution = 1.0 / 10.0#relusiont
@@ -219,7 +220,7 @@ if __name__ == '__main__':
     # ax.plot_surface(surf_mat[:, 0], surf_mat[:, 1], surf_mat[:, 2])
     # ax.scatter(surf_mat[:, 0], surf_mat[:, 1], surf_mat[:, 2])
     # ax.grid()
-    dir_name = '/home/steve/Data/NewFusingLocationData/'
+    dir_name = 'D:/Data/NewFusingLocationData/'
     beacon_set[14, :] = unknow_beacon[0, :]
     beacon_set[37:, :] = unknow_beacon[1:-1, :]
 

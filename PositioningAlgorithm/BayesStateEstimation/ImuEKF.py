@@ -323,7 +323,6 @@ class ImuEKFComplex:
         Rk = np.identity(measurement.shape[0], float) * cov_m[0]
         dx = np.zeros(self.state.shape[0])
 
-
         ite_counter = 0
         while np.linalg.norm(xplus - xop) > 0.01 and ite_counter < 30:
             ite_counter += 1
@@ -350,7 +349,7 @@ class ImuEKFComplex:
 
         self.prob_state = pplus
 
-    def measurement_uwb_iterate(self, measurement, cov_m, beacon_set, ref_trace, ka_squard = 10.0):
+    def measurement_uwb_iterate(self, measurement, cov_m, beacon_set, ref_trace, ka_squard=10.0):
         '''
         Robust iekf based uwb measurement
         :param measurement:
@@ -383,7 +382,6 @@ class ImuEKFComplex:
         Rk = np.identity(measurement.shape[0], float) * cov_m[0]
         dx = np.zeros(self.state.shape[0])
 
-
         # weight for dx.
         mask = np.zeros(measurement.shape[0])
         ite_counter = 0
@@ -400,8 +398,6 @@ class ImuEKFComplex:
             index = np.argsort(np.abs(v))
             break_flag = False
 
-
-
             for i in range(index.shape[0]):
                 if mask[index[i]] < 100.01:
                     pv = (H[index[i], :].dot(pplus)).dot(np.transpose(H[index[i], :])) + Rk[index[i], index[i]]
@@ -410,7 +406,7 @@ class ImuEKFComplex:
                     # print(pv, v[index[i]])
                     # ka_squard = 7.0
 
-                    if gamma < ka_squard :#or i < np.floor(index.shape[0] / 2):
+                    if gamma < ka_squard:  # or i < np.floor(index.shape[0] / 2):
                         # break_flag=True
                         mask[index[i]] = 1.0
                         # Rk[index[i],index[i]]=cov_m[0]
@@ -424,6 +420,7 @@ class ImuEKFComplex:
                         Rk[index[i], index[i]] = gamma / ka_squard * Rk[index[i], index[i]]
                         # mask[index[i]] = 1.0 / gamma
                     i = index.shape[0] + 1
+                    # print(gamma)
 
                     # i=index.shape[0]+1
             # if break_flag:
@@ -437,9 +434,10 @@ class ImuEKFComplex:
             # if tp_plus
             dx = K.dot((measurement - y - H.dot(xminus - xop)) * mask)
             xplus = xminus + dx
+            # print(np.linalg.norm(pplus[0:3, 0:3]))
             # break
             # print('it')
-        # print('-----')
+        print('-----')
         # print(ite_counter)
 
         self.state = self.state + dx
