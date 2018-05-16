@@ -40,6 +40,7 @@ class Refscor:
         for name in os.listdir(file_dir):
             rem = re.compile('[0-9\.\-]{1,100}npy$')
             if rem.match(name):
+                print(name)
                 self.score_data = np.load(file_dir + name)
                 name = name.split('.npy')[0]
                 self.map_range = np.asarray(
@@ -72,22 +73,30 @@ class Refscor:
         :return:
         '''
         scores = np.zeros(shape=(points.shape[0]))
-        scores  = scores + self.max_score
+        scores = scores + self.max_score
 
         # @jit(parallel=True, nopython=True)
-        @njit(parallel=True)
-        def scores_cal(ss, pts, map_range, relution, sd):
+        # @njit(parallel=True)
+        def scores_cal(ss, pts, map_range, relution, sd,max):
+            first_error = True
             for i in prange(ss.shape[0]):
                 # ss[i] = rf.eval_point2d(pts[i, :2])
-                if map_range[0,0]<pts[i,0] <map_range[0,1] and map_range[1,0]<pts[i,1]<map_range[1,1]:
+                if map_range[0, 0] < pts[i, 0] < map_range[0, 1] and\
+                        map_range[1, 0] < pts[i, 1] < map_range[1, 1]:
                     ss[i] = sd[int((pts[i, 0] - map_range[0, 0]) / relution),
                                int((pts[i, 1] - map_range[1, 0]) / relution)]
+                else:
+                    if first_error:
+                        print('err:', pts[i,:],map_range)
+                        first_error=False
+                    ss[i] =max
             return ss
 
         return scores_cal(ss=scores, pts=points,
                           map_range=self.map_range,
                           relution=self.relution,
-                          sd=self.score_data)
+                          sd=self.score_data,
+                          max = self.max_score)
 
 
 if __name__ == '__main__':

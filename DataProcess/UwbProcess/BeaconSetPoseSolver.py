@@ -133,18 +133,24 @@ if __name__ == '__main__':
 
     @jit(nopython=True)
     def p2line(p, p0, p1):
-        dis = ((p0[1] - p1[1]) * p[0] + (p1[0] - p0[0]) * p[1] + p0[0] * p1[1] - p1[0] * p0[1]) / np.linalg.norm(
-            p1 - p0)
-        dis = abs(dis)
 
+        dis = -100
         c = np.linalg.norm(p1 - p0)
         a = np.linalg.norm(p - p0)
         b = np.linalg.norm(p - p1)
         if a ** 2.0 > c ** 2.0 + b ** 2.0:
             dis = b
+            return dis
         if b ** 2.0 > a ** 2.0 + c ** 2.0:
             dis = a
-
+            return dis
+        dis = ((p0[1] - p1[1]) * p[0] + (p1[0] - p0[0]) * p[1] + p0[0] * p1[1] - p1[0] * p0[1]) / np.linalg.norm(
+            p1 - p0)
+        dis = abs(dis)
+        if dis < 0:
+            print(p, p0, p1, a, b, c, dis)
+        # dis = min(dis,a)
+        # dis = min(dis,b)
         return dis
 
 
@@ -165,12 +171,14 @@ if __name__ == '__main__':
             5, 3
         ), dtype=np.int32).reshape(-1, 2)
 
+        # range of generated score map
         map_range = np.asarray(
-            (-20.0, 100.0,
-             -20.0, 100.0)
+
+            (1.0, 100.0,
+             1.0, 100.0)
         ).reshape(-1, 2)
 
-        relution = 1.0 / 10.0#relusiont
+        relution = 1.0 / 20.0  # relusiont
         # map_matrix = np.zeros()
 
         import array
@@ -238,13 +246,13 @@ if __name__ == '__main__':
                 # print(dir_name + sub_dir + '/beaconset_fill.csv')
                 np.savetxt(dir_name + sub_dir + '/beaconset_fill.csv', beacon_set, delimiter=',')
                 np.save(dir_name + sub_dir + '/{0}-{1}-{2}-{3}'.format(map_range[0, 0],
-                                                                      map_range[0, 1],
-                                                                      map_range[1, 0],
-                                                                      map_range[1, 1]),
+                                                                       map_range[0, 1],
+                                                                       map_range[1, 0],
+                                                                       map_range[1, 1]),
                         full_array)
 
 
-    # save_file(dir_name)
+    save_file(dir_name)
 
     plt.figure()
     plt.plot(unknow_beacon[:, 0], unknow_beacon[:, 1], 'r*')
