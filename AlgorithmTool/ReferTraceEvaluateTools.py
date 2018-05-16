@@ -46,8 +46,8 @@ class Refscor:
                     ([float(x) for x in name.split('-')])
                 ).reshape(2, 2)
                 self.relution = (self.map_range[0, 1] - self.map_range[0, 0]) / float(self.score_data.shape[0])
-                # print(self.map_range)
-                print(self.relution)
+                print(self.map_range)
+                # print(self.relution)
         self.max_score = np.max(self.score_data)
 
     def eval_point2d(self, point):
@@ -91,7 +91,8 @@ class Refscor:
 
 
 if __name__ == '__main__':
-    dir_name = '/home/steve/Data/NewFusingLocationData/0039/'
+    # dir_name = '/home/steve/Data/NewFusingLocationData/0039/'
+    dir_name = 'D:/Data/NewFusingLocationData/0039/'
     ref_trace = np.loadtxt(dir_name + 'ref_trace.csv', delimiter=',')
 
     # print(ref_trace)

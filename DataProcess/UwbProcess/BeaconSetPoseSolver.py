@@ -166,8 +166,8 @@ if __name__ == '__main__':
         ), dtype=np.int32).reshape(-1, 2)
 
         map_range = np.asarray(
-            (0.0, 100.0,
-             0.0, 100.0)
+            (-20.0, 100.0,
+             -20.0, 100.0)
         ).reshape(-1, 2)
 
         relution = 1.0 / 10.0#relusiont
