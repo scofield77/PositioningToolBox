@@ -62,7 +62,7 @@ if __name__ == '__main__':
     # dir_name = '/home/steve/Data/FusingLocationData/0017/'
     # dir_name = '/home/steve/Data/FusingLocationData/0013/'
     # dir_name = '/home/steve/Data/NewFusingLocationData/0037/'
-    dir_name = 'D:/Data/NewFusingLocationData/0036/'
+    dir_name = 'D:/Data/NewFusingLocationData/0040/'
 
     # imu_data = np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=',')
     imu_data = np.loadtxt(dir_name + 'LEFT_FOOT.data', delimiter=',')
@@ -169,7 +169,8 @@ if __name__ == '__main__':
     # initial_orientation = math.atan2(ref_trace[ti, 2] - ref_trace[0, 2],
     #                                  ref_trace[ti, 1] - ref_trace[0, 1]) + 150.0 * np.pi / 180.0  # 32
     # initial_orientation = 80.0 * np.pi / 180.0  # 38-45
-    initial_orientation = 50.0 * np.pi / 180.0  # 36
+    # initial_orientation = 50.0 * np.pi / 180.0  # 36
+    initial_orientation = 80.0 * np.pi / 180.0  # 38
     # initial_orientation = 80.0 * np.pi / 180.0  # 37
     # initial_orientation = 110.0 * np.pi / 180.0  # 39
 

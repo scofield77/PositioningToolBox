@@ -29,6 +29,7 @@ import scipy as sp
 from scipy.optimize import minimize
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+from numba import jit,njit,prange
 
 from numba import jit
 
@@ -154,6 +155,7 @@ if __name__ == '__main__':
         return dis
 
 
+    # @jit(parallel=True)
     def generate_score_matrix():
         '''
         Generate score matrix(min distance to reference trajectory)
@@ -178,7 +180,7 @@ if __name__ == '__main__':
              1.0, 100.0)
         ).reshape(-1, 2)
 
-        relution = 1.0 / 20.0  # relusiont
+        relution = 1.0 / 50.0  # relusiont
         # map_matrix = np.zeros()
 
         import array
