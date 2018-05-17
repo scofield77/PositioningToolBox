@@ -90,6 +90,7 @@ if __name__ == '__main__':
     #     uwb_data[:, uwb_valid[random_index[i]]] *= 0.0
     #     uwb_data[:, uwb_valid[random_index[i]]] -= 10.0
     delet_index = [30, 31, 34, 35, 36]  # use 3 beacons
+    print('delet index:', type(delet_index), delet_index)
     for i in range(len(delet_index)):
         print('deleted:', i)
         uwb_data[:, delet_index[i]] *= 0.0
