@@ -74,8 +74,8 @@ if __name__ == '__main__':
     # uwb_data = np.loadtxt(dir_name + 'uwb_result.csv', delimiter=',')
     # beacon_set = np.loadtxt(dir_name + 'beaconSet.csv', delimiter=',')
     uwb_data = np.loadtxt(dir_name + 'uwb_data.csv', delimiter=',')
-    # beacon_set = np.loadtxt(dir_name + 'beaconset_no_mac.csv', delimiter=',')
-    beacon_set = np.loadtxt(dir_name + 'beaconset_fill.csv', delimiter=',')
+    beacon_set = np.loadtxt(dir_name + 'beaconset_no_mac.csv', delimiter=',')
+    # beacon_set = np.loadtxt(dir_name + 'beaconset_fill.csv', delimiter=',')
 
     '''
     Delete some beacon's data randomly.
@@ -113,9 +113,9 @@ if __name__ == '__main__':
     stime = time.time()
 
 
-    # @jit(parallel=True)
+    @jit( cache=True)
     def cal(uwb_trace):
-        for i in prange(uwb_data.shape[0]):
+        for i in range(uwb_data.shape[0]):
             if i is 0:
                 uwb_trace[i, :], uwb_opt_res[i] = \
                     uol.iter_positioning((0, 0, 0),
@@ -128,7 +128,7 @@ if __name__ == '__main__':
 
 
     uwb_trace = cal(uwb_trace)
-    print('uwb coast time:', time.time() - stime)
+    print('uwb cost time:', time.time() - stime)
 
     # ref_trace = np.loadtxt(dir_name + 'ref_trace.csv', delimiter=',')
 
@@ -476,7 +476,7 @@ if __name__ == '__main__':
     #     if uwb_data[i + 1, :].max() > 0 and beacon_set[i, 0] < 5000.0:
     #         plt.text(beacon_set[i, 0], beacon_set[i, 1], s=str(i + 1))
     for i in after_valid_list:
-        plt.text(beacon_set[i, 0], beacon_set[i, 1], s=str(i))
+        plt.text(beacon_set[i - 1, 0], beacon_set[i - 1, 1], s=str(i))
     plt.legend()
     plt.grid()
 
