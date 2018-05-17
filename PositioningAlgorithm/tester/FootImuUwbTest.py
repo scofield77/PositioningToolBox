@@ -416,6 +416,17 @@ if __name__ == '__main__':
         plt.legend()
 
 
+    uwb_id_offset = 28
+
+    color_dict = {
+        'ref': 'gray',
+        'UWB': 'lightblue',
+        'Foot': 'darkorange',
+        'Standard': 'seagreen',
+        'REKF': 'blue',
+        'RIEKF': 'red'
+    }
+
     # plot dx list
 
     # if len(rkf.dx_dict) > 0:
@@ -460,27 +471,36 @@ if __name__ == '__main__':
 
     plt.figure()
     plt.title('clear compare')
-    plt.plot(trace[:, 0], trace[:, 1], '-', label='fusing')
-    plt.plot(ftrace[:, 0], ftrace[:, 1], '-', label='foot')
-    plt.plot(rtrace[:, 0], rtrace[:, 1], '-', label='robust')
-    plt.plot(ortrace[:, 0], ortrace[:, 1], '-', label='own robust')
+    plt.plot(trace[:, 0], trace[:, 1], '-', color=color_dict['Standard'], label='Standard EKF')
+    plt.plot(ftrace[:, 0], ftrace[:, 1], '-', color=color_dict['Foot'], label='Foot')
+    plt.plot(rtrace[:, 0], rtrace[:, 1], '-', color=color_dict['REKF'], label='Robust EKF')
+    plt.plot(ortrace[:, 0], ortrace[:, 1], '-', color=color_dict['RIEKF'], label='Robust IEKF')
     # plt.plot(dtrace[:, 0], dtrace[:, 1], '-+', label='d ekf')
-    plt.plot(uwb_trace[:, 0], uwb_trace[:, 1], '+', label='uwb')
+    plt.plot(uwb_trace[:, 0], uwb_trace[:, 1], '+', color=color_dict['UWB'], label='uwb')
     # plt.plot(ref_trace[:, 1], ref_trace[:, 2], '-', label='ref')
     # for i in range(beacon_set.shape[0]):
     #     if uwb_data[i + 1, :].max() > 0 and beacon_set[i, 0] < 5000.0:
     #         plt.text(beacon_set[i, 0], beacon_set[i, 1], s=str(i + 1))
-    for i in after_valid_list:
-        plt.text(beacon_set[i - 1, 0], beacon_set[i - 1, 1], s=str(i))
+    for i in range(len(uwb_valid)):
+        plt.text(beacon_set[uwb_valid[i] - 1, 0], beacon_set[uwb_valid[i] - 1, 1], s=str(i))
+
     plt.legend()
     plt.grid()
 
     plt.figure()
-    for i in range(beacon_set.shape[0]):
-        if uwb_data[:,i+1].max() > 0 and beacon_set[i, 0] < 5000.0:
-            plt.plot(uwb_data[:, 0] - uwb_data[0, 0], uwb_data[:, i+1],'+', label='id:' + str(i))
-    plt.grid()
+    # for i in range(beacon_set.shape[0]):
+    #     if uwb_data[:,i+1].max() > 0 and beacon_set[i, 0] < 5000.0:
+    #         plt.plot(uwb_data[:, 0] - uwb_data[0, 0], uwb_data[:, i+1],'+', label='id:' + str(i-uwb_id_offset))
+    for i in range(len(uwb_valid)):
+        plt.plot(uwb_data[:, 0] - uwb_data[0, 0], uwb_data[:, uwb_valid[i]], '+', label='id:' + str(i))
+    # plt.grid()
     plt.legend()
+    plt.xlabel('Time/s')
+    plt.ylabel('Range/m')
+    plt.title('UWB measurements')
+    plt.tight_layout()
+    plt.xlim(0.0, uwb_data[-1, 0] - uwb_data[0, 0] + 10.0)
+    plt.ylim(0.0, np.max(uwb_data[:, 1:]) + 2.0)
 
     # plt.figure()
     # plt.subplot(411)
@@ -535,14 +555,20 @@ if __name__ == '__main__':
     plt.figure()
 
     start_time = time.time()
+
     # plt.plot(rs.eval_points(uwb_trace), label='uwb')
-    plt.plot(rs.eval_points(trace), label='fusing')
-    plt.plot(rs.eval_points(rtrace), label='rtrace')
-    plt.plot(rs.eval_points(ortrace), label='ortrace')
+    plt.plot(rs.eval_points(trace), color=color_dict['Standard'], label='Standard EKF')
+    plt.plot(rs.eval_points(rtrace), color=color_dict['REKF'], label='Robust EKF')
+    plt.plot(rs.eval_points(ortrace), color=color_dict['RIEKF'], label='Robust IEKF')
     # plt.plot(rs.eval_points(dtrace), label='dtrace')
     # plt.plot(rs.eval_points(ref_trace[:,1:]), label='ref')
-    plt.grid()
+    # plt.grid()
     plt.legend()
+    plt.xlabel('Time step')
+    plt.ylabel('MSE/m')
+    plt.xlim(0,trace.shape[0])
+    plt.ylim(ymin=0.0)
+    plt.title('MSE')
 
     print('dir name:', dir_name)
     print('uwb:', np.mean(rs.eval_points(uwb_trace)))
@@ -568,13 +594,17 @@ if __name__ == '__main__':
     x = np.linspace(0.0, max(np.max(r_error), np.max(or_error)))
     plt.figure()
     plt.title('CDF')
-    plt.step(x, ecdf_f(x), label='foot imu error')
-    plt.step(x, ecdf_t(x), label='standard fusing')
-    plt.step(x, ecdf_r(x), label='robust ekf')
-    plt.step(x, ecdf_or(x), label='own robust iekf')
+    plt.step(x, ecdf_f(x), color=color_dict['Foot'], label='Foot')
+    plt.step(x, ecdf_t(x), color=color_dict['Standard'], label='Standard EKF')
+    plt.step(x, ecdf_r(x), color=color_dict['REKF'], label='Robust EKF')
+    plt.step(x, ecdf_or(x), color=color_dict['RIEKF'], label='Robust IEKF')
     #
     plt.legend()
-    plt.grid()
+    plt.xlabel('MSE/m')
+    plt.ylabel('Probability')
+    plt.xlim(xmin=0.0)
+    plt.ylim(0.0,1.0)
+    # plt.grid()
     # plt.figure()
     # plt.title('uwb')
     # for i in range(1, uwb_data.shape[1]):
