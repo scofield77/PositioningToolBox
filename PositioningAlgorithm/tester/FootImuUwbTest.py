@@ -77,6 +77,9 @@ if __name__ == '__main__':
     beacon_set = np.loadtxt(dir_name + 'beaconset_no_mac.csv', delimiter=',')
     # beacon_set = np.loadtxt(dir_name + 'beaconset_fill.csv', delimiter=',')
 
+
+    ref_vis = np.loadtxt(dir_name+'ref_vis.csv',delimiter=',')
+
     initial_pos = np.asarray((48.19834796,
                               44.89176719,
                               2.0))
@@ -100,12 +103,15 @@ if __name__ == '__main__':
     # for i in range(min(random_index.shape[0], 6)):  # delete parts of beacons's data
     #     uwb_data[:, uwb_valid[random_index[i]]] *= 0.0
     #     uwb_data[:, uwb_valid[random_index[i]]] -= 10.0
-    delet_index = [30, 31, 34, 35, 36]  # use 3 beacons
-    print('delet index:', type(delet_index), delet_index)
-    for i in range(len(delet_index)):
-        print('deleted:', i)
-        uwb_data[:, delet_index[i]] *= 0.0
-        uwb_data[:, delet_index[i]] -= 10.0
+
+
+    # delet_index = [30, 33, 35, 36]  # use 3 beacons
+    # delet_index = [30, 31, 33, 34, 35]  # use 2 beacons
+    # print('delet index:', type(delet_index), delet_index)
+    # for i in range(len(delet_index)):
+    #     print('deleted:', delet_index[i])
+    #     uwb_data[:, delet_index[i]] *= 0.0
+    #     uwb_data[:, delet_index[i]] -= 10.0
 
     after_valid_list = list()
     for i in range(1, uwb_data.shape[1]):
@@ -477,7 +483,9 @@ if __name__ == '__main__':
     # plt.grid()
 
     plt.figure()
-    plt.title('clear compare')
+    plt.title('Trajectory')
+    for i in range(ref_vis.shape[0]):
+        plt.plot([ref_vis[i,0],ref_vis[i,2]],[ref_vis[i,1],ref_vis[i,3]],'-',color=color_dict['ref'],alpha=0.5,lw='10')
     plt.plot(trace[:, 0], trace[:, 1], '-', color=color_dict['Standard'], label='Standard EKF')
     plt.plot(ftrace[:, 0], ftrace[:, 1], '-', color=color_dict['Foot'], label='Foot')
     plt.plot(rtrace[:, 0], rtrace[:, 1], '-', color=color_dict['REKF'], label='Robust EKF')
@@ -488,8 +496,11 @@ if __name__ == '__main__':
     # for i in range(beacon_set.shape[0]):
     #     if uwb_data[i + 1, :].max() > 0 and beacon_set[i, 0] < 5000.0:
     #         plt.text(beacon_set[i, 0], beacon_set[i, 1], s=str(i + 1))
+
     for i in range(len(uwb_valid)):
-        plt.text(beacon_set[uwb_valid[i] - 1, 0], beacon_set[uwb_valid[i] - 1, 1], s=str(i))
+        if uwb_data[:, uwb_valid[i]].max() > 0:
+            plt.text(beacon_set[uwb_valid[i] - 1, 0], beacon_set[uwb_valid[i] - 1, 1], s=str(i))
+            plt.plot(beacon_set[uwb_valid[i] - 1, 0], beacon_set[uwb_valid[i] - 1, 1], 'r*')
 
     plt.legend()
     plt.grid()
@@ -601,7 +612,7 @@ if __name__ == '__main__':
     x = np.linspace(0.0, max(np.max(r_error), np.max(or_error)))
     plt.figure()
     plt.title('CDF')
-    plt.step(x, ecdf_f(x), color=color_dict['Foot'], label='Foot')
+    # plt.step(x, ecdf_f(x), color=color_dict['Foot'], label='Foot')
     plt.step(x, ecdf_t(x), color=color_dict['Standard'], label='Standard EKF')
     plt.step(x, ecdf_r(x), color=color_dict['REKF'], label='Robust EKF')
     plt.step(x, ecdf_or(x), color=color_dict['RIEKF'], label='Robust IEKF')

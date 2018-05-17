@@ -29,7 +29,7 @@ import scipy as sp
 from scipy.optimize import minimize
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-from numba import jit,njit,prange
+from numba import jit, njit, prange
 
 from numba import jit
 
@@ -180,7 +180,7 @@ if __name__ == '__main__':
              1.0, 100.0)
         ).reshape(-1, 2)
 
-        relution = 1.0 / 50.0  # relusiont
+        relution = 1.0 / 5.0  # relusiont
         # map_matrix = np.zeros()
 
         import array
@@ -254,7 +254,7 @@ if __name__ == '__main__':
                         full_array)
 
 
-    save_file(dir_name)
+    # save_file(dir_name)
 
     plt.figure()
     plt.plot(unknow_beacon[:, 0], unknow_beacon[:, 1], 'r*')
@@ -270,6 +270,19 @@ if __name__ == '__main__':
     # lp = generate_score_matrix()
     for i in range(lp.shape[0]):
         plt.plot(unknow_beacon[lp[i, :], 0], unknow_beacon[lp[i, :], 1], label='line' + str(i))
+
+    ref_tra_vis = np.zeros(shape=(lp.shape[0], 4))
+    for i in range(lp.shape[0]):
+        ref_tra_vis[i, :2] = unknow_beacon[lp[i, 0], :2]
+        ref_tra_vis[i, -2:] = unknow_beacon[lp[i, 1], :2]
+    import os
+    import re
+
+    for sub_dir in os.listdir(dir_name):
+        dm = re.compile('^[0-9]{4}$')
+        # print(sub_dir)
+        if dm.match(sub_dir):
+            np.savetxt(dir_name+ sub_dir + '/ref_vis.csv', ref_tra_vis, delimiter=',')
 
     plt.legend()
 
