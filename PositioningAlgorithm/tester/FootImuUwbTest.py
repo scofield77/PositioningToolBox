@@ -77,6 +77,17 @@ if __name__ == '__main__':
     beacon_set = np.loadtxt(dir_name + 'beaconset_no_mac.csv', delimiter=',')
     # beacon_set = np.loadtxt(dir_name + 'beaconset_fill.csv', delimiter=',')
 
+    initial_pos = np.asarray((48.19834796,
+                              44.89176719,
+                              2.0))
+
+    # initial_orientation = 80.0 * np.pi / 180.0  # 38-45
+    # initial_orientation = 50.0 * np.pi / 180.0  # 36
+    # initial_orientation = 80.0 * np.pi / 180.0  # 38
+    # initial_orientation = 80.0 * np.pi / 180.0  # 37
+    # initial_orientation = 110.0 * np.pi / 180.0  # 39
+    initial_orientation = 80.0 * np.pi / 180.0  # 40
+
     '''
     Delete some beacon's data randomly.
     '''
@@ -84,14 +95,16 @@ if __name__ == '__main__':
     for i in range(1, uwb_data.shape[1]):
         if uwb_data[:, i].max() > 0.0 and beacon_set[i - 1, 0] < 5000.0:
             uwb_valid.append(i)
+
     random_index = np.random.randint(0, len(uwb_valid) - 1, len(uwb_valid))
-    for i in range(min(random_index.shape[0], 6)):  # delete parts of beacons's data
-        uwb_data[:, uwb_valid[random_index[i]]] *= 0.0
-        uwb_data[:, uwb_valid[random_index[i]]] -= 10.0
+    # for i in range(min(random_index.shape[0], 6)):  # delete parts of beacons's data
+    #     uwb_data[:, uwb_valid[random_index[i]]] *= 0.0
+    #     uwb_data[:, uwb_valid[random_index[i]]] -= 10.0
     after_valid_list = list()
     for i in range(1, uwb_data.shape[1]):
         if uwb_data[:, i].max() > 0.0 and beacon_set[i - 1, 0] < 5000.0:
             after_valid_list.append(i)
+            print(i, beacon_set[i - 1, :])
     print('before valid:', len(uwb_valid), uwb_valid)
     print('after  valid:', len(after_valid_list), after_valid_list)
     '''
@@ -113,17 +126,17 @@ if __name__ == '__main__':
     stime = time.time()
 
 
-    @jit( cache=True)
+    # @njit( cache=True)
     def cal(uwb_trace):
         for i in range(uwb_data.shape[0]):
             if i is 0:
                 uwb_trace[i, :], uwb_opt_res[i] = \
-                    uol.iter_positioning((0, 0, 0),
-                                         uwb_data[i, 1:])
+                    uol.positioning_function(initial_pos,
+                                             uwb_data[i, 1:])
             else:
                 uwb_trace[i, :], uwb_opt_res[i] = \
-                    uol.iter_positioning(uwb_trace[i - 1, :],
-                                         uwb_data[i, 1:])
+                    uol.positioning_function(uwb_trace[i - 1, :],
+                                             uwb_data[i, 1:])
         return uwb_trace
 
 
@@ -156,25 +169,6 @@ if __name__ == '__main__':
 
     average_time_interval = (imu_data[-1, 0] - imu_data[0, 0]) / float(imu_data.shape[0])
     print('average time interval ', average_time_interval)
-
-    # initial_pos = ref_trace[0, 1:]
-    initial_pos = np.asarray((48.19834796,
-                              44.89176719,
-                              2.0))
-    ti = 1
-    while np.linalg.norm(ref_trace[ti, 1:] - ref_trace[0, 1:]) < 5.0:
-        ti += 1
-    # initial_orientation = math.atan2(ref_trace[ti, 2] - ref_trace[0, 2],
-    #                                  ref_trace[ti, 1] - ref_trace[0, 1]) - 10.0 * np.pi / 180.0  # 35
-    # initial_orientation = math.atan2(ref_trace[ti, 2] - ref_trace[0, 2],
-    #                                  ref_trace[ti, 1] - ref_trace[0, 1]) + 150.0 * np.pi / 180.0  # 32
-    # initial_orientation = 80.0 * np.pi / 180.0  # 38-45
-    # initial_orientation = 50.0 * np.pi / 180.0  # 36
-    initial_orientation = 80.0 * np.pi / 180.0  # 38
-    # initial_orientation = 80.0 * np.pi / 180.0  # 37
-    # initial_orientation = 110.0 * np.pi / 180.0  # 39
-
-    #  initial_orientation = 200.0 / 180.0 * np.pi
 
     kf = ImuEKFComplex(np.diag((
         0.001, 0.001, 0.001,
@@ -383,6 +377,7 @@ if __name__ == '__main__':
                     drkf.measurement_uwb_iterate(np.asarray(uwb_est_data[uwb_index, 1:]),
                                                  np.ones(1) * 0.1,
                                                  beacon_set, ref_trace, ka_squard=6.0)
+                    # uwb_est_data[uwb_index, 1:] = np.linalg.norm(rkf.state[0:3] - beacon_set)
                     # for j in range(1,uwb_data.shape[1]):
                     #     if uwb_filter_list[j-1].m > -1000.0:
                     #         uwb_filter_list[j-1].state_estimate(drkf.state[0:3],drkf.prob_state[0:3,0:3])
@@ -480,6 +475,13 @@ if __name__ == '__main__':
     plt.legend()
     plt.grid()
 
+    plt.figure()
+    for i in range(beacon_set.shape[0]):
+        if uwb_data[:,i+1].max() > 0 and beacon_set[i, 0] < 5000.0:
+            plt.plot(uwb_data[:, 0] - uwb_data[0, 0], uwb_data[:, i+1],'+', label='id:' + str(i))
+    plt.grid()
+    plt.legend()
+
     # plt.figure()
     # plt.subplot(411)
     # plt.title('uwb estimated')
@@ -512,7 +514,7 @@ if __name__ == '__main__':
     #         plt.plot(uwb_est_data[:, 0], uwb_est_prob[:, i], '+', label=str(i))
     # plt.legend()
     # plt.grid()
-
+    #
     # plt.figure()
     # plt.title('corrected result')
     # plt.subplot(211)
