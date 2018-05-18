@@ -62,7 +62,7 @@ if __name__ == '__main__':
     # dir_name = '/home/steve/Data/FusingLocationData/0017/'
     # dir_name = '/home/steve/Data/FusingLocationData/0013/'
     # dir_name = '/home/steve/Data/NewFusingLocationData/0036/'
-    dir_name = 'D:/Data/NewFusingLocationData/0036/'
+    dir_name = 'D:/Data/NewFusingLocationData/0040/'
 
     imu_data = np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=',')
     # imu_data = np.loadtxt(dir_name + 'LEFT_FOOT.data', delimiter=',')
@@ -89,7 +89,8 @@ if __name__ == '__main__':
     # # for i in range(min(random_index.shape[0], 8)):  # delete parts of beacons's data
     #     uwb_data[:, uwb_valid[random_index[i]]] *= 0.0
     #     uwb_data[:, uwb_valid[random_index[i]]] -= 10.0
-    delet_index = [30, 31, 34, 35, 36]  # use 3 beacons
+    # delet_index = [30, 31, 34, 35, 36]  # use 3 beacons
+    delet_index = [30, 31, 33, 34, 35]  # use 2 beacons
     print('delet index:', type(delet_index), delet_index)
     for i in range(len(delet_index)):
         print('deleted:', i)
@@ -189,10 +190,16 @@ if __name__ == '__main__':
     #                                  ref_trace[ti, 1] - ref_trace[0, 1]) - 10.0 * np.pi / 180.0  # 35
     # initial_orientation = math.atan2(ref_trace[ti, 2] - ref_trace[0, 2],
     #                                  ref_trace[ti, 1] - ref_trace[0, 1]) + 150.0 * np.pi / 180.0  # 32
-    initial_orientation = 110.0 * np.pi / 180.0  # 39
-    initial_orientation = 95.0 * np.pi / 180.0  # 37
+    # initial_orientation = 110.0 * np.pi / 180.0  # 39
+    # initial_orientation = 95.0 * np.pi / 180.0  # 37
     # initial_orientation = 120 * np.pi / 180.0  # 42
     # initial_orientation = 95.0 * np.pi / 180.0  # 44
+    # initial_orientation = 80.0 * np.pi / 180.0  # 38-45
+    # initial_orientation = 50.0 * np.pi / 180.0  # 36
+    # initial_orientation = 80.0 * np.pi / 180.0  # 38
+    # initial_orientation = 80.0 * np.pi / 180.0  # 37
+    # initial_orientation = 110.0 * np.pi / 180.0  # 39
+    initial_orientation = 80.0 * np.pi / 180.0  # 40
 
     orkf = ImuEKFComplex(np.diag((
         0.1,
@@ -316,9 +323,9 @@ if __name__ == '__main__':
 
                 if uwb_index < uwb_data.shape[0] - 1:
                     orkf.measurement_uwb_iterate(np.asarray(uwb_data[uwb_index, 1:]),
-                                                 np.ones(1) * 0.1,
+                                                 np.ones(1) * 0.01,
                                                  beacon_set, ref_trace,
-                                                 6.0)
+                                                 10.0)
                     tskf.measurement_uwb_direct(
                         # np.linalg.norm(orkf.state[0:3] - beacon_set, axis=1),
                         uwb_data[uwb_index, 1:],
@@ -327,11 +334,11 @@ if __name__ == '__main__':
                     tekf.measurement_uwb_ite_robust(uwb_data[uwb_index, 1:],
                                                     beacon_set,
                                                     0.01,
-                                                    6.0)
+                                                    10.0)
                     trkf.measurement_uwb_robust(uwb_data[uwb_index, 1:],
                                                 beacon_set,
-                                                0.1,
-                                                4.0,
+                                                0.01,
+                                                6.0,
                                                 1.0)
                     # trkf.measurement_uwb_direct(np.linalg.norm(orkf.state[0:3]-beacon_set,axis=1),
                     #                             beacon_set,
