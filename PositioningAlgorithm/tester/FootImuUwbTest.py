@@ -103,13 +103,13 @@ if __name__ == '__main__':
     #     uwb_data[:, uwb_valid[random_index[i]]] *= 0.0
     #     uwb_data[:, uwb_valid[random_index[i]]] -= 10.0
 
-    delet_index = [30, 33, 35, 36]  # use 3 beacons
+    # delet_index = [30, 33, 35, 36]  # use 3 beacons
     # delet_index = [30, 31, 33, 34, 35]  # use 2 beacons
-    print('delet index:', type(delet_index), delet_index)
-    for i in range(len(delet_index)):
-        print('deleted:', delet_index[i])
-        uwb_data[:, delet_index[i]] *= 0.0
-        uwb_data[:, delet_index[i]] -= 10.0
+    # print('delet index:', type(delet_index), delet_index)
+    # for i in range(len(delet_index)):
+    #     print('deleted:', delet_index[i])
+    #     uwb_data[:, delet_index[i]] *= 0.0
+    #     uwb_data[:, delet_index[i]] -= 10.0
 
     after_valid_list = list()
     for i in range(1, uwb_data.shape[1]):
