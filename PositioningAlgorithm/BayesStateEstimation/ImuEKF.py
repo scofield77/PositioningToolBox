@@ -434,10 +434,10 @@ class ImuEKFComplex:
             # if tp_plus
             dx = K.dot((measurement - y - H.dot(xminus - xop)) * mask)
             xplus = xminus + dx
-            # print(np.linalg.norm(pplus[0:3, 0:3]))
+            print(np.linalg.norm(pplus[0:3, 0:3]))
             # break
             # print('it')
-        # print('-----')
+        print('-----')
         # print(ite_counter)
 
         self.state = self.state + dx
