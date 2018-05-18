@@ -103,13 +103,13 @@ if __name__ == '__main__':
     #     uwb_data[:, uwb_valid[random_index[i]]] *= 0.0
     #     uwb_data[:, uwb_valid[random_index[i]]] -= 10.0
 
-    # delet_index = [30, 33, 35, 36]  # use 3 beacons
+    delet_index = [30, 33, 35, 36]  # use 3 beacons
     # delet_index = [30, 31, 33, 34, 35]  # use 2 beacons
-    # print('delet index:', type(delet_index), delet_index)
-    # for i in range(len(delet_index)):
-    #     print('deleted:', delet_index[i])
-    #     uwb_data[:, delet_index[i]] *= 0.0
-    #     uwb_data[:, delet_index[i]] -= 10.0
+    print('delet index:', type(delet_index), delet_index)
+    for i in range(len(delet_index)):
+        print('deleted:', delet_index[i])
+        uwb_data[:, delet_index[i]] *= 0.0
+        uwb_data[:, delet_index[i]] -= 10.0
 
     after_valid_list = list()
     for i in range(1, uwb_data.shape[1]):
@@ -587,22 +587,23 @@ if __name__ == '__main__':
     plt.ylim(ymin=0.0)
     plt.title('MSE')
 
-    print('dir name:', dir_name)
-    print('uwb:', np.mean(rs.eval_points(uwb_trace)))
-    print('foot:', np.mean(rs.eval_points(ftrace)))
-    print('fusing:', np.mean(rs.eval_points(trace)))
-    print('rtrace:', np.mean(rs.eval_points(rtrace)))
-    print('ortrace:', np.mean(rs.eval_points(ortrace)))
-    print('dtrace:', np.mean(rs.eval_points(dtrace)))
-    print('ref:', np.mean(rs.eval_points(ref_trace[:, 1:])))
-    print('eval cost time:', time.time() - start_time)
-
-    import statsmodels.api as sm
-
+    u_error = rs.eval_points(uwb_trace)
     f_error = rs.eval_points(ftrace)
     t_error = rs.eval_points(trace)
     r_error = rs.eval_points(rtrace)
     or_error = rs.eval_points(ortrace)
+    print('dir name:', dir_name)
+    print('uwb:', np.mean(u_error), np.std(u_error))
+    print('foot:', np.mean(f_error), np.std(f_error))
+    print('fusing:', np.mean(t_error), np.std(t_error))
+    print('rtrace:', np.mean(r_error), np.std(r_error))
+    print('ortrace:', np.mean(or_error), np.std(or_error))
+    # print('dtrace:', np.mean(rs.eval_points(dtrace)))
+    # print('ref:', np.mean(rs.eval_points(ref_trace[:, 1:])))
+    print('eval cost time:', time.time() - start_time)
+
+    import statsmodels.api as sm
+
     #
     ecdf_f = sm.distributions.ECDF(f_error)
     ecdf_t = sm.distributions.ECDF(t_error)
