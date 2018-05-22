@@ -62,7 +62,7 @@ if __name__ == '__main__':
     # dir_name = '/home/steve/Data/FusingLocationData/0017/'
     # dir_name = '/home/steve/Data/FusingLocationData/0013/'
     # dir_name = '/home/steve/Data/NewFusingLocationData/0040/'
-    dir_name = 'D:/Data/NewFusingLocationData/0040/'
+    dir_name = 'D:/Data/NewFusingLocationData/0039/'
 
     # imu_data = np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=',')
     imu_data = np.loadtxt(dir_name + 'LEFT_FOOT.data', delimiter=',')
@@ -87,8 +87,8 @@ if __name__ == '__main__':
     # initial_orientation = 50.0 * np.pi / 180.0  # 36
     # initial_orientation = 80.0 * np.pi / 180.0  # 38
     # initial_orientation = 80.0 * np.pi / 180.0  # 37
-    # initial_orientation = 110.0 * np.pi / 180.0  # 39
-    initial_orientation = 80.0 * np.pi / 180.0  # 40
+    initial_orientation = 80.0 * np.pi / 180.0  # 39
+    # initial_orientation = 80.0 * np.pi / 180.0  # 40
 
     '''
     Delete some beacon's data randomly.
