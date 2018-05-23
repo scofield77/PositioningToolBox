@@ -62,7 +62,7 @@ if __name__ == '__main__':
     # dir_name = '/home/steve/Data/FusingLocationData/0017/'
     # dir_name = '/home/steve/Data/FusingLocationData/0013/'
     # dir_name = '/home/steve/Data/NewFusingLocationData/0040/'
-    dir_name = 'D:/Data/NewFusingLocationData/0043/'
+    dir_name = 'D:/Data/NewFusingLocationData/0039/'
 
     # imu_data = np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=',')
     imu_data = np.loadtxt(dir_name + 'LEFT_FOOT.data', delimiter=',')
@@ -103,13 +103,13 @@ if __name__ == '__main__':
     #     uwb_data[:, uwb_valid[random_index[i]]] *= 0.0
     #     uwb_data[:, uwb_valid[random_index[i]]] -= 10.0
 
-    # delet_index = [30, 33, 35, 36]  # use 3 beacons
+    delet_index = [30, 33, 35, 36]  # use 3 beacons
     # delet_index = [30, 31, 33, 34, 35]  # use 2 beacons
     # print('delet index:', type(delet_index), delet_index)
-    # for i in range(len(delet_index)):
-    #     print('deleted:', delet_index[i])
-    #     uwb_data[:, delet_index[i]] *= 0.0
-    #     uwb_data[:, delet_index[i]] -= 10.0
+    for i in range(len(delet_index)):
+        print('deleted:', delet_index[i])
+        uwb_data[:, delet_index[i]] *= 0.0
+        uwb_data[:, delet_index[i]] -= 10.0
 
     after_valid_list = list()
     for i in range(1, uwb_data.shape[1]):
@@ -486,11 +486,11 @@ if __name__ == '__main__':
         plt.plot([ref_vis[i, 0], ref_vis[i, 2]], [ref_vis[i, 1], ref_vis[i, 3]], '-', color=color_dict['ref'],
                  alpha=0.5, lw='10')
     plt.plot(trace[:, 0], trace[:, 1], '-', color=color_dict['Standard'], label='Standard EKF')
-    plt.plot(ftrace[:, 0], ftrace[:, 1], '-', color=color_dict['Foot'], label='Foot')
+    # plt.plot(ftrace[:, 0], ftrace[:, 1], '-', color=color_dict['Foot'], label='Foot')
     plt.plot(rtrace[:, 0], rtrace[:, 1], '-', color=color_dict['REKF'], label='Robust EKF')
     plt.plot(ortrace[:, 0], ortrace[:, 1], '-', color=color_dict['RIEKF'], label='Robust IEKF')
     # plt.plot(dtrace[:, 0], dtrace[:, 1], '-+', label='d ekf')
-    plt.plot(uwb_trace[:, 0], uwb_trace[:, 1], '+', color=color_dict['UWB'], label='uwb')
+    # plt.plot(uwb_trace[:, 0], uwb_trace[:, 1], '+', color=color_dict['UWB'], label='uwb')
     # plt.plot(ref_trace[:, 1], ref_trace[:, 2], '-', label='ref')
     # for i in range(beacon_set.shape[0]):
     #     if uwb_data[i + 1, :].max() > 0 and beacon_set[i, 0] < 5000.0:
