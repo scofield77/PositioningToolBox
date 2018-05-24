@@ -186,21 +186,30 @@ if __name__ == '__main__':
     ti = 1
     while np.linalg.norm(ref_trace[ti, 1:] - ref_trace[0, 1:]) < 5.0:
         ti += 1
-    # initial_orientation = math.atan2(ref_trace[ti, 2] - ref_trace[0, 2],
-    #                                  ref_trace[ti, 1] - ref_trace[0, 1]) - 10.0 * np.pi / 180.0  # 35
-    # initial_orientation = math.atan2(ref_trace[ti, 2] - ref_trace[0, 2],
-    #                                  ref_trace[ti, 1] - ref_trace[0, 1]) + 150.0 * np.pi / 180.0  # 32
-    # initial_orientation = 110.0 * np.pi / 180.0  # 39
-    # initial_orientation = 95.0 * np.pi / 180.0  # 37
-    # initial_orientation = 120 * np.pi / 180.0  # 42
-    # initial_orientation = 95.0 * np.pi / 180.0  # 44
+
+        ## Right foot
+    # # initial_orientation = math.atan2(ref_trace[ti, 2] - ref_trace[0, 2],
+    # #                                  ref_trace[ti, 1] - ref_trace[0, 1]) - 10.0 * np.pi / 180.0  # 35
+    # # initial_orientation = math.atan2(ref_trace[ti, 2] - ref_trace[0, 2],
+    # #                                  ref_trace[ti, 1] - ref_trace[0, 1]) + 150.0 * np.pi / 180.0  # 32
+    # # initial_orientation = 110.0 * np.pi / 180.0  # 39
+    # # initial_orientation = 95.0 * np.pi / 180.0  # 37
+    # # initial_orientation = 120 * np.pi / 180.0  # 42
+    # # initial_orientation = 95.0 * np.pi / 180.0  # 44
+    # # initial_orientation = 80.0 * np.pi / 180.0  # 38-45
+    # # initial_orientation = 50.0 * np.pi / 180.0  # 36
+    # # initial_orientation = 80.0 * np.pi / 180.0  # 38
+    # # initial_orientation = 80.0 * np.pi / 180.0  # 37
+    # # initial_orientation = 110.0 * np.pi / 180.0  # 39
+    # initial_orientation = 80.0 * np.pi / 180.0  # 40
+
+    # left foot
     # initial_orientation = 80.0 * np.pi / 180.0  # 38-45
     # initial_orientation = 50.0 * np.pi / 180.0  # 36
     # initial_orientation = 80.0 * np.pi / 180.0  # 38
     # initial_orientation = 80.0 * np.pi / 180.0  # 37
-    # initial_orientation = 110.0 * np.pi / 180.0  # 39
+    # initial_orientation = 80.0 * np.pi / 180.0  # 39
     initial_orientation = 80.0 * np.pi / 180.0  # 40
-
     orkf = ImuEKFComplex(np.diag((
         0.1,
         0.1,
