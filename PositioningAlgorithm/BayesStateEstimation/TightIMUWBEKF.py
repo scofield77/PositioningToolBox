@@ -281,8 +281,8 @@ class TightIMUWBEKF:
                                       self.prob_state, i, ka_squard, Td)
                 R_list.append(Rk[i, i])
 
-                # if abs(uwb_measurement[i]-self.state[i+15]) > 2.0:
-                #     H[i, i + 15] = 0.0
+                if abs(uwb_measurement[i]-self.state[i+15]) > 2.0:
+                    H[i, i + 15] = 0.0
         if np.std(np.asarray(R_list)) > 2.0:
             for i in range(uwb_measurement.shape[0]):
                 Rk[i, i] = Rk[i, i] / np.mean(np.asarray(R_list))
