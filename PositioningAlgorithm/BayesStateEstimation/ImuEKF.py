@@ -413,13 +413,16 @@ class ImuEKFComplex:
                         mask[index[i]] = 1.0
                         # Rk[index[i],index[i]]=cov_m[0]
 
-                        Rk[index[i], index[i]] = 1.0 * Rk[index[i], index[i]]
+                        # Rk[index[i], index[i]] = 1.0 * Rk[index[i], index[i]]
+                        # Rk[index[i], index[i]] = ((gamma / ka_squard)**0.1) * Rk[index[i], index[i]]
                     else:
                         # print('corrected Rk')
                         mask[index[i]] = 1.0
                         # mask[index[i]] = ka_squard / gamma * 1.0
                         # mask[index[i]] = 0.5#ka_squard/gamma
-                        Rk[index[i], index[i]] = gamma / ka_squard * Rk[index[i], index[i]]
+                        # Rk[index[i], index[i]] = ((gamma / ka_squard)**0.2) * Rk[index[i], index[i]]
+                        Rk[index[i],index[i]] = ((gamma/ka_squard)) * cov_m[0]
+                        # Rk[index[i], index[i]] = ((gamma / ka_squard)) * Rk[index[i], index[i]]
                         # mask[index[i]] = 1.0 / gamma
                     i = index.shape[0] + 1
                     # print(gamma)
@@ -440,8 +443,8 @@ class ImuEKFComplex:
             # print(np.linalg.norm(pplus[0:3, 0:3]))
             # break
             # print('it')
-        # print('-----')
-        # print(ite_counter)
+        print('-----')
+        print(ite_counter)
 
         self.state = self.state + dx
 
