@@ -431,6 +431,7 @@ class ImuEKFComplex:
                 np.linalg.inv(H.dot(pminus.dot(np.transpose(H))) + Rk))
             kh = K.dot(H)
             pplus = (np.identity(kh.shape[0]) - kh).dot(pminus)
+            pminus = pplus * 1.0
             # if tp_plus
             dx = K.dot((measurement - y - H.dot(xminus - xop)) * mask)
             xplus = xminus + dx
