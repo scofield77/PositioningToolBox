@@ -399,8 +399,8 @@ class ImuEKFComplex:
             break_flag = False
 
             for i in range(index.shape[0]):
-                if ite_counter is 1:
-                    break
+                # if ite_counter is 1:
+                #     break
                 if mask[index[i]] < 100.01:
                     pv = (H[index[i], :].dot(pplus)).dot(np.transpose(H[index[i], :])) + Rk[index[i], index[i]]
                     gamma = v[index[i]] * v[index[i]] / pv
@@ -413,7 +413,7 @@ class ImuEKFComplex:
                         mask[index[i]] = 1.0
                         # Rk[index[i],index[i]]=cov_m[0]
 
-                        # Rk[index[i], index[i]] = gamma / ka_squard * Rk[index[i], index[i]]
+                        Rk[index[i], index[i]] = 1.0 * Rk[index[i], index[i]]
                     else:
                         # print('corrected Rk')
                         mask[index[i]] = 1.0
