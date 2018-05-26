@@ -369,11 +369,12 @@ class TightIMUWBEKF:
                         #     mask[index[i]] = 0.5
                         # mask[index[i]] = ka_squard / gamma * 1.0
                         # Rk[index[i],index[i]]=cov_m[0]
+                        Rk[index[i], index[i]] = ((gamma / ka_squard)**0.0005) * Rk[index[i], index[i]]
                     else:
                         # print('corrected Rk')
                         # mask[index[i]] = (ka_squard / gamma * 1.0)**4.0
                         mask[index[i]] = 0.2  # ka_squard/gamma
-                        Rk[index[i], index[i]] = ((gamma / ka_squard)**0.1) * Rk[index[i], index[i]]
+                        Rk[index[i], index[i]] = ((gamma / ka_squard)**0.01) * Rk[index[i], index[i]]
                         # mask[index[i]] = 1.0 / gamma
                     i = index.shape[0] + 1
             mask = mask / np.sum(mask) * float(mask.shape[0])
