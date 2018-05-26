@@ -422,8 +422,9 @@ class ImuEKFComplex:
                         # mask[index[i]] = ka_squard / gamma * 1.0
                         # mask[index[i]] = 0.5#ka_squard/gamma
                         Rk[index[i], index[i]] = ((gamma / ka_squard)**0.1) * Rk[index[i], index[i]]
-                        # Rk[index[i],index[i]] = ((gamma/ka_squard)) * cov_m[0]
                         # Rk[index[i], index[i]] = ((gamma / ka_squard)) * Rk[index[i], index[i]]
+                        # Rk[index[i],index[i]] = ((gamma/ka_squard)) * cov_m[0]
+
                         # mask[index[i]] = 1.0 / gamma
                     i = index.shape[0] + 1
                     # print(gamma)
