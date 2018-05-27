@@ -176,9 +176,9 @@ if __name__ == '__main__':
             if np.linalg.norm(kf.state[3:6]) > 4.0:
                 kf.measurement_function_zv(np.asarray((0, 0, 0)),
                                            np.diag((10, 10, 10)))
-            if np.linalg.norm(rkf.state[3:6]) > 3.0:
+            if np.linalg.norm(rkf.state[3:6]) > 4.0:
                 rkf.measurement_function_zv(np.asarray((0, 0, 0)),
-                                            np.diag((10, 10, 10)))
+                                            np.diag((10, 10, 1.0)))
 
             if uwb_data[uwb_index, 0] < imu_data[i, 0]:
 
@@ -189,8 +189,8 @@ if __name__ == '__main__':
                     #                                  beacon_set,
                     #                                  7.0)
                     rkf.measurement_uwb_iterate(uwb_data[uwb_index, 1:],
-                                                np.ones(1)*0.01,
-                                                beacon_set,ref_trace
+                                                np.ones(1) * 0.5,
+                                                beacon_set, ref_trace
                                                 )
 
                     # rkf.measurement_uwb_mc(np.asarray(uwb_data[uwb_index,1:]),
