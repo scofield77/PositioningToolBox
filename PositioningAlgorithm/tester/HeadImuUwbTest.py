@@ -178,20 +178,20 @@ if __name__ == '__main__':
                                            np.diag((10, 10, 10)))
             if np.linalg.norm(rkf.state[3:6]) > 4.0:
                 rkf.measurement_function_zv(np.asarray((0, 0, 0)),
-                                            np.diag((10, 10, 1.0)))
+                                            np.diag((2.0, 2.0, 0.1)))
 
             if uwb_data[uwb_index, 0] < imu_data[i, 0]:
 
                 if uwb_index < uwb_data.shape[0] - 1:
 
-                    # rkf.measurement_uwb_robust_multi(np.asarray(uwb_data[uwb_index, 1:]),
-                    #                                  np.ones(1) * 0.1,
-                    #                                  beacon_set,
-                    #                                  7.0)
-                    rkf.measurement_uwb_iterate(uwb_data[uwb_index, 1:],
-                                                np.ones(1) * 0.5,
-                                                beacon_set, ref_trace
-                                                )
+                    rkf.measurement_uwb_robust_multi(np.asarray(uwb_data[uwb_index, 1:]),
+                                                     np.ones(1) * 0.1,
+                                                     beacon_set,
+                                                     7.0)
+                    # rkf.measurement_uwb_iterate(uwb_data[uwb_index, 1:],
+                    #                             np.ones(1) * 0.5,
+                    #                             beacon_set, ref_trace
+                    #                             )
 
                     # rkf.measurement_uwb_mc(np.asarray(uwb_data[uwb_index,1:]),
                     #                        np.ones(1)*1.0,
