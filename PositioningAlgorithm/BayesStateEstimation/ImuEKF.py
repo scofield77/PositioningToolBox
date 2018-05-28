@@ -190,7 +190,6 @@ class ImuEKFComplex:
 
         self.state[9:] = self.state[9:] + dx[9:]
 
-
     def iter_measurement_function_uwb(self, m, cov_matrix):
         xop = self.state
         xk = xop * 1.0
@@ -323,7 +322,7 @@ class ImuEKFComplex:
         kh = self.K.dot(self.H)
         self.prob_state = (np.identity(kh.shape[0]) - kh).dot(self.prob_state)
 
-    def measurement_uwb_iterate_standard(self, measurement, cov_m, beacon_set, ref_trace, once_flag = False):
+    def measurement_uwb_iterate_standard(self, measurement, cov_m, beacon_set, ref_trace, once_flag=False):
         '''
         Standard IEKF measurement function.
         :param measurement:
@@ -519,42 +518,49 @@ class ImuEKFComplex:
         beacon_set = beacon_set.reshape([-1, 3])
 
         if measurement.shape[0] < 3:
-            self.measurement_uwb_iterate_standard(measurement, cov_m, beacon_set,np.zeros([10,10]),once_flag=True)
+            # self.measurement_uwb_iterate(measurement, cov_m, beacon_set, np.zeros([10, 10]))
+            for i in range(measurement.shape[0]):
+                self.measurement_uwb_robust(np.asarray(measurement[i]),
+                                            cov_m,
+                                            np.transpose(beacon_set[i,:]),i)
             return
         else:
             print('mc')
 
-        particles = np.zeros(shape=(9000, 3))
+        particles = np.zeros(shape=(5000, 3))
         w = np.ones(shape=particles.shape[0])
 
         rnd_p = np.random.normal(0.0, 1.0, size=particles.shape)
 
         # sample
         for i in range(3):
-            particles[:, i] = self.state[i] + rnd_p[:, i] * (self.prob_state[i, i]**0.5)
+            particles[:, i] = self.state[i] + rnd_p[:, i] * (self.prob_state[i, i] ** 0.5) * 20.0
         print(np.std(particles, axis=0))
 
         # measurement
-        # @jit(nopython=True)
-        def gaussian_distribution(x,miu,sigma):
+        @jit(nopython=True)
+        def gaussian_distribution(x, miu, sigma):
             a = 1.0 / sigma / math.sqrt(2.0 * 3.1415926)
-            b = -1.0*((x-miu)*(x-miu)/2.0/sigma/sigma)
+            b = -1.0 * ((x - miu) * (x - miu) / 2.0 / sigma / sigma)
             if math.isnan(a):
-                print('a is nan', x,miu,sigma)
+                print('a is nan', x, miu, sigma)
             if math.isnan(b):
-                print('b is nan', x,miu,sigma)
-            print(a * math.exp(b),a,b, x,miu,sigma)
+                print('b is nan', x, miu, sigma)
+            # print(a * math.exp(b))#,a,b, x,miu,sigma)
             return a * math.exp(b)
 
         # select_rnd = np.random.randint(0, measurement.shape[0] - 1, size=particles.shape[0])
         # for i in range(w.shape[0]):
+        #     w[i] = w[i] * gaussian_distribution(np.linalg.norm(particles[i,:]-beacon_set[select_rnd[i],:]),measurement[select_rnd[i]],1.0)
         #     w[i] = w[i] / abs(
         #         np.linalg.norm(particles[i, :] - beacon_set[select_rnd[i], :]) - measurement[select_rnd[i]])
         for j in range(beacon_set.shape[0]):
             for i in range(w.shape[0]):
                 # w[i] = w[i] / abs(
                 #     np.linalg.norm(particles[i,:]-beacon_set[j,:])-measurement[j])
-                w[i] = w[i] * gaussian_distribution(np.linalg.norm(particles[i,:]-beacon_set[j,:])*1.0,measurement[j],cov_m[0])
+                # print(particles[i,:],beacon_set[j,:],measurement[j],cov_m[0])
+                w[i] = w[i] * gaussian_distribution(np.linalg.norm(particles[i, :] - beacon_set[j, :]) * 1.0,
+                                                    measurement[j], 1.0)
         w = w / w.sum()
 
         # vote for each measurement
@@ -563,16 +569,19 @@ class ImuEKFComplex:
         for i in range(beacon_set.shape[0]):
             all_m_score[i] = np.sum(np.abs(np.linalg.norm(particles[i, :] - beacon_set[i, :]) - measurement[i]) * w,
                                     axis=0)
-            if all_m_score[i] < cov_m[0]*10.0:
+            if all_m_score[i] < cov_m[0] * 10.0:
                 self.measurement_uwb(np.asarray(measurement[i]),
                                      np.ones(1) * cov_m[0],
                                      np.transpose(beacon_set[i, :]))
             elif all_m_score[i] < cov_m[0] * 20.0:
-                self.measurement_uwb(np.asarray(measurement[i]),
-                                     np.ones(1) * (all_m_score[i] ),
-                                     np.transpose(beacon_set[i, :]))
+                self.measurement_uwb_robust(np.asarray(measurement[i]),
+                                     np.ones(1) * (all_m_score[i] ** 4.0),
+                                     np.transpose(beacon_set[i, :]),i)
             else:
-                print('def')
+                # print('def')
+                self.measurement_uwb_robust(np.asarray(measurement[i]),
+                                     np.ones(1) * (all_m_score[i] ** 8.0),
+                                     np.transpose(beacon_set[i, :]),i)
         print('score:', all_m_score)
 
         # self.measurement_uwb_iterate_standard(measurement,)
