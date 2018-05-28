@@ -558,10 +558,7 @@ class ImuEKFComplex:
         #         np.linalg.norm(particles[i, :] - beacon_set[select_rnd[i], :]) - measurement[select_rnd[i]])
         for j in range(beacon_set.shape[0]):
             # for i in range(w.shape[0]):
-            # w[i] = w[i] / abs(
-            #     np.linalg.norm(particles[i,:]-beacon_set[j,:])-measurement[j])
-            # print(particles[i,:],beacon_set[j,:],measurement[j],cov_m[0])
-            # w[i] = w[i] * gaussian_distribution(np.linalg.norm(particles[i, :] - beacon_set[j, :]) * 1.0,
+            #     w[i] = w[i] * gaussian_distribution(np.linalg.norm(particles[i, :] - beacon_set[j, :]) * 1.0,
             #                                     measurement[j], 1.0)
             w = w * gaussian_pdf_v(np.linalg.norm(particles - beacon_set[j, :], axis=1),
                                          np.ones_like(w) * measurement[i],
