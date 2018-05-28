@@ -522,7 +522,7 @@ class ImuEKFComplex:
             for i in range(measurement.shape[0]):
                 self.measurement_uwb_robust(np.asarray(measurement[i]),
                                             cov_m,
-                                            np.transpose(beacon_set[i,:]),i)
+                                            np.transpose(beacon_set[i, :]), i)
             return
         else:
             print('mc')
@@ -538,16 +538,18 @@ class ImuEKFComplex:
         print(np.std(particles, axis=0))
 
         # measurement
-        @jit(nopython=True)
+        # @jit(nopython=True)
         def gaussian_distribution(x, miu, sigma):
             a = 1.0 / sigma / math.sqrt(2.0 * 3.1415926)
             b = -1.0 * ((x - miu) * (x - miu) / 2.0 / sigma / sigma)
-            if math.isnan(a):
-                print('a is nan', x, miu, sigma)
-            if math.isnan(b):
-                print('b is nan', x, miu, sigma)
+            # if math.isnan(a):
+            #     print('a is nan', x, miu, sigma)
+            # if math.isnan(b):
+            #     print('b is nan', x, miu, sigma)
             # print(a * math.exp(b))#,a,b, x,miu,sigma)
             return a * math.exp(b)
+
+        gaussian_pdf_v = np.vectorize(gaussian_distribution)
 
         # select_rnd = np.random.randint(0, measurement.shape[0] - 1, size=particles.shape[0])
         # for i in range(w.shape[0]):
@@ -555,12 +557,15 @@ class ImuEKFComplex:
         #     w[i] = w[i] / abs(
         #         np.linalg.norm(particles[i, :] - beacon_set[select_rnd[i], :]) - measurement[select_rnd[i]])
         for j in range(beacon_set.shape[0]):
-            for i in range(w.shape[0]):
-                # w[i] = w[i] / abs(
-                #     np.linalg.norm(particles[i,:]-beacon_set[j,:])-measurement[j])
-                # print(particles[i,:],beacon_set[j,:],measurement[j],cov_m[0])
-                w[i] = w[i] * gaussian_distribution(np.linalg.norm(particles[i, :] - beacon_set[j, :]) * 1.0,
-                                                    measurement[j], 1.0)
+            # for i in range(w.shape[0]):
+            # w[i] = w[i] / abs(
+            #     np.linalg.norm(particles[i,:]-beacon_set[j,:])-measurement[j])
+            # print(particles[i,:],beacon_set[j,:],measurement[j],cov_m[0])
+            # w[i] = w[i] * gaussian_distribution(np.linalg.norm(particles[i, :] - beacon_set[j, :]) * 1.0,
+            #                                     measurement[j], 1.0)
+            w = w * gaussian_pdf_v(np.linalg.norm(particles - beacon_set[j, :], axis=1),
+                                         np.ones_like(w) * measurement[i],
+                                         np.ones_like(w) * 1.0)
         w = w / w.sum()
 
         # vote for each measurement
@@ -575,13 +580,13 @@ class ImuEKFComplex:
                                      np.transpose(beacon_set[i, :]))
             elif all_m_score[i] < cov_m[0] * 20.0:
                 self.measurement_uwb_robust(np.asarray(measurement[i]),
-                                     np.ones(1) * (all_m_score[i] ** 4.0),
-                                     np.transpose(beacon_set[i, :]),i)
+                                            np.ones(1) * (all_m_score[i] ** 4.0),
+                                            np.transpose(beacon_set[i, :]), i)
             else:
                 # print('def')
                 self.measurement_uwb_robust(np.asarray(measurement[i]),
-                                     np.ones(1) * (all_m_score[i] ** 8.0),
-                                     np.transpose(beacon_set[i, :]),i)
+                                            np.ones(1) * (all_m_score[i] ** 8.0),
+                                            np.transpose(beacon_set[i, :]), i)
         print('score:', all_m_score)
 
         # self.measurement_uwb_iterate_standard(measurement,)
