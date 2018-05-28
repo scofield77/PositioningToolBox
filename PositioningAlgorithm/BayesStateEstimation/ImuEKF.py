@@ -524,10 +524,11 @@ class ImuEKFComplex:
                 self.measurement_uwb(np.asarray(measurement[i]),
                                      np.ones(1) * cov_m[0],
                                      np.transpose(beacon_set[i, :]))
-            else:
+            elif all_m_score[i] < cov_m[0] * 20.0:
                 self.measurement_uwb(np.asarray(measurement[i]),
                                      np.ones(1) * (all_m_score[i] ),
                                      np.transpose(beacon_set[i, :]))
+            else:
                 print('def')
         print('score:', all_m_score)
 
