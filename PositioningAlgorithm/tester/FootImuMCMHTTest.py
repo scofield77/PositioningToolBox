@@ -110,10 +110,10 @@ if __name__ == '__main__':
     # delet_index = [30, 33, 35, 36]  # use 3 beacons
     # delet_index = [30, 31, 33, 34, 35]  # use 2 beacons
     # print('delet index:', type(delet_index), delet_index)
-    for i in range(len(delet_index)):
-        print('deleted:', delet_index[i])
-        uwb_data[:, delet_index[i]] *= 0.0
-        uwb_data[:, delet_index[i]] -= 10.0
+    # for i in range(len(delet_index)):
+    #     print('deleted:', delet_index[i])
+    #     uwb_data[:, delet_index[i]] *= 0.0
+    #     uwb_data[:, delet_index[i]] -= 10.0
 
     after_valid_list = list()
     for i in range(1, uwb_data.shape[1]):
@@ -347,12 +347,15 @@ if __name__ == '__main__':
                     #                                   np.ones(1) * 0.1,
                     #                                   beacon_set,
                     #                                   6.0)
-                    rkf.measurement_uwb_mc(np.asarray(uwb_data[uwb_index,1:]),
+                    # rkf.measurement_uwb_mc(np.asarray(uwb_data[uwb_index,1:]),
+                    #                        np.ones(1)*0.01,
+                    #                        beacon_set, ref_trace)
+                    orkf.measurement_uwb_mc(np.asarray(uwb_data[uwb_index,1:]),
                                            np.ones(1)*0.01,
                                            beacon_set, ref_trace)
-                    orkf.measurement_uwb_iterate(np.asarray(uwb_data[uwb_index, 1:]),
-                                                 np.ones(1) * 0.01,
-                                                 beacon_set, ref_trace)
+                    # orkf.measurement_uwb_iterate(np.asarray(uwb_data[uwb_index, 1:]),
+                    #                              np.ones(1) * 0.01,
+                    #                              beacon_set, ref_trace)
                     uwb_index += 1
                     for j in range(1, uwb_data.shape[1]):
                         # right
@@ -381,10 +384,10 @@ if __name__ == '__main__':
                             kf.measurement_uwb(np.asarray(uwb_data[uwb_index, j]),
                                                np.ones(1) * 0.5,
                                                np.transpose(beacon_set[j - 1, :]))
-                            # rkf.measurement_uwb_robust(uwb_data[uwb_index, j],
-                            #                            np.ones(1) * 0.1,
-                            #                            np.transpose(beacon_set[j - 1, :]),
-                            #                            j, 6.0, 1.0)
+                            rkf.measurement_uwb_robust(uwb_data[uwb_index, j],
+                                                       np.ones(1) * 0.1,
+                                                       np.transpose(beacon_set[j - 1, :]),
+                                                       j, 6.0, 1.0)
                             # if uwb_filter_list[j-1].cov<0.02:
                             #     rkf.measurement_uwb(uwb_filter_list[j - 1].m,
                             #                         uwb_filter_list[j - 1].cov,
@@ -492,7 +495,7 @@ if __name__ == '__main__':
     plt.plot(trace[:, 0], trace[:, 1], '-', color=color_dict['Standard'], label='Standard EKF')
     # plt.plot(ftrace[:, 0], ftrace[:, 1], '-', color=color_dict['Foot'], label='Foot')
     plt.plot(rtrace[:, 0], rtrace[:, 1], '-', color=color_dict['REKF'], label='Robust EKF')
-    plt.plot(ortrace[:, 0], ortrace[:, 1], '-', color=color_dict['RIEKF'], label='Robust IEKF')
+    plt.plot(ortrace[:, 0], ortrace[:, 1], '-', color=color_dict['RIEKF'], label='Robust mc-EKF')
     # plt.plot(dtrace[:, 0], dtrace[:, 1], '-+', label='d ekf')
     # plt.plot(uwb_trace[:, 0], uwb_trace[:, 1], '+', color=color_dict['UWB'], label='uwb')
     # plt.plot(ref_trace[:, 1], ref_trace[:, 2], '-', label='ref')
@@ -580,7 +583,7 @@ if __name__ == '__main__':
     # plt.plot(rs.eval_points(uwb_trace), label='uwb')
     plt.plot(rs.eval_points(trace), '-', color=color_dict['Standard'], label='Standard EKF')
     plt.plot(rs.eval_points(rtrace), '-', color=color_dict['REKF'], label='Robust EKF')
-    plt.plot(rs.eval_points(ortrace), '-', color=color_dict['RIEKF'], label='Robust IEKF')
+    plt.plot(rs.eval_points(ortrace), '-', color=color_dict['RIEKF'], label='Robust mcEKF')
     # plt.plot(rs.eval_points(dtrace), label='dtrace')
     # plt.plot(rs.eval_points(ref_trace[:,1:]), label='ref')
     # plt.grid()
@@ -601,7 +604,7 @@ if __name__ == '__main__':
     print('foot:', np.mean(f_error), np.std(f_error))
     print('fusing:', np.mean(t_error), np.std(t_error))
     print('rtrace:', np.mean(r_error), np.std(r_error))
-    print('ortrace:', np.mean(or_error), np.std(or_error))
+    print('mc rtrace:', np.mean(or_error), np.std(or_error))
     # print('dtrace:', np.mean(rs.eval_points(dtrace)))
     # print('ref:', np.mean(rs.eval_points(ref_trace[:, 1:])))
     print('eval cost time:', time.time() - start_time)
@@ -619,7 +622,7 @@ if __name__ == '__main__':
     # plt.step(x, ecdf_f(x), color=color_dict['Foot'], label='Foot')
     plt.step(x, ecdf_t(x), color=color_dict['Standard'], label='Standard EKF')
     plt.step(x, ecdf_r(x), color=color_dict['REKF'], label='Robust EKF')
-    plt.step(x, ecdf_or(x), color=color_dict['RIEKF'], label='Robust IEKF')
+    plt.step(x, ecdf_or(x), color=color_dict['RIEKF'], label='Robust mcEKF')
     #
     plt.legend()
     plt.xlabel('MSE/m')

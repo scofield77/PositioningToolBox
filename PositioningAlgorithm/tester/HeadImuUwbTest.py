@@ -173,29 +173,34 @@ if __name__ == '__main__':
             # print('i:',i)
             # zv_state[i] = z_tester.GLRT_Detector(imu_data[i - 4:i + 4, 1:8])
             # if zv_state[i] > 0.5:
-            if np.linalg.norm(kf.state[3:6]) > 4.0:
+            if np.linalg.norm(kf.state[3:6]) > 2.0:
                 kf.measurement_function_zv(np.asarray((0, 0, 0)),
                                            np.diag((10, 10, 10)))
-            if np.linalg.norm(rkf.state[3:6]) > 4.0:
+            if np.linalg.norm(rkf.state[3:6]) > 2.0:
                 rkf.measurement_function_zv(np.asarray((0, 0, 0)),
                                             np.diag((2.0, 2.0, 0.1)))
+
+            kf.measurement_function_z_axis(np.asarray(initial_pos[2]),
+                                           np.ones(1)*0.5)
+            rkf.measurement_function_z_axis(np.asarray(initial_pos[2]),
+                                           np.ones(1)*0.5)
 
             if uwb_data[uwb_index, 0] < imu_data[i, 0]:
 
                 if uwb_index < uwb_data.shape[0] - 1:
 
-                    rkf.measurement_uwb_robust_multi(np.asarray(uwb_data[uwb_index, 1:]),
-                                                     np.ones(1) * 0.01,
-                                                     beacon_set,
-                                                     7.0)
+                    # rkf.measurement_uwb_robust_multi(np.asarray(uwb_data[uwb_index, 1:]),
+                    #                                  np.ones(1) * 0.01,
+                    #                                  beacon_set,
+                    #                                  7.0)
                     # rkf.measurement_uwb_iterate(uwb_data[uwb_index, 1:],
                     #                             np.ones(1) * 0.5,
                     #                             beacon_set, ref_trace
                     #                             )
 
-                    # rkf.measurement_uwb_mc(np.asarray(uwb_data[uwb_index,1:]),
-                    #                        np.ones(1)*1.0,
-                    #                        beacon_set)
+                    rkf.measurement_uwb_mc(np.asarray(uwb_data[uwb_index,1:]),
+                                           np.ones(1)*0.1,
+                                           beacon_set,ref_trace)
                     uwb_index += 1
                     for j in range(1, uwb_data.shape[1]):
                         if uwb_data[uwb_index, j] > 0.0 and uwb_data[uwb_index, j] < 1000.0 and beacon_set[

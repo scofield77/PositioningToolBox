@@ -159,6 +159,38 @@ class ImuEKFComplex:
 
         self.state[9:] = self.state[9:] + dx[9:]
 
+    def measurement_function_z_axis(self, m, cov_matrix):
+        '''
+        Zero-velocity measurement.
+        Suitable for ekf with more than 15 state model.
+        :param m: actually is Vector3d(0,0,0)
+        :param cov_matrix:
+        :return:
+        '''
+        H = np.zeros([1, self.state.shape[0]])
+        H[0, 2] = 1.0
+
+        K = (self.prob_state.dot(np.transpose(H))).dot(
+            np.linalg.inv((H.dot(self.prob_state)).dot(np.transpose(H)) + cov_matrix)
+        )
+
+        before_p_norm = np.linalg.norm(self.prob_state)
+        self.prob_state = (np.identity(self.prob_state.shape[0]) - K.dot(H)).dot(self.prob_state)
+
+        self.prob_state = 0.5 * self.prob_state + 0.5 * np.transpose(self.prob_state)
+
+        dx = K.dot(m - H.dot(self.state))
+
+        self.state[0:6] = self.state[0:6] + dx[0:6]
+        #
+        self.rotation_q = quaternion_left_update(self.rotation_q, dx[6:9], -1.0)
+        # self.rotation_q = quaternion_right_update(self.rotation_q, dx[6:9], 1.0)
+        #
+        self.state[6:9] = dcm2euler(q2dcm(self.rotation_q))
+
+        self.state[9:] = self.state[9:] + dx[9:]
+
+
     def iter_measurement_function_uwb(self, m, cov_matrix):
         xop = self.state
         xk = xop * 1.0
@@ -499,10 +531,20 @@ class ImuEKFComplex:
 
         # sample
         for i in range(3):
-            particles[:, i] = self.state[i] + rnd_p[:, i] * (self.prob_state[i, i]**0.5)*20.0
+            particles[:, i] = self.state[i] + rnd_p[:, i] * (self.prob_state[i, i]**0.5)
         print(np.std(particles, axis=0))
 
         # measurement
+        # @jit(nopython=True)
+        def gaussian_distribution(x,miu,sigma):
+            a = 1.0 / sigma / math.sqrt(2.0 * 3.1415926)
+            b = -1.0*((x-miu)*(x-miu)/2.0/sigma/sigma)
+            if math.isnan(a):
+                print('a is nan', x,miu,sigma)
+            if math.isnan(b):
+                print('b is nan', x,miu,sigma)
+            print(a * math.exp(b),a,b, x,miu,sigma)
+            return a * math.exp(b)
 
         # select_rnd = np.random.randint(0, measurement.shape[0] - 1, size=particles.shape[0])
         # for i in range(w.shape[0]):
@@ -510,8 +552,9 @@ class ImuEKFComplex:
         #         np.linalg.norm(particles[i, :] - beacon_set[select_rnd[i], :]) - measurement[select_rnd[i]])
         for j in range(beacon_set.shape[0]):
             for i in range(w.shape[0]):
-                w[i] = w[i] / abs(
-                    np.linalg.norm(particles[i,:]-beacon_set[j,:])-measurement[j])
+                # w[i] = w[i] / abs(
+                #     np.linalg.norm(particles[i,:]-beacon_set[j,:])-measurement[j])
+                w[i] = w[i] * gaussian_distribution(np.linalg.norm(particles[i,:]-beacon_set[j,:])*1.0,measurement[j],cov_m[0])
         w = w / w.sum()
 
         # vote for each measurement
