@@ -288,18 +288,18 @@ if __name__ == '__main__':
     for i in range(imu_data.shape[0]):
         # print('i:',i)
 
-        # orkf.state_transaction_function(imu_data[i, 1:7],
-        #                                 np.diag((0.01, 0.01, 0.01,
-        #                                          0.01 * np.pi / 180.0,
-        #                                          0.01 * np.pi / 180.0,
-        #                                          0.01 * np.pi / 180.0))
-        #                                 )
-        # tekf.state_transaction_function(imu_data[i, 1:7],
-        #                                 np.diag((0.01, 0.01, 0.01,
-        #                                          0.01 * np.pi / 180.0,
-        #                                          0.01 * np.pi / 180.0,
-        #                                          0.01 * np.pi / 180.0))
-        #                                 )
+        orkf.state_transaction_function(imu_data[i, 1:7],
+                                        np.diag((0.01, 0.01, 0.01,
+                                                 0.01 * np.pi / 180.0,
+                                                 0.01 * np.pi / 180.0,
+                                                 0.01 * np.pi / 180.0))
+                                        )
+        tekf.state_transaction_function(imu_data[i, 1:7],
+                                        np.diag((0.01, 0.01, 0.01,
+                                                 0.01 * np.pi / 180.0,
+                                                 0.01 * np.pi / 180.0,
+                                                 0.01 * np.pi / 180.0))
+                                        )
         trkf.state_transaction_function(imu_data[i, 1:7],
                                         np.diag((0.01, 0.01, 0.01,
                                                  0.01 * np.pi / 180.0,
@@ -317,10 +317,10 @@ if __name__ == '__main__':
             # print('i:',i)
             # zv_state[i] = z_tester.GLRT_Detector(imu_data[i - 4:i + 4, 1:8])
             if zv_state[i] > 0.5:
-                # orkf.measurement_function_zv(np.asarray((0, 0, 0)),
-                #                              np.diag((0.0001, 0.0001, 0.0001)))
-                # tekf.measurement_function_zv(np.asarray((0, 0, 0)),
-                #                              np.diag((0.0001, 0.0001, 0.0001)))
+                orkf.measurement_function_zv(np.asarray((0, 0, 0)),
+                                             np.diag((0.0001, 0.0001, 0.0001)))
+                tekf.measurement_function_zv(np.asarray((0, 0, 0)),
+                                             np.diag((0.0001, 0.0001, 0.0001)))
                 trkf.measurement_function_zv(np.asarray((0, 0, 0)),
                                              np.diag((0.0001, 0.0001, 0.0001)))
                 tskf.measurement_function_zv(np.asarray((0, 0, 0)),
@@ -342,7 +342,7 @@ if __name__ == '__main__':
                         1.0)
                     tekf.measurement_uwb_ite_robust(uwb_data[uwb_index, 1:],
                                                     beacon_set,
-                                                    0.1,
+                                                    1,
                                                     10.0)
                     trkf.measurement_uwb_robust(uwb_data[uwb_index, 1:],
                                                 beacon_set,
