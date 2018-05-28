@@ -255,7 +255,7 @@ if __name__ == '__main__':
                         full_array)
 
 
-    # save_file(dir_name)
+    save_file(dir_name)
 
     plt.figure()
     plt.plot(unknow_beacon[:, 0], unknow_beacon[:, 1], 'r*')

@@ -64,6 +64,7 @@ if __name__ == '__main__':
     # dir_name = '/home/steve/Data/FusingLocationData/0017/'
     # dir_name = '/home/steve/Data/FusingLocationData/0013/'
     dir_name = '/home/steve/Data/NewFusingLocationData/0039/'
+    dir_name = '/home/steve/Data/NewFusingLocationData/0040/'
     # dir_name = 'D:/Data/NewFusingLocationData/0039/'
 
     # imu_data = np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=',')
@@ -105,8 +106,9 @@ if __name__ == '__main__':
     #     uwb_data[:, uwb_valid[random_index[i]]] *= 0.0
     #     uwb_data[:, uwb_valid[random_index[i]]] -= 10.0
 
-    # delet_index = [30, 33, 35, 36]  # use 3 beacons
-    delet_index = [30, 31, 33, 34, 35]  # use 2 beacons
+    # delet_index = [30, 33, 35]  # use 4 beacons
+    delet_index = [30, 33, 35, 36]  # use 3 beacons
+    # delet_index = [30, 31, 33, 34, 35]  # use 2 beacons
     # print('delet index:', type(delet_index), delet_index)
     for i in range(len(delet_index)):
         print('deleted:', delet_index[i])
@@ -153,8 +155,8 @@ if __name__ == '__main__':
         return uwb_trace
 
 
-    uwb_trace = cal(uwb_trace)
-    print('uwb cost time:', time.time() - stime)
+    # uwb_trace = cal(uwb_trace)
+    # print('uwb cost time:', time.time() - stime)
 
     # ref_trace = np.loadtxt(dir_name + 'ref_trace.csv', delimiter=',')
 
@@ -346,7 +348,7 @@ if __name__ == '__main__':
                     #                                   beacon_set,
                     #                                   6.0)
                     rkf.measurement_uwb_mc(np.asarray(uwb_data[uwb_index,1:]),
-                                           np.ones(1)*1.0,
+                                           np.ones(1)*0.1,
                                            beacon_set, ref_trace)
                     orkf.measurement_uwb_iterate(np.asarray(uwb_data[uwb_index, 1:]),
                                                  np.ones(1) * 0.01,

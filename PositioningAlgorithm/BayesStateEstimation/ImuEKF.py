@@ -448,8 +448,11 @@ class ImuEKFComplex:
         # print('-----')
         # print(ite_counter)
         # print(Rk)
-        # for i in range(Rk.shape[0]):
+        rt = np.ones(Rk.shape[0])
+        for i in range(Rk.shape[0]):
+            rt[i] = Rk[i, i]
         #     print(Rk)
+        # print('rt   :',rt)
 
         self.state = self.state + dx
 
@@ -477,24 +480,24 @@ class ImuEKFComplex:
         m_index = np.where(measurement > 0.0)
         measurement = measurement[m_index] * 1.0
         beacon_set = beacon_set[m_index, :] * 1.0
-        print(measurement.shape, beacon_set.shape)
+        # print(measurement.shape, beacon_set.shape)
         measurement = measurement.reshape(-1)
         beacon_set = beacon_set.reshape([-1, 3])
 
         if measurement.shape[0] < 3:
-            self.measurement_uwb_robust_multi(measurement, cov_m, beacon_set, 8.0)
+            self.measurement_uwb_iterate_standard(measurement, cov_m, beacon_set,np.zeros([10,10]))
             return
         else:
             print('mc')
 
-        particles = np.zeros(shape=(1000, 3))
+        particles = np.zeros(shape=(5000, 3))
         w = np.ones(shape=particles.shape[0])
 
         rnd_p = np.random.normal(0.0, 1.0, size=particles.shape)
 
         # sample
         for i in range(3):
-            particles[:, i] = self.state[i] + rnd_p[:, i] * 1.0  # self.prob_state[i, i]
+            particles[:, i] = self.state[i] + rnd_p[:, i] * (self.prob_state[i, i]**0.5)*20.0
         print(np.std(particles, axis=0))
 
         # measurement
@@ -505,15 +508,24 @@ class ImuEKFComplex:
                 np.linalg.norm(particles[i, :] - beacon_set[select_rnd[i], :]) - measurement[select_rnd[i]])
         w = w / w.sum()
 
-        # cluster
+        # vote for each measurement
 
-        self.state[0:3] = np.average(particles, axis=0, weights=w)
-        from sklearn.cluster import DBSCAN, k_means
+        all_m_score = np.zeros_like(measurement)
+        for i in range(beacon_set.shape[0]):
+            all_m_score[i] = np.sum(np.abs(np.linalg.norm(particles[i, :] - beacon_set[i, :]) - measurement[i]) * w,
+                                    axis=0)
+            if all_m_score[i] < cov_m[0]:
+                self.measurement_uwb(np.asarray(measurement[i]),
+                                     np.ones(1) * cov_m[0],
+                                     np.transpose(beacon_set[i, :]))
+            else:
+                self.measurement_uwb(np.asarray(measurement[i]),
+                                     np.ones(1) * (all_m_score[i] ** 2.0),
+                                     np.transpose(beacon_set[i, :]))
+                print('def')
+        print('score:', all_m_score)
 
-        cluster = DBSCAN(eps=0.3, min_samples=2)
-        # cluster  =
-        cluster = cluster.fit(X=particles, sample_weight=w)
-        print(cluster.labels_)
+        # self.measurement_uwb_iterate_standard(measurement,)
 
         # fig = plt.figure(11)
         # ax = fig.add_subplot(111, projection='3d')
@@ -522,7 +534,7 @@ class ImuEKFComplex:
         # plt.pause(0.1)
 
         # index = np.where(cluster)
-        print('mc robust ekf')
+        print('------------mc robust ekf------------')
 
     def measurement_uwb_robust_multi(self, measurement, cov_m, beacon_set, ka_squard):
         # @jit()# @jit(nopython=True)
