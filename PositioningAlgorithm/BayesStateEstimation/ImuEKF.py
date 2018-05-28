@@ -522,6 +522,7 @@ class ImuEKFComplex:
         # plt.pause(0.1)
 
         # index = np.where(cluster)
+        print('mc robust ekf')
 
     def measurement_uwb_robust_multi(self, measurement, cov_m, beacon_set, ka_squard):
         # @jit()# @jit(nopython=True)
