@@ -64,7 +64,7 @@ if __name__ == '__main__':
     # dir_name = '/home/steve/Data/FusingLocationData/0017/'
     # dir_name = '/home/steve/Data/FusingLocationData/0013/'
     dir_name = '/home/steve/Data/NewFusingLocationData/0039/'
-    dir_name = '/home/steve/Data/NewFusingLocationData/0040/'
+    dir_name = '/home/steve/Data/NewFusingLocationData/0036/'
     # dir_name = 'D:/Data/NewFusingLocationData/0039/'
 
     # imu_data = np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=',')
@@ -87,10 +87,10 @@ if __name__ == '__main__':
                               2.0))
 
     # initial_orientation = 80.0 * np.pi / 180.0  # 38-45
-    # initial_orientation = 50.0 * np.pi / 180.0  # 36
+    initial_orientation = 50.0 * np.pi / 180.0  # 36
     # initial_orientation = 80.0 * np.pi / 180.0  # 38
     # initial_orientation = 80.0 * np.pi / 180.0  # 37
-    initial_orientation = 80.0 * np.pi / 180.0  # 39
+    # initial_orientation = 80.0 * np.pi / 180.0  # 39
     # initial_orientation = 80.0 * np.pi / 180.0  # 40
 
     '''
@@ -106,8 +106,8 @@ if __name__ == '__main__':
     #     uwb_data[:, uwb_valid[random_index[i]]] *= 0.0
     #     uwb_data[:, uwb_valid[random_index[i]]] -= 10.0
 
-    # delet_index = [30, 33, 35]  # use 4 beacons
-    delet_index = [30, 33, 35, 36]  # use 3 beacons
+    delet_index = [30, 33, 35]  # use 4 beacons
+    # delet_index = [30, 33, 35, 36]  # use 3 beacons
     # delet_index = [30, 31, 33, 34, 35]  # use 2 beacons
     # print('delet index:', type(delet_index), delet_index)
     for i in range(len(delet_index)):
@@ -348,7 +348,7 @@ if __name__ == '__main__':
                     #                                   beacon_set,
                     #                                   6.0)
                     rkf.measurement_uwb_mc(np.asarray(uwb_data[uwb_index,1:]),
-                                           np.ones(1)*0.1,
+                                           np.ones(1)*0.01,
                                            beacon_set, ref_trace)
                     orkf.measurement_uwb_iterate(np.asarray(uwb_data[uwb_index, 1:]),
                                                  np.ones(1) * 0.01,
