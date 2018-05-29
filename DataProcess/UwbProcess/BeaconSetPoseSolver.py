@@ -283,7 +283,7 @@ if __name__ == '__main__':
         dm = re.compile('^[0-9]{4}$')
         # print(sub_dir)
         if dm.match(sub_dir):
-            np.savetxt(dir_name+ sub_dir + '/ref_vis.csv', ref_tra_vis, delimiter=',')
+            np.savetxt(dir_name + sub_dir + '/ref_vis.csv', ref_tra_vis, delimiter=',')
 
     plt.legend()
 
