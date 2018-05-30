@@ -561,8 +561,8 @@ class ImuEKFComplex:
             #     w[i] = w[i] * gaussian_distribution(np.linalg.norm(particles[i, :] - beacon_set[j, :]) * 1.0,
             #                                     measurement[j], 1.0)
             w = w * gaussian_pdf_v(np.linalg.norm(particles - beacon_set[j, :], axis=1),
-                                         np.ones_like(w) * measurement[i],
-                                         np.ones_like(w) * 1.0)
+                                   np.ones_like(w) * measurement[i],
+                                   np.ones_like(w) * 1.0)
         w = w / w.sum()
 
         # vote for each measurement
@@ -725,6 +725,32 @@ class ImuEKFComplex:
         self.rotation_q = quaternion_left_update(self.rotation_q, dx[6:9], -1.0)
 
         self.state[6:9] = dcm2euler(q2dcm(self.rotation_q))
+
+    def measurement(self, cov_m, ref_f):
+        z = np.ones(1) * 0.0
+        y = np.ones(1) * ref_f.eval_point2d(self.state[0:2])
+
+        H = np.zeros([1,15])
+        ts = self.state[0:2] * 1.0
+        ts[0] += 0.1
+        H[0, 0] = (ref_f.eval_point2d(ts) - y) / 0.1
+        ts = self.state[0:2] * 1.0
+        ts[1] += 0.1
+        H[0, 1] = (ref_f.eval_point2d(ts) - y) / 0.1
+
+        s = (H.dot(self.prob_state)).dot(np.transpose(H)) + np.identity(1) * cov_m
+
+        K = (self.prob_state.dot(np.transpose(H))).dot(np.linalg.inv(s))
+
+        dx = K.dot(z - y).reshape(-1)
+
+        self.state = self.state + dx
+
+        self.rotation_q = quaternion_left_update(self.rotation_q, dx[6:9], -1.0)
+
+        self.state[6:9] = dcm2euler(q2dcm(self.rotation_q))
+
+        self.prob_state = (np.identity(self.prob_state.shape[0]) - K.dot(H)).dot(self.prob_state)
 
 
 @jit((float64[:, :], float64[:, :], float64[:, :], float64[:, :], float64), nopython=True, parallel=True)
