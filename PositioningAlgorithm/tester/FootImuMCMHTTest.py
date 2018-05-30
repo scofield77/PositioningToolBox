@@ -64,8 +64,8 @@ if __name__ == '__main__':
     # dir_name = '/home/steve/Data/FusingLocationData/0017/'
     # dir_name = '/home/steve/Data/FusingLocationData/0013/'
     dir_name = '/home/steve/Data/NewFusingLocationData/0039/'
-    dir_name = '/home/steve/Data/NewFusingLocationData/0040/'
-    # dir_name = 'D:/Data/NewFusingLocationData/0039/'
+    # dir_name = '/home/steve/Data/NewFusingLocationData/0040/'
+    dir_name = 'D:/Data/NewFusingLocationData/0039/'
 
     # imu_data = np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=',')
     imu_data = np.loadtxt(dir_name + 'LEFT_FOOT.data', delimiter=',')
@@ -107,8 +107,8 @@ if __name__ == '__main__':
     #     uwb_data[:, uwb_valid[random_index[i]]] -= 10.0
 
     # delet_index = [ 33, 35]  # use 5 beacons
-    # delet_index = [30, 33, 35]  # use 4 beacons
-    delet_index = [30, 33, 35, 36]  # use 3 beacons
+    delet_index = [30, 33, 35]  # use 4 beacons
+    # delet_index = [30, 33, 35, 36]  # use 3 beacons
     # delet_index = [30, 31, 33, 34, 35]  # use 2 beacons
     # print('delet index:', type(delet_index), delet_index)
     for i in range(len(delet_index)):
@@ -393,9 +393,9 @@ if __name__ == '__main__':
                             #     rkf.measurement_uwb(uwb_filter_list[j - 1].m,
                             #                         uwb_filter_list[j - 1].cov,
                             #                         np.transpose(beacon_set[j - 1, :]))
-                    drkf.measurement_uwb_iterate(np.asarray(uwb_est_data[uwb_index, 1:]),
-                                                 np.ones(1) * 0.1,
-                                                 beacon_set, ref_trace, ka_squard=6.0)
+                    drkf.measurement_uwb_iterate(np.asarray(uwb_data[uwb_index, 1:]),
+                                                 np.ones(1) * 0.01,
+                                                 beacon_set, ref_trace)
                     # uwb_est_data[uwb_index, 1:] = np.linalg.norm(rkf.state[0:3] - beacon_set)
                     # for j in range(1,uwb_data.shape[1]):
                     #     if uwb_filter_list[j-1].m > -1000.0:
@@ -497,7 +497,7 @@ if __name__ == '__main__':
     # plt.plot(ftrace[:, 0], ftrace[:, 1], '-', color=color_dict['Foot'], label='Foot')
     plt.plot(rtrace[:, 0], rtrace[:, 1], '-', color=color_dict['REKF'], label='Robust EKF')
     plt.plot(ortrace[:, 0], ortrace[:, 1], '-', color=color_dict['RIEKF'], label='Robust mc-EKF')
-    # plt.plot(dtrace[:, 0], dtrace[:, 1], '-+', label='d ekf')
+    plt.plot(dtrace[:, 0], dtrace[:, 1], '-+', label='d ekf')
     # plt.plot(uwb_trace[:, 0], uwb_trace[:, 1], '+', color=color_dict['UWB'], label='uwb')
     # plt.plot(ref_trace[:, 1], ref_trace[:, 2], '-', label='ref')
     # for i in range(beacon_set.shape[0]):
@@ -585,7 +585,7 @@ if __name__ == '__main__':
     plt.plot(rs.eval_points(trace), '-', color=color_dict['Standard'], label='Standard EKF')
     plt.plot(rs.eval_points(rtrace), '-', color=color_dict['REKF'], label='Robust EKF')
     plt.plot(rs.eval_points(ortrace), '-', color=color_dict['RIEKF'], label='Robust mcEKF')
-    # plt.plot(rs.eval_points(dtrace), label='dtrace')
+    plt.plot(rs.eval_points(dtrace), label='dtrace')
     # plt.plot(rs.eval_points(ref_trace[:,1:]), label='ref')
     # plt.grid()
     plt.legend()
@@ -606,7 +606,7 @@ if __name__ == '__main__':
     print('fusing:', np.mean(t_error), np.std(t_error))
     print('rtrace:', np.mean(r_error), np.std(r_error))
     print('mc rtrace:', np.mean(or_error), np.std(or_error))
-    # print('dtrace:', np.mean(rs.eval_points(dtrace)))
+    print('dtrace:', np.mean(rs.eval_points(dtrace)))
     # print('ref:', np.mean(rs.eval_points(ref_trace[:, 1:])))
     print('eval cost time:', time.time() - start_time)
 
