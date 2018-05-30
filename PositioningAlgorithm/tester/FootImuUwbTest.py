@@ -61,7 +61,7 @@ if __name__ == '__main__':
     start_time = time.time()
     # dir_name = '/home/steve/Data/FusingLocationData/0017/'
     # dir_name = '/home/steve/Data/FusingLocationData/0013/'
-    dir_name = '/home/steve/Data/NewFusingLocationData/0040/'
+    dir_name = '/home/steve/Data/NewFusingLocationData/0039/'
     # dir_name = 'D:/Data/NewFusingLocationData/0039/'ParticleFilterCu
 
     ref_score = Refscor(dir_name)
@@ -337,9 +337,9 @@ if __name__ == '__main__':
                                              np.diag((0.0001, 0.0001, 0.0001)))
                 drkf.measurement_function_zv(np.asarray((0, 0, 0)),
                                              np.diag((0.0001, 0.0001, 0.0001)))
-            drkf.measurement(0.0001, ref_score)
-            if uwb_data[uwb_index, 0] < imu_data[i, 0]:
 
+            if uwb_data[uwb_index, 0] < imu_data[i, 0]:
+                drkf.measurement(0.0001, ref_score)
                 if uwb_index < uwb_data.shape[0] - 1:
                     # orkf.measurement_uwb_robust_multi(np.asarray(uwb_data[uwb_index, 1:]),
                     #                                   np.ones(1) * 0.1,
@@ -603,11 +603,11 @@ if __name__ == '__main__':
     plt.ylim(ymin=0.0)
     plt.title('MSE')
 
-    u_error = rs.eval_points(uwb_trace)
-    f_error = rs.eval_points(ftrace)
-    t_error = rs.eval_points(trace)
-    r_error = rs.eval_points(rtrace)
-    or_error = rs.eval_points(ortrace)
+    # u_error = rs.eval_points(uwb_trace)
+    # f_error = rs.eval_points(ftrace)
+    # t_error = rs.eval_points(trace)
+    # r_error = rs.eval_points(rtrace)
+    # or_error = rs.eval_points(ortrace)
     print('dir name:', dir_name)
     print('uwb:', np.mean(u_error), np.std(u_error))
     print('foot:', np.mean(f_error), np.std(f_error))
