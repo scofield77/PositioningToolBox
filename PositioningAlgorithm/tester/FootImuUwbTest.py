@@ -61,8 +61,8 @@ if __name__ == '__main__':
     start_time = time.time()
     # dir_name = '/home/steve/Data/FusingLocationData/0017/'
     # dir_name = '/home/steve/Data/FusingLocationData/0013/'
-    dir_name = '/home/steve/Data/NewFusingLocationData/0039/'
-    # dir_name = 'D:/Data/NewFusingLocationData/0039/'ParticleFilterCu
+    # dir_name = '/home/steve/Data/NewFusingLocationData/0039/'
+    dir_name = 'D:/Data/NewFusingLocationData/0040/'
 
     ref_score = Refscor(dir_name)
     # imu_data = np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=',')
@@ -107,10 +107,10 @@ if __name__ == '__main__':
     # delet_index = [30, 33, 35, 36]  # use 3 beacons
     delet_index = [30, 31, 33, 34, 35]  # use 2 beacons
     # print('delet index:', type(delet_index), delet_index)
-    # for i in range(len(delet_index)):
-    #     print('deleted:', delet_index[i])
-    #     uwb_data[:, delet_index[i]] *= 0.0
-    #     uwb_data[:, delet_index[i]] -= 10.0
+    for i in range(len(delet_index)):
+        print('deleted:', delet_index[i])
+        uwb_data[:, delet_index[i]] *= 0.0
+        uwb_data[:, delet_index[i]] -= 10.0
 
     after_valid_list = list()
     for i in range(1, uwb_data.shape[1]):
@@ -493,7 +493,7 @@ if __name__ == '__main__':
     # plt.plot(ftrace[:, 0], ftrace[:, 1], '-', color=color_dict['Foot'], label='Foot')
     plt.plot(rtrace[:, 0], rtrace[:, 1], '-', color=color_dict['REKF'], label='Robust EKF')
     plt.plot(ortrace[:, 0], ortrace[:, 1], '-', color=color_dict['RIEKF'], label='Robust IEKF')
-    plt.plot(dtrace[:, 0], dtrace[:, 1], '-+', label='d ekf')
+    # plt.plot(dtrace[:, 0], dtrace[:, 1], '-+', label='d ekf')
     # plt.plot(uwb_trace[:, 0], uwb_trace[:, 1], '+', color=color_dict['UWB'], label='uwb')
     # plt.plot(ref_trace[:, 1], ref_trace[:, 2], '-', label='ref')
     # for i in range(beacon_set.shape[0]):
