@@ -62,7 +62,7 @@ if __name__ == '__main__':
     # dir_name = '/home/steve/Data/FusingLocationData/0017/'
     # dir_name = '/home/steve/Data/FusingLocationData/0013/'
     # dir_name = '/home/steve/Data/NewFusingLocationData/0039/'
-    dir_name = 'D:/Data/NewFusingLocationData/0039/'
+    dir_name = 'D:/Data/NewFusingLocationData/0040/'
 
     ref_score = Refscor(dir_name)
     # imu_data = np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=',')
@@ -490,11 +490,11 @@ if __name__ == '__main__':
         plt.plot([ref_vis[i, 0], ref_vis[i, 2]], [ref_vis[i, 1], ref_vis[i, 3]], '-', color=color_dict['ref'],
                  alpha=0.5, lw='10')
     plt.plot(trace[:, 0], trace[:, 1], '-', color=color_dict['Standard'], label='Standard EKF')
-    # plt.plot(ftrace[:, 0], ftrace[:, 1], '-', color=color_dict['Foot'], label='Foot')
+    plt.plot(ftrace[:, 0], ftrace[:, 1], '-', color=color_dict['Foot'], label='Foot')
     plt.plot(rtrace[:, 0], rtrace[:, 1], '-', color=color_dict['REKF'], label='Robust EKF')
     plt.plot(ortrace[:, 0], ortrace[:, 1], '-', color=color_dict['RIEKF'], label='Robust IEKF')
     # plt.plot(dtrace[:, 0], dtrace[:, 1], '-+', label='d ekf')
-    # plt.plot(uwb_trace[:, 0], uwb_trace[:, 1], '+', color=color_dict['UWB'], label='uwb')
+    plt.plot(uwb_trace[:, 0], uwb_trace[:, 1], '+', color=color_dict['UWB'], label='uwb')
     # plt.plot(ref_trace[:, 1], ref_trace[:, 2], '-', label='ref')
     # for i in range(beacon_set.shape[0]):
     #     if uwb_data[i + 1, :].max() > 0 and beacon_set[i, 0] < 5000.0:
@@ -628,7 +628,7 @@ if __name__ == '__main__':
     x = np.linspace(0.0, max(np.max(r_error), np.max(or_error)))
     plt.figure()
     plt.title('CDF')
-    # plt.step(x, ecdf_f(x), color=color_dict['Foot'], label='Foot')
+    plt.step(x, ecdf_f(x), color=color_dict['Foot'], label='Foot')
     plt.step(x, ecdf_t(x), color=color_dict['Standard'], label='Standard EKF')
     plt.step(x, ecdf_r(x), color=color_dict['REKF'], label='Robust EKF')
     plt.step(x, ecdf_or(x), color=color_dict['RIEKF'], label='Robust IEKF')
