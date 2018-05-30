@@ -104,13 +104,13 @@ if __name__ == '__main__':
     #     uwb_data[:, uwb_valid[random_index[i]]] *= 0.0
     #     uwb_data[:, uwb_valid[random_index[i]]] -= 10.0
 
-    delet_index = [30, 33, 35, 36]  # use 3 beacons
-    # delet_index = [30, 31, 33, 34, 35]  # use 2 beacons
+    # delet_index = [30, 33, 35, 36]  # use 3 beacons
+    delet_index = [30, 31, 33, 34, 35]  # use 2 beacons
     # print('delet index:', type(delet_index), delet_index)
-    for i in range(len(delet_index)):
-        print('deleted:', delet_index[i])
-        uwb_data[:, delet_index[i]] *= 0.0
-        uwb_data[:, delet_index[i]] -= 10.0
+    # for i in range(len(delet_index)):
+    #     print('deleted:', delet_index[i])
+    #     uwb_data[:, delet_index[i]] *= 0.0
+    #     uwb_data[:, delet_index[i]] -= 10.0
 
     after_valid_list = list()
     for i in range(1, uwb_data.shape[1]):
@@ -494,7 +494,7 @@ if __name__ == '__main__':
     plt.plot(rtrace[:, 0], rtrace[:, 1], '-', color=color_dict['REKF'], label='Robust EKF')
     plt.plot(ortrace[:, 0], ortrace[:, 1], '-', color=color_dict['RIEKF'], label='Robust IEKF')
     # plt.plot(dtrace[:, 0], dtrace[:, 1], '-+', label='d ekf')
-    plt.plot(uwb_trace[:, 0], uwb_trace[:, 1], '+', color=color_dict['UWB'], label='uwb')
+    # plt.plot(uwb_trace[:, 0], uwb_trace[:, 1], '+', color=color_dict['UWB'], label='uwb')
     # plt.plot(ref_trace[:, 1], ref_trace[:, 2], '-', label='ref')
     # for i in range(beacon_set.shape[0]):
     #     if uwb_data[i + 1, :].max() > 0 and beacon_set[i, 0] < 5000.0:
@@ -628,7 +628,7 @@ if __name__ == '__main__':
     x = np.linspace(0.0, max(np.max(r_error), np.max(or_error)))
     plt.figure()
     plt.title('CDF')
-    plt.step(x, ecdf_f(x), color=color_dict['Foot'], label='Foot')
+    # plt.step(x, ecdf_f(x), color=color_dict['Foot'], label='Foot')
     plt.step(x, ecdf_t(x), color=color_dict['Standard'], label='Standard EKF')
     plt.step(x, ecdf_r(x), color=color_dict['REKF'], label='Robust EKF')
     plt.step(x, ecdf_or(x), color=color_dict['RIEKF'], label='Robust IEKF')
