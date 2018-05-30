@@ -25,7 +25,7 @@
 
 from numba import cuda
 
-from PositioningAlgorithm.tester.FootImu import *
+from PositioningAlgorithm.FootImu import *
 from numba.cuda.random import create_xoroshiro128p_states, xoroshiro128p_uniform_float32
 
 
