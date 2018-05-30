@@ -537,6 +537,8 @@ class ImuEKFComplex:
             particles[:, i] = self.state[i] + rnd_p[:, i] * (self.prob_state[i, i] ** 0.5) * 20.0
         print(np.std(particles, axis=0))
 
+
+
         # measurement
         # @jit(nopython=True)
         def gaussian_distribution(x, miu, sigma):
@@ -586,13 +588,6 @@ class ImuEKFComplex:
                                             np.transpose(beacon_set[i, :]), i)
         print('score:', all_m_score)
 
-        # self.measurement_uwb_iterate_standard(measurement,)
-
-        # fig = plt.figure(11)
-        # ax = fig.add_subplot(111, projection='3d')
-        # ax.plot(ref_trace[:, 1], ref_trace[:, 2], ref_trace[:, 3], '-+')
-        # ax.scatter(particles[:, 0], particles[:, 1], particles[:, 2])
-        # plt.pause(0.1)
 
         # index = np.where(cluster)
         print('------------mc robust ekf------------')
@@ -730,7 +725,7 @@ class ImuEKFComplex:
         z = np.ones(1) * 0.0
         y = np.ones(1) * ref_f.eval_point2d(self.state[0:2])
 
-        H = np.zeros([1,15])
+        H = np.zeros([1, 15])
         ts = self.state[0:2] * 1.0
         ts[0] += 0.1
         H[0, 0] = (ref_f.eval_point2d(ts) - y) / 0.1
