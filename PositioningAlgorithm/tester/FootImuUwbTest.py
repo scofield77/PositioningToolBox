@@ -153,6 +153,7 @@ if __name__ == '__main__':
 
 
     uwb_trace = cal(uwb_trace)
+    uwb_ref_trace = np.zeros_like(uwb_trace)
     print('uwb cost time:', time.time() - stime)
 
     # ref_trace = np.loadtxt(dir_name + 'ref_trace.csv', delimiter=',')
@@ -389,6 +390,7 @@ if __name__ == '__main__':
                     drkf.measurement_uwb_iterate(np.asarray(uwb_data[uwb_index, 1:]),
                                                  np.ones(1) * 0.1,
                                                  beacon_set, ref_trace, ka_squard=6.0)
+                    uwb_ref_trace[uwb_index, :] = drkf.state[0:3]
 
                     # uwb_est_data[uwb_index, 1:] = np.linalg.norm(rkf.state[0:3] - beacon_set)
                     # for j in range(1,uwb_data.shape[1]):
@@ -571,14 +573,26 @@ if __name__ == '__main__':
     # ax.legend()
     #
     rs = Refscor(dir_name)
+
+    # u_error = rs.eval_points(uwb_trace)
+    # f_error = rs.eval_points(ftrace)
+    # t_error = rs.eval_points(trace)
+    # r_error = rs.eval_points(rtrace)
+    # or_error = rs.eval_points(ortrace)
+    u_error = np.linalg.norm(uwb_trace[:, 0:2] - uwb_ref_trace[:, 0:2], axis=1)
+    f_error = np.linalg.norm(ftrace[:, 0:2] - dtrace[:, 0:2], axis=1)
+    t_error = np.linalg.norm(trace[:, 0:2] - dtrace[:, 0:2], axis=1)
+    r_error = np.linalg.norm(rtrace[:, 0:2] - dtrace[:, 0:2], axis=1)
+    or_error = np.linalg.norm(ortrace[:, 0:2] - dtrace[:, 0:2], axis=1)
+
     plt.figure()
 
     start_time = time.time()
 
-    # plt.plot(rs.eval_points(uwb_trace), label='uwb')
-    plt.plot(rs.eval_points(trace), '-', color=color_dict['Standard'], label='Standard EKF')
-    plt.plot(rs.eval_points(rtrace), '-', color=color_dict['REKF'], label='Robust EKF')
-    plt.plot(rs.eval_points(ortrace), '-', color=color_dict['RIEKF'], label='Robust IEKF')
+    # plt.plot(u_error, label='uwb')
+    plt.plot(t_error, '-', color=color_dict['Standard'], label='Standard EKF')
+    plt.plot(r_error, '-', color=color_dict['REKF'], label='Robust EKF')
+    plt.plot(or_error, '-', color=color_dict['RIEKF'], label='Robust IEKF')
     # plt.plot(rs.eval_points(dtrace), label='dtrace')
     # plt.plot(rs.eval_points(ref_trace[:,1:]), label='ref')
     # plt.grid()
