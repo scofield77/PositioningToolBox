@@ -527,7 +527,7 @@ class ImuEKFComplex:
         # else:
         #     print('mc')
 
-        particles = np.zeros(shape=(5000, 3))
+        particles = np.zeros(shape=(50000, 3))
         w = np.ones(shape=particles.shape[0])
 
         # rnd_p = np.random.normal(0.0, 1.0, size=particles.shape)
@@ -538,6 +538,7 @@ class ImuEKFComplex:
         #     particles[:, i] = self.state[i] + rnd_p[:, i] * (self.prob_state[i, i] ** 0.5) * 20.0
         particles = np.random.multivariate_normal(self.state[0:3], self.prob_state[0:3, 0:3], size=particles.shape[0])
         print('prior mean:', np.mean(particles, axis=0))
+        print('prior std:', np.std(particles, axis=0))
 
         # measurement
         # @jit(nopython=True)
@@ -568,24 +569,33 @@ class ImuEKFComplex:
         w = w / w.sum()
 
         # vote for each measurement
+        # plt.figure(11)
+        # plt.clf()
+        # plt.hist(w*float(w.shape[0]))
+        # plt.pause(0.1)
 
         all_m_score = np.zeros_like(measurement)
         for i in range(beacon_set.shape[0]):
-            all_m_score[i] = np.sum(np.abs(np.linalg.norm(particles[i, :] - beacon_set[i, :]) - measurement[i]) * w,
+            all_m_score[i] = np.sum(np.abs(np.linalg.norm(particles - beacon_set[i, :], axis=1) - measurement[i]) * w,
                                     axis=0)
-            if all_m_score[i] < cov_m[0] * 10.0:
-                self.measurement_uwb(np.asarray(measurement[i]),
-                                     np.ones(1) * cov_m[0],
-                                     np.transpose(beacon_set[i, :]))
-            elif all_m_score[i] < cov_m[0] * 20.0:
-                self.measurement_uwb_robust(np.asarray(measurement[i]),
-                                            np.ones(1) * (all_m_score[i] ** 4.0),
-                                            np.transpose(beacon_set[i, :]), i)
-            else:
-                # print('def')
-                self.measurement_uwb_robust(np.asarray(measurement[i]),
-                                            np.ones(1) * (all_m_score[i] ** 8.0),
-                                            np.transpose(beacon_set[i, :]), i)
+            # all_m_score[i] = np.std(np.linalg.norm(particles-beacon_set[i,:],axis=1), weight=w)
+            self.measurement_uwb(np.asarray(measurement[i]),
+                                 np.ones(1) * (all_m_score[i]),
+                                 np.transpose(beacon_set[i, :]))
+
+        #     if all_m_score[i] < cov_m[0] * 10.0:
+        #         self.measurement_uwb(np.asarray(measurement[i]),
+        #                              np.ones(1) * cov_m[0],
+        #                              np.transpose(beacon_set[i, :]))
+        #     elif all_m_score[i] < cov_m[0] * 20.0:
+        #         self.measurement_uwb_robust(np.asarray(measurement[i]),
+        #                                     np.ones(1) * (all_m_score[i] ** 4.0),
+        #                                     np.transpose(beacon_set[i, :]), i)
+        #     else:
+        #         # print('def')
+        #         self.measurement_uwb_robust(np.asarray(measurement[i]),
+        #                                     np.ones(1) * (all_m_score[i] ** 8.0),
+        #                                     np.transpose(beacon_set[i, :]), i)
         print('score:', all_m_score)
 
         # index = np.where(cluster)
