@@ -50,6 +50,16 @@ from pyculib import blas as cublas
 
 @cuda.jit
 def rejection_resample(state_array, state_buffer, weight, rng, weight_max_array):
+    '''
+    General resample function for particle filter.
+    In paper : Parallel Resampling in the Particle Filter (Journal of Computational and Graphical Statistics)
+    :param state_array:
+    :param state_buffer: buffer array, its size same to state_array
+    :param weight:
+    :param rng:random generator(pyculib)
+    :param weight_max_array: buffer , its size same to weight.
+    :return:
+    '''
     pos = cuda.grid(1)
     tid = cuda.threadIdx.x
 

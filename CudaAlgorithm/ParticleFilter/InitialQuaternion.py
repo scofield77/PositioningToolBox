@@ -46,6 +46,11 @@ from pyculib import blas as cublas
 
 @cuda.jit
 def initial_unit_q(q_array):
+    '''
+    quaternion initial function.
+    :param q_array:
+    :return:
+    '''
     # tx = cuda.threadIdx.x
     # ty = cuda.blockIdx.x
     # bw = cuda.blockDim.x
@@ -118,6 +123,15 @@ def quaternion_add_euler(q, euler):
 
 @cuda.jit
 def sample(q_array, input, sigma, rng):
+    '''
+    Sample or state transition function in bayes filter theory.
+    Here is a single example without any change in system state.
+    :param q_array:
+    :param input:
+    :param sigma:
+    :param rng:
+    :return:
+    '''
     pos = cuda.grid(1)
 
     if pos < q_array.shape[1]:
@@ -132,6 +146,11 @@ def sample(q_array, input, sigma, rng):
 
 @cuda.jit
 def init_weight(q_weight):
+    '''
+    let sum of weight equal to 1.0
+    :param q_weight:
+    :return:
+    '''
     pos = cuda.grid(1)
 
     if pos < q_weight.shape[0]:
@@ -140,6 +159,13 @@ def init_weight(q_weight):
 
 @cuda.jit
 def average_quaternion_simple(q_array, q_weight, average_q):
+    '''
+    compute the average of quaternion with weight.
+    :param q_array:
+    :param q_weight:
+    :param average_q:
+    :return:
+    '''
     pos = cuda.grid(1)
     tid = cuda.threadIdx.x
 
@@ -210,7 +236,14 @@ def average_quaternion_simple(q_array, q_weight, average_q):
 
 @cuda.jit(device=True, inline=True)
 def normal_pdf(x, miu, sigma):
-    return 1.0 /((x - miu) * (x - miu) / sigma / sigma)
+    '''
+    standard gaussian probability distribution function.(single variable)
+    :param x:
+    :param miu: centre
+    :param sigma: cov
+    :return:
+    '''
+    return 1.0 / ((x - miu) * (x - miu) / sigma / sigma)
 
 
 @cuda.jit
