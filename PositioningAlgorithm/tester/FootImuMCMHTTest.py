@@ -106,8 +106,8 @@ if __name__ == '__main__':
     #     uwb_data[:, uwb_valid[random_index[i]]] *= 0.0
     #     uwb_data[:, uwb_valid[random_index[i]]] -= 10.0
 
-    # delet_index = [ 33, 35]  # use 5 beacons
-    delet_index = [30, 33, 35]  # use 4 beacons
+    delet_index = [ 33, 35]  # use 5 beacons
+    # delet_index = [30, 33, 35]  # use 4 beacons
     # delet_index = [30, 33, 35, 36]  # use 3 beacons
     # delet_index = [30, 31, 33, 34, 35]  # use 2 beacons
     # print('delet index:', type(delet_index), delet_index)
@@ -497,7 +497,7 @@ if __name__ == '__main__':
     # plt.plot(ftrace[:, 0], ftrace[:, 1], '-', color=color_dict['Foot'], label='Foot')
     plt.plot(rtrace[:, 0], rtrace[:, 1], '-', color=color_dict['REKF'], label='Robust EKF')
     plt.plot(ortrace[:, 0], ortrace[:, 1], '-', color=color_dict['RIEKF'], label='Robust mc-EKF')
-    plt.plot(dtrace[:, 0], dtrace[:, 1], '-+', label='d ekf')
+    # plt.plot(dtrace[:, 0], dtrace[:, 1], '-+', label='d ekf')
     # plt.plot(uwb_trace[:, 0], uwb_trace[:, 1], '+', color=color_dict['UWB'], label='uwb')
     # plt.plot(ref_trace[:, 1], ref_trace[:, 2], '-', label='ref')
     # for i in range(beacon_set.shape[0]):

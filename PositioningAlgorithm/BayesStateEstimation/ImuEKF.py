@@ -524,20 +524,20 @@ class ImuEKFComplex:
                                             cov_m,
                                             np.transpose(beacon_set[i, :]), i)
             return
-        else:
-            print('mc')
+        # else:
+        #     print('mc')
 
         particles = np.zeros(shape=(5000, 3))
         w = np.ones(shape=particles.shape[0])
 
-        rnd_p = np.random.normal(0.0, 1.0, size=particles.shape)
+        # rnd_p = np.random.normal(0.0, 1.0, size=particles.shape)
+        # rnd_p  = np.random.multivariate_normal()
 
         # sample
-        for i in range(3):
-            particles[:, i] = self.state[i] + rnd_p[:, i] * (self.prob_state[i, i] ** 0.5) * 20.0
-        print(np.std(particles, axis=0))
-
-
+        # for i in range(3):
+        #     particles[:, i] = self.state[i] + rnd_p[:, i] * (self.prob_state[i, i] ** 0.5) * 20.0
+        particles = np.random.multivariate_normal(self.state[0:3], self.prob_state[0:3, 0:3], size=particles.shape[0])
+        print('prior mean:', np.mean(particles, axis=0))
 
         # measurement
         # @jit(nopython=True)
@@ -563,7 +563,7 @@ class ImuEKFComplex:
             #     w[i] = w[i] * gaussian_distribution(np.linalg.norm(particles[i, :] - beacon_set[j, :]) * 1.0,
             #                                     measurement[j], 1.0)
             w = w * gaussian_pdf_v(np.linalg.norm(particles - beacon_set[j, :], axis=1),
-                                   np.ones_like(w) * measurement[i],
+                                   np.ones_like(w) * measurement[j],
                                    np.ones_like(w) * 1.0)
         w = w / w.sum()
 
@@ -587,7 +587,6 @@ class ImuEKFComplex:
                                             np.ones(1) * (all_m_score[i] ** 8.0),
                                             np.transpose(beacon_set[i, :]), i)
         print('score:', all_m_score)
-
 
         # index = np.where(cluster)
         print('------------mc robust ekf------------')
