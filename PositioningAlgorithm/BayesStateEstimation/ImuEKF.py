@@ -161,7 +161,7 @@ class ImuEKFComplex:
 
     def measurement_function_z_axis(self, m, cov_matrix):
         '''
-        Zero-velocity measurement.
+        z-axis constraint.
         Suitable for ekf with more than 15 state model.
         :param m: actually is Vector3d(0,0,0)
         :param cov_matrix:
@@ -578,6 +578,9 @@ class ImuEKFComplex:
         for i in range(beacon_set.shape[0]):
             all_m_score[i] = np.sum(np.abs(np.linalg.norm(particles - beacon_set[i, :], axis=1) - measurement[i]) * w,
                                     axis=0)
+            # tm = np.linalg.norm(particles-beacon_set[i,:],axis=1)
+            # avg = np.average(tm,weights=w)
+            # all_m_score[i] = np.average((tm-avg)**2.0,weights=w)
             # all_m_score[i] = np.std(np.linalg.norm(particles-beacon_set[i,:],axis=1), weight=w)
             self.measurement_uwb(np.asarray(measurement[i]),
                                  np.ones(1) * (all_m_score[i]),
