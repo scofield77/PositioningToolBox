@@ -345,6 +345,7 @@ def dcm2q(self, R, q):
 @cuda.jit(device=True, inline=True)
 def q2dcm(q, R):
     """
+    qatuernion to Rotation matrix.
     :param q:
     :return:
     """
@@ -409,6 +410,12 @@ def q2dcm(q, R):
 
 @cuda.jit(device=True, inline=True)
 def gravity_error_function(q, acc):
+    '''
+    use orientation of acc to correct the quaternion of initial state.
+    :param q:
+    :param acc:
+    :return:
+    '''
     R = cuda.local.array(shape=(3, 3), dtype=float64)
     # for i in range(3):
     #     for j in range(3):
@@ -430,6 +437,14 @@ def gravity_error_function(q, acc):
 
 @cuda.jit
 def quaternion_evaluate(q_array, q_weight, acc, weight_sum):
+    '''
+    evaluation function for gravity under certain acc and quaternion.
+    :param q_array:
+    :param q_weight:
+    :param acc:
+    :param weight_sum:
+    :return:
+    '''
     pos = cuda.grid(1)
     tid = cuda.threadIdx.x
 
