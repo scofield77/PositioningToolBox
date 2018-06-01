@@ -249,6 +249,7 @@ def normal_pdf(x, miu, sigma):
 @cuda.jit
 def Rt2b(self, ang, R):
     '''
+    euler angle to Rotation matrix ,special version for gpu
     :
     :param ang:
     :return:
