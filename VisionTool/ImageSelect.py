@@ -37,5 +37,5 @@ if __name__ == '__main__':
         if 'png' in file_name:
             code = int(file_name.split('.')[0])
 
-            if code % 3 is 0:
+            if code % 1 is 0:
                 shutil.copyfile(dir_name+file_name,new_dir_name+file_name)
