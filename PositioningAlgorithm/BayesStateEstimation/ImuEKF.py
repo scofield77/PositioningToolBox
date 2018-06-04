@@ -528,7 +528,7 @@ class ImuEKFComplex:
         # else:
         #     print('mc')
 
-        particles = np.zeros(shape=(50000, 3))
+        particles = np.zeros(shape=(500000, 3))
         w = np.ones(shape=particles.shape[0])
 
         # rnd_p = np.random.normal(0.0, 1.0, size=particles.shape)
@@ -574,6 +574,12 @@ class ImuEKFComplex:
         # plt.clf()
         # plt.hist(w*float(w.shape[0]))
         # plt.pause(0.1)
+
+        plt.figure(11)
+        plt.clf()
+        plt.title('particle hist')
+        plt.hist2d(particles[:, 0], particles[:, 1], bins=20, weights=w)
+        plt.pause(0.1)
 
         all_m_score = np.zeros_like(measurement)
         for i in range(beacon_set.shape[0]):

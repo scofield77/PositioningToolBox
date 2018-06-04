@@ -107,9 +107,9 @@ if __name__ == '__main__':
     #     uwb_data[:, uwb_valid[random_index[i]]] *= 0.0
     #     uwb_data[:, uwb_valid[random_index[i]]] -= 10.0
 
-    # delet_index = [ 33, 35]  # use 5 beacons
+    delet_index = [ 33, 35]  # use 5 beacons
     # delet_index = [30, 33, 35]  # use 4 beacons
-    delet_index = [30, 33, 35, 36]  # use 3 beacons
+    # delet_index = [30, 33, 35, 36]  # use 3 beacons
     # delet_index = [30, 31, 33, 34, 35]  # use 2 beacons
     # print('delet index:', type(delet_index), delet_index)
     for i in range(len(delet_index)):
@@ -358,7 +358,6 @@ if __name__ == '__main__':
                     # orkf.measurement_uwb_iterate(np.asarray(uwb_data[uwb_index, 1:]),
                     #                              np.ones(1) * 0.01,
                     #                              beacon_set, ref_trace)
-                    uwb_index += 1
                     for j in range(1, uwb_data.shape[1]):
                         # right
 
@@ -397,6 +396,8 @@ if __name__ == '__main__':
                     drkf.measurement_uwb_iterate(np.asarray(uwb_data[uwb_index, 1:]),
                                                  np.ones(1) * 0.01,
                                                  beacon_set, ref_trace)
+
+                    uwb_index += 1
                     # uwb_est_data[uwb_index, 1:] = np.linalg.norm(rkf.state[0:3] - beacon_set)
                     # for j in range(1,uwb_data.shape[1]):
                     #     if uwb_filter_list[j-1].m > -1000.0:
