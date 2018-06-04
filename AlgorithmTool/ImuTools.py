@@ -98,7 +98,7 @@ class settings:
 
 
 # @jit(cache=True)
-@jit(float64[:](float64[:, :], float64, float64, float64, float64, int32), nopython=True, parallel=True)#, cache=True)
+@jit(float64[:](float64[:, :], float64, float64, float64, float64, int32), nopython=True)#, parallel=True)#, cache=True)
 def GLRT_Detector(u,
                   sigma_a=0.4,
                   sigma_g=0.4 * np.pi / 180.0,
