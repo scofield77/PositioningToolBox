@@ -496,6 +496,146 @@ class ImuEKFComplex:
 
         self.prob_state = pplus
 
+    def measurement_uwb_mc_itea(self, measurement, cov_m, beacon_set, ref_trace):
+        '''
+        Use particle simulator posterior distribution.
+        uncompleted!!! and may be invalid in such situation.
+        :param measurement:
+        :param cov_m:
+        :param beacon_set:
+        :param ref_trace:
+        :return:
+        '''
+
+        measurement = measurement[np.where(beacon_set[:, 0] < 5000.0)] * 1.0
+        beacon_set = beacon_set[np.where(beacon_set < 5000.0)] * 1.0
+        beacon_set = beacon_set.reshape([-1, 3])
+
+        m_index = np.where(measurement > 0.0)
+        measurement = measurement[m_index] * 1.0
+        beacon_set = beacon_set[m_index, :] * 1.0
+        # print(measurement.shape, beacon_set.shape)
+        measurement = measurement.reshape(-1)
+        beacon_set = beacon_set.reshape([-1, 3])
+
+        if measurement.shape[0] < 3:
+            # self.measurement_uwb_iterate(measurement, cov_m, beacon_set, np.zeros([10, 10]))
+            for i in range(measurement.shape[0]):
+                self.measurement_uwb_robust(np.asarray(measurement[i]),
+                                            cov_m,
+                                            np.transpose(beacon_set[i, :]), i)
+            return
+        # else:
+        #     print('mc')
+
+
+        R = np.identity(measurement.shape[0]) * cov_m[0]
+
+        particles = np.zeros(shape=(9000, 3))
+        w = np.ones(shape=particles.shape[0])
+        w = w / w.sum()
+
+        # rnd_p = np.random.normal(0.0, 1.0, size=particles.shape)
+        # rnd_p  = np.random.multivariate_normal()
+        def gaussian_distribution(x, miu, sigma):
+            # print('sigma',sigma)
+            a = 1.0 / sigma / math.sqrt(2.0 * 3.1415926)
+            b = -1.0 * ((x - miu) * (x - miu) / 2.0 / sigma / sigma)
+            # if math.isnan(a):
+            #     print('a is nan', x, miu, sigma)
+            # if math.isnan(b):
+            #     print('b is nan', x, miu, sigma)
+            # print(a * math.exp(b))#,a,b, x,miu,sigma)
+            if math.isnan(math.exp(b)):
+                return 0.0
+            else:
+                return math.log(a)*(b)
+
+        gaussian_pdf_v = np.vectorize(gaussian_distribution)
+
+
+        p_mean = self.state[0:3]*1.0
+        p_std = self.prob_state
+
+
+        counter = 0
+
+        while np.linalg.norm(np.mean(particles,axis=0)-p_mean) > 0.01 or counter is 0:
+            p_mean = np.mean(particles,axis=0)
+            counter += 1
+            w = np.ones(shape=particles.shape[0])
+            w = w / w.sum()
+            particles = np.random.multivariate_normal(self.state[0:3]*1.0, self.prob_state[0:3, 0:3]*15.0, size=particles.shape[0])
+            # print('prior mean:', np.mean(particles, axis=0))
+            # print('prior std:', np.std(particles, axis=0))
+            # print('initial w ',w.sum(),'R',R)
+
+
+
+
+            for j in range(beacon_set.shape[0]):
+                w = w + gaussian_pdf_v(np.linalg.norm(particles - beacon_set[j, :], axis=1),
+                                       np.ones_like(w) * measurement[j],
+                                       np.ones_like(w) * R[j,j])
+            print('befoer cal  normal w', w.sum(),'R',R)
+            s = np.sum(np.exp(w))
+            print('s',s)
+
+            w = w - math.log(math.fabs(s))
+
+            print('cal w', np.sum(np.exp(w)),'R',R)
+
+            for i in range(beacon_set.shape[0]):
+                R[i,i] = np.sum(np.abs(np.linalg.norm(particles - beacon_set[i, :], axis=1) - measurement[i]) * np.exp(w),
+                                    axis=0)
+            # print('R',R, 'w',w.sum())
+        print('counter :', counter)
+
+        # vote for each measurement
+        # plt.figure(11)
+        # plt.clf()
+        # plt.hist(w*float(w.shape[0]))
+        # plt.pause(0.1)
+
+        # plt.figure(11)
+        # plt.clf()
+        # plt.title('posterior hist')
+        # plt.hist2d(particles[:, 0], particles[:, 1], bins=50, weights=w)
+        # plt.pause(0.1)
+
+        # all_m_score = np.zeros_like(measurement)
+        # for i in range(beacon_set.shape[0]):
+        #     all_m_score[i] = np.sum(np.abs(np.linalg.norm(particles - beacon_set[i, :], axis=1) - measurement[i]) * w,
+        #                             axis=0)
+            # tm = np.linalg.norm(particles-beacon_set[i,:],axis=1)
+            # avg = np.average(tm,weights=w)
+            # all_m_score[i] = np.average((tm-avg)**2.0,weights=w)
+            # all_m_score[i] = np.std(np.linalg.norm(particles-beacon_set[i,:],axis=1), weight=w)
+        for i in range(beacon_set.shape[0]):
+            self.measurement_uwb(np.asarray(measurement[i]),
+                                     np.ones(1) * (R[i,i]),
+                                     np.transpose(beacon_set[i, :]))
+            if np.isnan(self.state).any():
+                print('error',i,self.state)
+
+        #     if all_m_score[i] < cov_m[0] * 10.0:
+        #         self.measurement_uwb(np.asarray(measurement[i]),
+        #                              np.ones(1) * cov_m[0],
+        #                              np.transpose(beacon_set[i, :]))
+        #     elif all_m_score[i] < cov_m[0] * 20.0:
+        #         self.measurement_uwb_robust(np.asarray(measurement[i]),
+        #                                     np.ones(1) * (all_m_score[i] ** 4.0),
+        #                                     np.transpose(beacon_set[i, :]), i)
+        #     else:
+        #         # print('def')
+        #         self.measurement_uwb_robust(np.asarray(measurement[i]),
+        #                                     np.ones(1) * (all_m_score[i] ** 8.0),
+        #                                     np.transpose(beacon_set[i, :]), i)
+        # print('score:', all_m_score)
+
+        # index = np.where(cluster)
+        print('------------mc robust ekf------------')
+
     def measurement_uwb_mc(self, measurement, cov_m, beacon_set, ref_trace):
         '''
         Use particle simulator posterior distribution.
@@ -528,19 +668,28 @@ class ImuEKFComplex:
         # else:
         #     print('mc')
 
-        particles = np.zeros(shape=(500000, 3))
+        particles = np.zeros(shape=(9000, 3))
         w = np.ones(shape=particles.shape[0])
+        w = w / w.sum()
 
         # rnd_p = np.random.normal(0.0, 1.0, size=particles.shape)
         # rnd_p  = np.random.multivariate_normal()
 
+
         # sample
         # for i in range(3):
         #     particles[:, i] = self.state[i] + rnd_p[:, i] * (self.prob_state[i, i] ** 0.5) * 20.0
-        particles = np.random.multivariate_normal(self.state[0:3], self.prob_state[0:3, 0:3], size=particles.shape[0])
+        particles = np.random.multivariate_normal(self.state[0:3], self.prob_state[0:3, 0:3]*1500.0, size=particles.shape[0])
         print('prior mean:', np.mean(particles, axis=0))
         print('prior std:', np.std(particles, axis=0))
 
+
+
+        # plt.figure(10)
+        # plt.clf()
+        # plt.title('prior hist')
+        # plt.hist2d(particles[:, 0], particles[:, 1], bins=50, weights=w)
+        # plt.pause(0.1)
         # measurement
         # @jit(nopython=True)
         def gaussian_distribution(x, miu, sigma):
@@ -575,11 +724,11 @@ class ImuEKFComplex:
         # plt.hist(w*float(w.shape[0]))
         # plt.pause(0.1)
 
-        plt.figure(11)
-        plt.clf()
-        plt.title('particle hist')
-        plt.hist2d(particles[:, 0], particles[:, 1], bins=20, weights=w)
-        plt.pause(0.1)
+        # plt.figure(11)
+        # plt.clf()
+        # plt.title('posterior hist')
+        # plt.hist2d(particles[:, 0], particles[:, 1], bins=50, weights=w)
+        # plt.pause(0.1)
 
         all_m_score = np.zeros_like(measurement)
         for i in range(beacon_set.shape[0]):

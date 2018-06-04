@@ -352,7 +352,10 @@ if __name__ == '__main__':
                     # rkf.measurement_uwb_mc(np.asarray(uwb_data[uwb_index,1:]),
                     #                        np.ones(1)*0.01,
                     #                        beacon_set, ref_trace)
-                    orkf.measurement_uwb_mc(np.asarray(uwb_data[uwb_index,1:]),
+                    kf.measurement_uwb_mc(np.asarray(uwb_data[uwb_index,1:]),
+                                           np.ones(1)*0.01,
+                                           beacon_set, ref_trace)
+                    orkf.measurement_uwb_mc_itea(np.asarray(uwb_data[uwb_index,1:]),
                                            np.ones(1)*0.01,
                                            beacon_set, ref_trace)
                     # orkf.measurement_uwb_iterate(np.asarray(uwb_data[uwb_index, 1:]),
@@ -382,9 +385,9 @@ if __name__ == '__main__':
                                 if np.linalg.norm(uwb_filter_list[j - 1].beacon_set - beacon_set[j - 1, :]) > 0.1:
                                     print('error', uwb_filter_list[j - 1].beacon_set, beacon_set[j - 1, :])
 
-                            kf.measurement_uwb(np.asarray(uwb_data[uwb_index, j]),
-                                               np.ones(1) * 0.5,
-                                               np.transpose(beacon_set[j - 1, :]))
+                            # kf.measurement_uwb(np.asarray(uwb_data[uwb_index, j]),
+                            #                    np.ones(1) * 0.5,
+                            #                    np.transpose(beacon_set[j - 1, :]))
                             rkf.measurement_uwb_robust(uwb_data[uwb_index, j],
                                                        np.ones(1) * 0.1,
                                                        np.transpose(beacon_set[j - 1, :]),
