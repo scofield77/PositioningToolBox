@@ -124,6 +124,7 @@ class ImuEKFComplex:
             np.transpose(self.G))
 
         self.prob_state = 0.5 * self.prob_state + 0.5 * self.prob_state.transpose()
+
         # print('F:\n', tF - self.F)
         # print('G:\n', tG - self.G)
 
