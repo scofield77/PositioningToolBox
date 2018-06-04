@@ -288,6 +288,10 @@ if __name__ == '__main__':
                              gravity=9.8,
                              time_Window_size=10)
 
+    # plt.figure()
+    # plt.title('zv state')
+    # plt.plot(zv_state)
+
     uwb_index = 0
 
     for i in range(imu_data.shape[0]):
