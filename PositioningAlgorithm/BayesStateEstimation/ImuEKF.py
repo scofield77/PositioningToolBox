@@ -528,7 +528,6 @@ class ImuEKFComplex:
         # else:
         #     print('mc')
 
-
         R = np.identity(measurement.shape[0]) * cov_m[0]
 
         particles = np.zeros(shape=(9000, 3))
@@ -548,51 +547,61 @@ class ImuEKFComplex:
             # print(a * math.exp(b))#,a,b, x,miu,sigma)
             if math.isnan(math.exp(b)):
                 print('error:', b)
-                return 0.0
+                return -10000.0
             else:
-                return math.log(a)*(b)
+                return math.log(a) * (b)
 
         gaussian_pdf_v = np.vectorize(gaussian_distribution)
 
-
-        p_mean = self.state[0:3]*1.0
+        p_mean = self.state[0:3] * 1.0
         p_std = self.prob_state
-
 
         counter = 0
 
-        while np.linalg.norm(np.mean(particles,axis=0)-p_mean) > 0.01 or counter is 0:
-            p_mean = np.mean(particles,axis=0)
+        while np.linalg.norm(np.mean(particles, axis=0) - p_mean) > 0.01 or counter is 0:
+            p_mean = np.mean(particles, axis=0)
             counter += 1
             w = np.ones(shape=particles.shape[0])
-            w = w / w.sum()
-            particles = np.random.multivariate_normal(self.state[0:3]*1.0, self.prob_state[0:3, 0:3]*15.0, size=particles.shape[0])
+            # w = w / w.sum()
+            w = w - np.log(np.sum(np.exp(w)))
+
+            # print('normal w:',np.mean(w),'ana w:', np.log(1/float(w.shape[0])))
+            particles = np.random.multivariate_normal(self.state[0:3] * 1.0, self.prob_state[0:3, 0:3] * 15.0,
+                                                      size=particles.shape[0])
             # print('prior mean:', np.mean(particles, axis=0))
             # print('prior std:', np.std(particles, axis=0))
             # print('initial w ',w.sum(),'R',R)
-
-
-
+            # plt.figure()
+            # plt.plot(w, label='before')
 
             for j in range(beacon_set.shape[0]):
                 w = w + gaussian_pdf_v(np.linalg.norm(particles - beacon_set[j, :], axis=1),
                                        np.ones_like(w) * measurement[j],
-                                       np.ones_like(w) * R[j,j])
-            print('befoer cal  normal w', w.sum(),'R',R)
+                                       np.ones_like(w) * R[j, j]*100.0)
+            print('befoer cal  normal w', w.sum(), '\nR', R)
             s = np.sum(np.exp(w))
             # plt.figure()
             # plt.title('w')
-            # plt.plot(np.exp(w))
+            # plt.plot(w, label='after')
+            # plt.legend()
             # plt.show()
-            print('s',s, 'std exp w')
+            print('s', s, 'mean w', np.mean(w), np.exp(np.mean(w)))
 
-            w = w - math.log(math.fabs(s))
+            # w = w - np.log(np.sum(np.exp(w)))
 
-            print('cal w', np.sum(np.exp(w)),'R',R)
+            print('cal w', np.sum(np.exp(w)), '\nR', R)
+
+            # pw =np.exp(w)
+            # for i in range(pw.shape[0]):
+            #     if np.is
+            # pw[np.isnan(pw)] = 0.0
+            # pw[np.isinf(pw)] = 0.0
+
 
             for i in range(beacon_set.shape[0]):
-                R[i,i] = np.sum(np.abs(np.linalg.norm(particles - beacon_set[i, :], axis=1) - measurement[i]) * np.exp(w),
-                                    axis=0) # actually variance of noise.
+                R[i, i] = np.sum(
+                    np.abs(np.linalg.norm(particles - beacon_set[i, :], axis=1) - measurement[i]) * np.exp(w)/np.sum(np.exp(w)),
+                    axis=0)  # actually variance of noise.
                 # R[i,i] = np.std(np.linalg.norm(particles-beacon_set[i,:],axis=1)*np.exp(w),axis=0)
             # print('R',R, 'w',w.sum())
         print('counter :', counter)
@@ -613,16 +622,16 @@ class ImuEKFComplex:
         # for i in range(beacon_set.shape[0]):
         #     all_m_score[i] = np.sum(np.abs(np.linalg.norm(particles - beacon_set[i, :], axis=1) - measurement[i]) * w,
         #                             axis=0)
-            # tm = np.linalg.norm(particles-beacon_set[i,:],axis=1)
-            # avg = np.average(tm,weights=w)
-            # all_m_score[i] = np.average((tm-avg)**2.0,weights=w)
-            # all_m_score[i] = np.std(np.linalg.norm(particles-beacon_set[i,:],axis=1), weight=w)
+        # tm = np.linalg.norm(particles-beacon_set[i,:],axis=1)
+        # avg = np.average(tm,weights=w)
+        # all_m_score[i] = np.average((tm-avg)**2.0,weights=w)
+        # all_m_score[i] = np.std(np.linalg.norm(particles-beacon_set[i,:],axis=1), weight=w)
         for i in range(beacon_set.shape[0]):
             self.measurement_uwb(np.asarray(measurement[i]),
-                                     np.ones(1) * (R[i,i]),
-                                     np.transpose(beacon_set[i, :]))
+                                 np.ones(1) * (R[i, i]),
+                                 np.transpose(beacon_set[i, :]))
             if np.isnan(self.state).any():
-                print('error',i,self.state)
+                print('error', i, self.state)
 
         #     if all_m_score[i] < cov_m[0] * 10.0:
         #         self.measurement_uwb(np.asarray(measurement[i]),
@@ -681,15 +690,13 @@ class ImuEKFComplex:
         # rnd_p = np.random.normal(0.0, 1.0, size=particles.shape)
         # rnd_p  = np.random.multivariate_normal()
 
-
         # sample
         # for i in range(3):
         #     particles[:, i] = self.state[i] + rnd_p[:, i] * (self.prob_state[i, i] ** 0.5) * 20.0
-        particles = np.random.multivariate_normal(self.state[0:3], self.prob_state[0:3, 0:3]*1500.0, size=particles.shape[0])
+        particles = np.random.multivariate_normal(self.state[0:3], self.prob_state[0:3, 0:3] * 1500.0,
+                                                  size=particles.shape[0])
         print('prior mean:', np.mean(particles, axis=0))
         print('prior std:', np.std(particles, axis=0))
-
-
 
         # plt.figure(10)
         # plt.clf()
