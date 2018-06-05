@@ -547,6 +547,7 @@ class ImuEKFComplex:
             #     print('b is nan', x, miu, sigma)
             # print(a * math.exp(b))#,a,b, x,miu,sigma)
             if math.isnan(math.exp(b)):
+                print('error:', b)
                 return 0.0
             else:
                 return math.log(a)*(b)
