@@ -566,7 +566,7 @@ class ImuEKFComplex:
             w = w - np.log(np.sum(np.exp(w)))
 
             # print('normal w:',np.mean(w),'ana w:', np.log(1/float(w.shape[0])))
-            particles = np.random.multivariate_normal(self.state[0:3] * 1.0, self.prob_state[0:3, 0:3] * 15.0,
+            particles = np.random.multivariate_normal(self.state[0:3] * 1.0, self.prob_state[0:3, 0:3] * 150.0,
                                                       size=particles.shape[0])
             # print('prior mean:', np.mean(particles, axis=0))
             # print('prior std:', np.std(particles, axis=0))
@@ -577,7 +577,7 @@ class ImuEKFComplex:
             for j in range(beacon_set.shape[0]):
                 w = w + gaussian_pdf_v(np.linalg.norm(particles - beacon_set[j, :], axis=1),
                                        np.ones_like(w) * measurement[j],
-                                       np.ones_like(w) * R[j, j]*100.0)
+                                       np.ones_like(w) * R[j, j]*50.0)
             print('befoer cal  normal w', w.sum(), '\nR', R)
             s = np.sum(np.exp(w))
             # plt.figure()

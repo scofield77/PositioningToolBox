@@ -68,6 +68,7 @@ if __name__ == '__main__':
     # dir_name = 'C:/Data/NewFusingLocationData/0039/'
     # dir_name = 'D:/Data/NewFusingLocationData/0039/'
 
+    ref_score = Refscor(dir_name)
     # imu_data = np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=',')
     imu_data = np.loadtxt(dir_name + 'LEFT_FOOT.data', delimiter=',')
     # imu_data = np.loadtxt(dir_name + 'HEAD.data', delimiter=',')
@@ -107,8 +108,8 @@ if __name__ == '__main__':
     #     uwb_data[:, uwb_valid[random_index[i]]] *= 0.0
     #     uwb_data[:, uwb_valid[random_index[i]]] -= 10.0
 
-    delet_index = [ 33, 35]  # use 5 beacons
-    # delet_index = [30, 33, 35]  # use 4 beacons
+    # delet_index = [ 33, 35]  # use 5 beacons
+    delet_index = [30, 33, 35]  # use 4 beacons
     # delet_index = [30, 33, 35, 36]  # use 3 beacons
     # delet_index = [30, 31, 33, 34, 35]  # use 2 beacons
     # print('delet index:', type(delet_index), delet_index)
@@ -139,6 +140,8 @@ if __name__ == '__main__':
 
     uol = UwbOptimizeLocation(beacon_set)
     uwb_trace = np.zeros([uwb_data.shape[0], 3])
+    uwb_ref_trace = np.zeros_like(uwb_trace)
+
     uwb_opt_res = np.zeros([uwb_data.shape[0]])
     stime = time.time()
 
@@ -171,6 +174,7 @@ if __name__ == '__main__':
     rtrace = np.zeros([imu_data.shape[0], 3])
     ortrace = np.zeros([imu_data.shape[0], 3])
     dtrace = np.zeros_like(trace)
+    reftrace = np.zeros_like(trace)
     vel = np.zeros([imu_data.shape[0], 3])
     ang = np.zeros([imu_data.shape[0], 3])
     ba = np.zeros([imu_data.shape[0], 3])
@@ -283,6 +287,27 @@ if __name__ == '__main__':
                        pos=initial_pos,
                        ori=initial_orientation)
 
+    refrkf = ImuEKFComplex(np.diag((
+        0.001,
+        0.001,
+        0.001,
+        0.001,
+        0.001,
+        0.001,
+        0.001 * np.pi / 180.0, 0.001 * np.pi / 180.0, 0.001 * np.pi / 180.0,
+        0.0001,
+        0.0001,
+        0.0001,
+        0.0001 * np.pi / 180.0,
+        0.0001 * np.pi / 180.0,
+        0.0001 * np.pi / 180.0
+    )),
+        local_g=-9.81, time_interval=average_time_interval)
+
+    refrkf.initial_state(imu_data[:50, 1:7],
+                       pos=initial_pos,
+                       ori=initial_orientation)
+
     zv_state = GLRT_Detector(imu_data[:, 1:7],
                              sigma_a=1.0,
                              sigma_g=1.0 * np.pi / 180.0,
@@ -325,10 +350,17 @@ if __name__ == '__main__':
                                                  0.01 * np.pi / 180.0,
                                                  0.01 * np.pi / 180.0))
                                         )
+        refrkf.state_transaction_function(imu_data[i, 1:7],
+                                        np.diag((0.01, 0.01, 0.01,
+                                                 0.01 * np.pi / 180.0,
+                                                 0.01 * np.pi / 180.0,
+                                                 0.01 * np.pi / 180.0))
+                                        )
 
         if (i > 5) and (i < imu_data.shape[0] - 5):
             # print('i:',i)
             # zv_state[i] = z_tester.GLRT_Detector(imu_data[i - 4:i + 4, 1:8])
+            refrkf.measurement(0.001,ref_score)
             if zv_state[i] > 0.5:
                 fkf.measurement_function_zv(np.asarray((0, 0, 0)),
                                             np.diag((0.0001, 0.0001, 0.0001)))
@@ -342,6 +374,9 @@ if __name__ == '__main__':
                 drkf.measurement_function_zv(np.asarray((0, 0, 0)),
                                              np.diag((0.0001, 0.0001, 0.0001)))
 
+                refrkf.measurement_function_zv(np.asarray((0, 0, 0)),
+                                             np.diag((0.0001, 0.0001, 0.0001)))
+
             if uwb_data[uwb_index, 0] < imu_data[i, 0]:
 
                 if uwb_index < uwb_data.shape[0] - 1:
@@ -352,15 +387,15 @@ if __name__ == '__main__':
                     # rkf.measurement_uwb_mc(np.asarray(uwb_data[uwb_index,1:]),
                     #                        np.ones(1)*0.01,
                     #                        beacon_set, ref_trace)
-                    kf.measurement_uwb_mc(np.asarray(uwb_data[uwb_index,1:]),
-                                           np.ones(1)*0.01,
-                                           beacon_set, ref_trace)
+                    # kf.measurement_uwb_mc(np.asarray(uwb_data[uwb_index,1:]),
+                    #                        np.ones(1)*0.01,
+                    #                        beacon_set, ref_trace)
                     orkf.measurement_uwb_mc_itea(np.asarray(uwb_data[uwb_index,1:]),
                                            np.ones(1)*0.01,
                                            beacon_set, ref_trace)
-                    # orkf.measurement_uwb_iterate(np.asarray(uwb_data[uwb_index, 1:]),
-                    #                              np.ones(1) * 0.01,
-                    #                              beacon_set, ref_trace)
+                    refrkf.measurement_uwb_iterate(np.asarray(uwb_data[uwb_index, 1:]),
+                                                 np.ones(1) * 0.01,
+                                                 beacon_set, ref_trace)
                     for j in range(1, uwb_data.shape[1]):
                         # right
 
@@ -385,9 +420,9 @@ if __name__ == '__main__':
                                 if np.linalg.norm(uwb_filter_list[j - 1].beacon_set - beacon_set[j - 1, :]) > 0.1:
                                     print('error', uwb_filter_list[j - 1].beacon_set, beacon_set[j - 1, :])
 
-                            # kf.measurement_uwb(np.asarray(uwb_data[uwb_index, j]),
-                            #                    np.ones(1) * 0.5,
-                            #                    np.transpose(beacon_set[j - 1, :]))
+                            kf.measurement_uwb(np.asarray(uwb_data[uwb_index, j]),
+                                               np.ones(1) * 0.5,
+                                               np.transpose(beacon_set[j - 1, :]))
                             rkf.measurement_uwb_robust(uwb_data[uwb_index, j],
                                                        np.ones(1) * 0.1,
                                                        np.transpose(beacon_set[j - 1, :]),
@@ -399,6 +434,7 @@ if __name__ == '__main__':
                     drkf.measurement_uwb_iterate(np.asarray(uwb_data[uwb_index, 1:]),
                                                  np.ones(1) * 0.01,
                                                  beacon_set, ref_trace)
+                    uwb_ref_trace[uwb_index,:] = refrkf.state[0:3]
 
                     uwb_index += 1
                     # uwb_est_data[uwb_index, 1:] = np.linalg.norm(rkf.state[0:3] - beacon_set)
@@ -423,6 +459,7 @@ if __name__ == '__main__':
         rtrace[i, :] = rkf.state[0:3]
         ortrace[i, :] = orkf.state[0:3]
         dtrace[i, :] = drkf.state[0:3]
+        reftrace[i,:] = refrkf.state[0:3]
 
         # print('finished:', rate * 100.0, "% ", i, imu_data.shape[0])
 
@@ -502,6 +539,7 @@ if __name__ == '__main__':
     # plt.plot(ftrace[:, 0], ftrace[:, 1], '-', color=color_dict['Foot'], label='Foot')
     plt.plot(rtrace[:, 0], rtrace[:, 1], '-', color=color_dict['REKF'], label='Robust EKF')
     plt.plot(ortrace[:, 0], ortrace[:, 1], '-', color=color_dict['RIEKF'], label='Robust mc-EKF')
+    plt.plot(reftrace[:,0],reftrace[:,1],'-',label='ref_trace by rkf')
     # plt.plot(dtrace[:, 0], dtrace[:, 1], '-+', label='d ekf')
     # plt.plot(uwb_trace[:, 0], uwb_trace[:, 1], '+', color=color_dict['UWB'], label='uwb')
     # plt.plot(ref_trace[:, 1], ref_trace[:, 2], '-', label='ref')
@@ -585,12 +623,17 @@ if __name__ == '__main__':
     plt.figure()
 
     start_time = time.time()
-
-    # plt.plot(rs.eval_points(uwb_trace), label='uwb')
-    plt.plot(rs.eval_points(trace), '-', color=color_dict['Standard'], label='Standard EKF')
-    plt.plot(rs.eval_points(rtrace), '-', color=color_dict['REKF'], label='Robust EKF')
-    plt.plot(rs.eval_points(ortrace), '-', color=color_dict['RIEKF'], label='Robust mcEKF')
-    plt.plot(rs.eval_points(dtrace), label='dtrace')
+    u_error = np.linalg.norm(uwb_trace[:,0:2]-uwb_ref_trace[:,0:2],axis=1)
+    f_error = np.linalg.norm(ftrace[:,0:2]-reftrace[:,0:2],axis=1)
+    t_error = np.linalg.norm(trace[:,0:2]-reftrace[:,0:2],axis=1)
+    r_error = np.linalg.norm(rtrace[:,0:2]-reftrace[:,0:2],axis=1)
+    d_error = np.linalg.norm(dtrace[:,0:2]-reftrace[:,0:2],axis=1)
+    or_error = np.linalg.norm(ortrace[:,0:2]-reftrace[:,0:2],axis=1)
+    # plt.plot(u_error, label='uwb')
+    plt.plot(t_error, '-', color=color_dict['Standard'], label='Standard EKF')
+    plt.plot(r_error, '-', color=color_dict['REKF'], label='Robust EKF')
+    plt.plot(or_error, '-', color=color_dict['RIEKF'], label='Robust mcEKF')
+    plt.plot(d_error, label='dtrace')
     # plt.plot(rs.eval_points(ref_trace[:,1:]), label='ref')
     # plt.grid()
     plt.legend()
@@ -600,18 +643,14 @@ if __name__ == '__main__':
     plt.ylim(ymin=0.0)
     plt.title('MSE')
 
-    u_error = rs.eval_points(uwb_trace)
-    f_error = rs.eval_points(ftrace)
-    t_error = rs.eval_points(trace)
-    r_error = rs.eval_points(rtrace)
-    or_error = rs.eval_points(ortrace)
+
     print('dir name:', dir_name)
     print('uwb:', np.mean(u_error), np.std(u_error))
     print('foot:', np.mean(f_error), np.std(f_error))
     print('fusing:', np.mean(t_error), np.std(t_error))
     print('rtrace:', np.mean(r_error), np.std(r_error))
     print('mc rtrace:', np.mean(or_error), np.std(or_error))
-    print('dtrace:', np.mean(rs.eval_points(dtrace)))
+    print('dtrace(riekf):', np.mean(rs.eval_points(dtrace)))
     # print('ref:', np.mean(rs.eval_points(ref_trace[:, 1:])))
     print('eval cost time:', time.time() - start_time)
 
