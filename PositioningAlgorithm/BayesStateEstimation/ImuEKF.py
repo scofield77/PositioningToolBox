@@ -577,7 +577,7 @@ class ImuEKFComplex:
             for j in range(beacon_set.shape[0]):
                 w = w + gaussian_pdf_v(np.linalg.norm(particles - beacon_set[j, :], axis=1),
                                        np.ones_like(w) * measurement[j],
-                                       np.ones_like(w) * R[j, j]*50.0)
+                                       np.ones_like(w) * R[j, j] * 50.0)
             print('befoer cal  normal w', w.sum(), '\nR', R)
             s = np.sum(np.exp(w))
             # plt.figure()
@@ -597,10 +597,10 @@ class ImuEKFComplex:
             # pw[np.isnan(pw)] = 0.0
             # pw[np.isinf(pw)] = 0.0
 
-
             for i in range(beacon_set.shape[0]):
                 R[i, i] = np.sum(
-                    np.abs(np.linalg.norm(particles - beacon_set[i, :], axis=1) - measurement[i]) * np.exp(w)/np.sum(np.exp(w)),
+                    np.abs(np.linalg.norm(particles - beacon_set[i, :], axis=1) - measurement[i]) * np.exp(w) / np.sum(
+                        np.exp(w)),
                     axis=0)  # actually variance of noise.
                 # R[i,i] = np.std(np.linalg.norm(particles-beacon_set[i,:],axis=1)*np.exp(w),axis=0)
             # print('R',R, 'w',w.sum())
