@@ -24,8 +24,18 @@ if __name__ == '__main__':
                 plt.title('label:' + str(i))
 
                 tmp_uwb_data = uwb_data[:, i + 1] * 1.0
-                plt.hist(tmp_uwb_data[tmp_uwb_data > 0.0], label=str(tmp_uwb_data[tmp_uwb_data > 0].shape[0]))
+                plt.hist(tmp_uwb_data[tmp_uwb_data > 0.0],
+                         label=str(tmp_uwb_data[tmp_uwb_data > 0].shape[0]) + '/' + str(tmp_uwb_data.shape[0]))
                 plt.legend()
+        plt.figure()
+        plt.title('beacon')
+        i_list = list()
+        for i in range(beacon_set.shape[0]):
+            if beacon_set[i, 0] < 1000.0 and np.max(uwb_data[:, i + 1]) > 0.0:
+                plt.text(beacon_set[i, 0], beacon_set[i, 1], 'label:' + str(i))
+                i_list.append(i)
+        plt.plot(beacon_set[i_list, 0], beacon_set[i_list, 1], '*')
+        plt.grid()
 
 
     plot_static_measurement(test_dir_name)

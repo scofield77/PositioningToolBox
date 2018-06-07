@@ -61,8 +61,8 @@ if __name__ == '__main__':
     start_time = time.time()
     # dir_name = '/home/steve/Data/FusingLocationData/0017/'
     # dir_name = '/home/steve/Data/FusingLocationData/0013/'
-    dir_name = '/home/steve/Data/NewFusingLocationData/0044/'
-    # dir_name = 'D:/Data/NewFusingLocationData/0044/'
+    # dir_name = '/home/steve/Data/NewFusingLocationData/0044/'
+    dir_name = 'D:/Data/NewFusingLocationData/0044/'
     # dir_name = 'C:/Data/NewFusingLocationData/0039/'
 
     ref_score = Refscor(dir_name)
@@ -106,7 +106,8 @@ if __name__ == '__main__':
     #     uwb_data[:, uwb_valid[random_index[i]]] *= 0.0
     #     uwb_data[:, uwb_valid[random_index[i]]] -= 10.0
 
-    delet_index = [30, 33, 35, 36]  # use 3 beacons
+    delet_index = [29]  # use 3 beacons
+    # delet_index = [30, 33, 35, 36]  # use 3 beacons
     # delet_index = [30, 31, 33, 34, 35]  # use 2 beacons
     # print('delet index:', type(delet_index), delet_index)
     for i in range(len(delet_index)):
