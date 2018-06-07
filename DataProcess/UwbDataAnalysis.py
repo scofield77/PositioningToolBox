@@ -10,7 +10,7 @@ if __name__ == '__main__':
     dir_name = '/home/steve/Data/NewFusingLocationData/0044/'
     base_dir_name = 'D:/Data/NewFusingLocationData/'
 
-    test_dir_name = base_dir_name + "0065/"
+    test_dir_name = base_dir_name + "0057/"
 
 
     def plot_static_measurement(dir_name):
