@@ -36,6 +36,7 @@ if __name__ == '__main__':
                 i_list.append(i)
         plt.plot(beacon_set[i_list, 0], beacon_set[i_list, 1], '*')
         plt.grid()
+        print(np.linalg.norm(beacon_set[29,:]-beacon_set[32,:]))
 
 
     plot_static_measurement(test_dir_name)
