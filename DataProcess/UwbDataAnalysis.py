@@ -26,6 +26,7 @@ if __name__ == '__main__':
                 tmp_uwb_data = uwb_data[:, i + 1] * 1.0
                 plt.hist(tmp_uwb_data[tmp_uwb_data > 0.0],
                          label=str(tmp_uwb_data[tmp_uwb_data > 0].shape[0]) + '/' + str(tmp_uwb_data.shape[0]))
+
                 plt.legend()
         plt.figure()
         plt.title('beacon')
@@ -36,7 +37,7 @@ if __name__ == '__main__':
                 i_list.append(i)
         plt.plot(beacon_set[i_list, 0], beacon_set[i_list, 1], '*')
         plt.grid()
-        print(np.linalg.norm(beacon_set[29,:]-beacon_set[32,:]))
+        print(np.linalg.norm(beacon_set[29, :] - beacon_set[32, :]))
 
 
     plot_static_measurement(test_dir_name)
