@@ -523,11 +523,13 @@ class ImuEKFComplex:
 
         if measurement.shape[0] < 3:
             # self.measurement_uwb_iterate(measurement, cov_m, beacon_set, np.zeros([10, 10]))
+            self.R_k_all = np.identity(measurement.shape[0]) * cov_m[0]
             for i in range(measurement.shape[0]):
                 self.measurement_uwb_robust(np.asarray(measurement[i]),
                                             cov_m,
                                             np.transpose(beacon_set[i, :]), i)
-            self.R_k = np.identity(measurement.shape[0]) * cov_m[0]
+                self.R_k_all[i,i] = self.R_k[0]
+            self.R_k = self.R_k_all * 1.0
             return
         # else:
         #     print('mc')

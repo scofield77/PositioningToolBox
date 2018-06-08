@@ -108,8 +108,8 @@ if __name__ == '__main__':
 
     # delet_index = [ 29]  # use 6 beacons
     # delet_index = [ 33, 35]  # use 5 beacons
-    delet_index = [30, 33, 35]  # use 4 beacons
-    # delet_index = [30, 33, 35, 36]  # use 3 beacons
+    # delet_index = [30, 33, 35]  # use 4 beacons
+    delet_index = [30, 33, 35, 36]  # use 3 beacons
     # delet_index = [30, 31, 33, 34, 35]  # use 2 beacons
     # print('delet index:', type(delet_index), delet_index)
     for i in range(len(delet_index)):
@@ -394,13 +394,13 @@ if __name__ == '__main__':
                     #                        np.ones(1)*0.01,
                     #                        beacon_set, ref_trace)
                     orkf.measurement_uwb_mc_itea(np.asarray(uwb_data[uwb_index, 1:]),
-                                                 np.ones(1) * 0.1,
+                                                 np.ones(1) * 0.01,
                                                  beacon_set, ref_trace)
 
                     tmp_index = 0
                     for k in range(1, uwb_data.shape[1]):
 
-                        if uwb_data[uwb_index, k] > 0.0 and beacon_set[k-1,0] < 5000.0:
+                        if uwb_data[uwb_index, k] > 0.0 and beacon_set[k - 1, 0] < 5000.0:
                             uwb_R_mckf[uwb_index, k] = orkf.R_k[tmp_index, tmp_index] * 1.0
 
                             tmp_index += 1
@@ -436,9 +436,9 @@ if __name__ == '__main__':
                                                np.ones(1) * 0.5,
                                                np.transpose(beacon_set[j - 1, :]))
                             rkf.measurement_uwb_robust(uwb_data[uwb_index, j],
-                                                       np.ones(1) * 0.1,
+                                                       np.ones(1) * 0.01,
                                                        np.transpose(beacon_set[j - 1, :]),
-                                                       j, 6.0, 0.0)
+                                                       j, 3.0, -10.0)
                             uwb_R_rekf[uwb_index, j] = rkf.R_k[0] * 1.0
 
                             # if uwb_filter_list[j-1].cov<0.02:
@@ -449,10 +449,10 @@ if __name__ == '__main__':
                                                  np.ones(1) * 0.01,
                                                  beacon_set, ref_trace)
                     tmp_index = 0
-                    for k in range(1,uwb_data.shape[1]):
-                        if uwb_data[uwb_index,k] > 0.0 and beacon_set[k-1,0] < 5000.0 :
-                            uwb_R_iekf[uwb_index,k] = drkf.R[tmp_index,tmp_index] * 1.0
-                            tmp_index+=1
+                    for k in range(1, uwb_data.shape[1]):
+                        if uwb_data[uwb_index, k] > 0.0 and beacon_set[k - 1, 0] < 5000.0:
+                            uwb_R_iekf[uwb_index, k] = drkf.R[tmp_index, tmp_index] * 1.0
+                            tmp_index += 1
 
                     uwb_ref_trace[uwb_index, :] = refrkf.state[0:3]
 
@@ -563,30 +563,25 @@ if __name__ == '__main__':
 
     plt.subplot(413)
     plt.title('uwb R iekf')
-    plt.plot(uwb_R_iekf[:,1:])
+    plt.plot(uwb_R_iekf[:, 1:])
     plt.grid()
-
 
     plt.subplot(414)
     plt.title('ref uwb')
-    ref_uwb_m = np.zeros_like(uwb_data[:,1:])
+    ref_uwb_m = np.zeros_like(uwb_data[:, 1:])
     diff_uwb_m = np.zeros_like(ref_uwb_m)
     for i in range(ref_uwb_m.shape[1]):
-        if beacon_set[i,0] < 5000.0 and uwb_data[:,i+1].max() > 0.0:
-            ref_uwb_m[:,i] = np.linalg.norm(uwb_ref_trace-beacon_set[i,:],axis=1)
+        if beacon_set[i, 0] < 5000.0 and uwb_data[:, i + 1].max() > 0.0:
+            ref_uwb_m[:, i] = np.linalg.norm(uwb_ref_trace - beacon_set[i, :], axis=1)
         # ref_uwb_m[uwb_data[:,i+1]>0.0,i] = 0.0
         for j in range(uwb_data.shape[0]):
-            if uwb_data[j,i+1] > 0.0 and beacon_set[i,0] < 5000.0:
-                diff_uwb_m[j,i] = ref_uwb_m[j,i]-uwb_data[j,i+1]
-    plt.ylim([-10.0,10.0])
-
+            if uwb_data[j, i + 1] > 0.0 and beacon_set[i, 0] < 5000.0:
+                diff_uwb_m[j, i] = ref_uwb_m[j, i] - uwb_data[j, i + 1]
+    plt.ylim([-10.0, 10.0])
 
     # plt.plot(ref_uwb_m)
     # plt.plot(uwb_data[:,1:])
     plt.plot(diff_uwb_m)
-
-
-
 
     plt.figure()
     plt.title('Trajectory')
