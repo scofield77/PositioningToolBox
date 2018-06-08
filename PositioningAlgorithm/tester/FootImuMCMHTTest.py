@@ -569,7 +569,11 @@ if __name__ == '__main__':
 
     plt.subplot(414)
     plt.title('ref uwb')
-    ref_uwb_m = np.linalg.norm(uwb_ref_trace-beacon_set,axis=1)
+    ref_uwb_m = np.zeros_like(uwb_data[:,1:])
+    for i in range(ref_uwb_m.shape[1]):
+        if beacon_set[i,0] < 5000.0:
+            ref_uwb_m[:,i] = np.linalg.norm(uwb_ref_trace-beacon_set[i,:],axis=1)
+
     plt.plot(ref_uwb_m)
     plt.plot(uwb_data[:,1:])
 
