@@ -306,6 +306,7 @@ class ImuEKFComplex:
                 # self.uwb_eta_dict[beacon_id].pop()
 
         cov_m = R_k
+        self.R_k = R_k
         # print('-------------')
 
         self.K = (self.prob_state.dot(np.transpose(self.H))).dot(
@@ -524,6 +525,7 @@ class ImuEKFComplex:
                 self.measurement_uwb_robust(np.asarray(measurement[i]),
                                             cov_m,
                                             np.transpose(beacon_set[i, :]), i)
+            self.R_k = np.identity(measurement.shape[0]) * cov_m[0]
             return
         # else:
         #     print('mc')
@@ -605,6 +607,7 @@ class ImuEKFComplex:
                 # R[i,i] = np.std(np.linalg.norm(particles-beacon_set[i,:],axis=1)*np.exp(w),axis=0)
             # print('R',R, 'w',w.sum())
         print('counter :', counter)
+        self.R_k = R * 1.0
 
         # vote for each measurement
         # plt.figure(11)

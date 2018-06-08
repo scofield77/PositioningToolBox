@@ -23,8 +23,6 @@
          佛祖保佑       永无BUG 
 '''
 
-
-
 import numpy as np
 import scipy as sp
 from numba import jit, njit, prange
@@ -108,10 +106,9 @@ if __name__ == '__main__':
     #     uwb_data[:, uwb_valid[random_index[i]]] *= 0.0
     #     uwb_data[:, uwb_valid[random_index[i]]] -= 10.0
 
-
-    delet_index = [ 29]  # use 6 beacons
+    # delet_index = [ 29]  # use 6 beacons
     # delet_index = [ 33, 35]  # use 5 beacons
-    # delet_index = [30, 33, 35]  # use 4 beacons
+    delet_index = [30, 33, 35]  # use 4 beacons
     # delet_index = [30, 33, 35, 36]  # use 3 beacons
     # delet_index = [30, 31, 33, 34, 35]  # use 2 beacons
     # print('delet index:', type(delet_index), delet_index)
@@ -307,8 +304,8 @@ if __name__ == '__main__':
         local_g=-9.81, time_interval=average_time_interval)
 
     refrkf.initial_state(imu_data[:50, 1:7],
-                       pos=initial_pos,
-                       ori=initial_orientation)
+                         pos=initial_pos,
+                         ori=initial_orientation)
 
     zv_state = GLRT_Detector(imu_data[:, 1:7],
                              sigma_a=1.0,
@@ -318,6 +315,9 @@ if __name__ == '__main__':
                              time_Window_size=10)
 
     uwb_index = 0
+
+    uwb_R_rekf = np.zeros_like(uwb_data)
+    uwb_R_mckf = np.zeros_like(uwb_data)
 
     for i in range(imu_data.shape[0]):
         # print('i:',i)
@@ -353,16 +353,16 @@ if __name__ == '__main__':
                                                  0.01 * np.pi / 180.0))
                                         )
         refrkf.state_transaction_function(imu_data[i, 1:7],
-                                        np.diag((0.01, 0.01, 0.01,
-                                                 0.01 * np.pi / 180.0,
-                                                 0.01 * np.pi / 180.0,
-                                                 0.01 * np.pi / 180.0))
-                                        )
+                                          np.diag((0.01, 0.01, 0.01,
+                                                   0.01 * np.pi / 180.0,
+                                                   0.01 * np.pi / 180.0,
+                                                   0.01 * np.pi / 180.0))
+                                          )
 
         if (i > 5) and (i < imu_data.shape[0] - 5):
             # print('i:',i)
             # zv_state[i] = z_tester.GLRT_Detector(imu_data[i - 4:i + 4, 1:8])
-            refrkf.measurement(0.001,ref_score)
+            refrkf.measurement(0.001, ref_score)
             if zv_state[i] > 0.5:
                 fkf.measurement_function_zv(np.asarray((0, 0, 0)),
                                             np.diag((0.0001, 0.0001, 0.0001)))
@@ -377,7 +377,7 @@ if __name__ == '__main__':
                                              np.diag((0.0001, 0.0001, 0.0001)))
 
                 refrkf.measurement_function_zv(np.asarray((0, 0, 0)),
-                                             np.diag((0.0001, 0.0001, 0.0001)))
+                                               np.diag((0.0001, 0.0001, 0.0001)))
 
             if uwb_data[uwb_index, 0] < imu_data[i, 0]:
 
@@ -392,12 +392,21 @@ if __name__ == '__main__':
                     # kf.measurement_uwb_mc(np.asarray(uwb_data[uwb_index,1:]),
                     #                        np.ones(1)*0.01,
                     #                        beacon_set, ref_trace)
-                    orkf.measurement_uwb_mc_itea(np.asarray(uwb_data[uwb_index,1:]),
-                                           np.ones(1)*0.01,
-                                           beacon_set, ref_trace)
-                    refrkf.measurement_uwb_iterate(np.asarray(uwb_data[uwb_index, 1:]),
+                    orkf.measurement_uwb_mc_itea(np.asarray(uwb_data[uwb_index, 1:]),
                                                  np.ones(1) * 0.01,
                                                  beacon_set, ref_trace)
+
+                    tmp_index = 0
+                    for k in range(1, uwb_data.shape[1]):
+
+                        if uwb_data[uwb_index, k] > 0.0 and beacon_set[k-1,0] < 5000.0:
+                            uwb_R_mckf[uwb_index, k] = orkf.R_k[tmp_index, tmp_index] * 1.0
+
+                            tmp_index += 1
+
+                    refrkf.measurement_uwb_iterate(np.asarray(uwb_data[uwb_index, 1:]),
+                                                   np.ones(1) * 0.01,
+                                                   beacon_set, ref_trace)
                     for j in range(1, uwb_data.shape[1]):
                         # right
 
@@ -429,6 +438,8 @@ if __name__ == '__main__':
                                                        np.ones(1) * 0.1,
                                                        np.transpose(beacon_set[j - 1, :]),
                                                        j, 6.0, 1.0)
+                            uwb_R_rekf[uwb_index, j] = rkf.R_k[0] * 1.0
+
                             # if uwb_filter_list[j-1].cov<0.02:
                             #     rkf.measurement_uwb(uwb_filter_list[j - 1].m,
                             #                         uwb_filter_list[j - 1].cov,
@@ -436,7 +447,7 @@ if __name__ == '__main__':
                     drkf.measurement_uwb_iterate(np.asarray(uwb_data[uwb_index, 1:]),
                                                  np.ones(1) * 0.01,
                                                  beacon_set, ref_trace)
-                    uwb_ref_trace[uwb_index,:] = refrkf.state[0:3]
+                    uwb_ref_trace[uwb_index, :] = refrkf.state[0:3]
 
                     uwb_index += 1
                     # uwb_est_data[uwb_index, 1:] = np.linalg.norm(rkf.state[0:3] - beacon_set)
@@ -461,7 +472,7 @@ if __name__ == '__main__':
         rtrace[i, :] = rkf.state[0:3]
         ortrace[i, :] = orkf.state[0:3]
         dtrace[i, :] = drkf.state[0:3]
-        reftrace[i,:] = refrkf.state[0:3]
+        reftrace[i, :] = refrkf.state[0:3]
 
         # print('finished:', rate * 100.0, "% ", i, imu_data.shape[0])
 
@@ -533,6 +544,16 @@ if __name__ == '__main__':
     # plt.grid()
 
     plt.figure()
+    plt.subplot(211)
+    plt.title('uwb R mc')
+    plt.plot(uwb_R_mckf[:, 1:])
+    plt.grid()
+
+    plt.subplot(212)
+    plt.plot(uwb_R_rekf[:, 1:])
+    plt.grid()
+
+    plt.figure()
     plt.title('Trajectory')
     for i in range(ref_vis.shape[0]):
         plt.plot([ref_vis[i, 0], ref_vis[i, 2]], [ref_vis[i, 1], ref_vis[i, 3]], '-', color=color_dict['ref'],
@@ -541,7 +562,7 @@ if __name__ == '__main__':
     # plt.plot(ftrace[:, 0], ftrace[:, 1], '-', color=color_dict['Foot'], label='Foot')
     plt.plot(rtrace[:, 0], rtrace[:, 1], '-', color=color_dict['REKF'], label='Robust EKF')
     plt.plot(ortrace[:, 0], ortrace[:, 1], '-', color=color_dict['RIEKF'], label='Robust mc-EKF')
-    plt.plot(reftrace[:,0],reftrace[:,1],'-',label='ref_trace by rkf')
+    plt.plot(reftrace[:, 0], reftrace[:, 1], '-', label='ref_trace by rkf')
     # plt.plot(dtrace[:, 0], dtrace[:, 1], '-+', label='d ekf')
     # plt.plot(uwb_trace[:, 0], uwb_trace[:, 1], '+', color=color_dict['UWB'], label='uwb')
     # plt.plot(ref_trace[:, 1], ref_trace[:, 2], '-', label='ref')
@@ -572,70 +593,21 @@ if __name__ == '__main__':
     plt.xlim(0.0, uwb_data[-1, 0] - uwb_data[0, 0] + 10.0)
     plt.ylim(0.0, np.max(uwb_data[:, 1:]) + 2.0)
 
-    # plt.figure()
-    # plt.subplot(411)
-    # plt.title('uwb estimated')
-    # for i in range(1, uwb_est_data.shape[1]):
-    #     if uwb_data[:, i].max() > 0.0 and beacon_set[i - 1, 0] < 5000.0:
-    #         plt.plot(uwb_est_data[:, 0], uwb_est_data[:, i], '-+', label=str(i))
-    # plt.legend()
-    # plt.grid()
-    # plt.subplot(412)
-    # plt.title('uwb')
-    # for i in range(1, uwb_est_data.shape[1]):
-    #     if uwb_data[:, i].max() > 0.0 and beacon_set[i - 1, 0] < 5000.0:
-    #         plt.plot(uwb_est_data[:, 0], uwb_data[:, i], '+', label=str(i))
-    # plt.legend()
-    # plt.grid()
-    # plt.subplot(413)
-    # plt.title('uwb dif')
-    # for i in range(1, uwb_est_data.shape[1]):
-    #     if uwb_data[:, i].max() > 0.0 and beacon_set[i - 1, 0] < 5000.0:
-    #         index_list = np.where(uwb_data[:, i] > 0.0)
-    #         # print(index_list)
-    #         plt.plot(uwb_est_data[index_list[0], 0], uwb_est_data[index_list[0], i] - uwb_data[index_list[0], i], '-+',
-    #                  label=str(i))
-    # plt.legend()
-    # plt.grid()
-    # plt.subplot(414)
-    # plt.title('uwb prob')
-    # for i in range(1, uwb_est_data.shape[1]):
-    #     if uwb_data[:, i].max() > 0.0 and beacon_set[i - 1, 0] < 5000.0:
-    #         plt.plot(uwb_est_data[:, 0], uwb_est_prob[:, i], '+', label=str(i))
-    # plt.legend()
-    # plt.grid()
-    #
-    # plt.figure()
-    # plt.title('corrected result')
-    # plt.subplot(211)
-    # for i in range(1, uwb_est_data.shape[1]):
-    #     if uwb_data[:, i].max() > 0.0 and beacon_set[i - 1, 0] < 5000.0:
-    #         plt.plot(uwb_est_data[:, 0], uwb_est_data[:, i], '-+', label=str(i))
-
-    # fig = plt.figure()
-    # ax = fig.add_subplot(111, projection='3d')
-    # ax.plot(trace[:, 0], trace[:, 1], trace[:, 2], '-+', label='trace')
-    # ax.plot(rtrace[:, 0], rtrace[:, 1], rtrace[:, 2], '-+', label='robust')
-    # ax.plot(ortrace[:, 0], ortrace[:, 1], ortrace[:, 2], '-+', label='own robust')
-    # ax.plot(uwb_trace[:, 0], uwb_trace[:, 1], uwb_trace[:, 2], '+', label='uwb')
-    # ax.grid()
-    # ax.legend()
-    #
     rs = Refscor(dir_name)
     plt.figure()
 
     start_time = time.time()
-    u_error = np.linalg.norm(uwb_trace[:,0:2]-uwb_ref_trace[:,0:2],axis=1)
-    f_error = np.linalg.norm(ftrace[:,0:2]-reftrace[:,0:2],axis=1)
-    t_error = np.linalg.norm(trace[:,0:2]-reftrace[:,0:2],axis=1)
-    r_error = np.linalg.norm(rtrace[:,0:2]-reftrace[:,0:2],axis=1)
-    d_error = np.linalg.norm(dtrace[:,0:2]-reftrace[:,0:2],axis=1)
-    or_error = np.linalg.norm(ortrace[:,0:2]-reftrace[:,0:2],axis=1)
+    u_error = np.linalg.norm(uwb_trace[:, 0:2] - uwb_ref_trace[:, 0:2], axis=1)
+    f_error = np.linalg.norm(ftrace[:, 0:2] - reftrace[:, 0:2], axis=1)
+    t_error = np.linalg.norm(trace[:, 0:2] - reftrace[:, 0:2], axis=1)
+    r_error = np.linalg.norm(rtrace[:, 0:2] - reftrace[:, 0:2], axis=1)
+    d_error = np.linalg.norm(dtrace[:, 0:2] - reftrace[:, 0:2], axis=1)
+    or_error = np.linalg.norm(ortrace[:, 0:2] - reftrace[:, 0:2], axis=1)
     # plt.plot(u_error, label='uwb')
     plt.plot(t_error, '-', color=color_dict['Standard'], label='Standard EKF')
     plt.plot(r_error, '-', color=color_dict['REKF'], label='Robust EKF')
     plt.plot(or_error, '-', color=color_dict['RIEKF'], label='Robust mcEKF')
-    plt.plot(d_error, label='dtrace')
+    # plt.plot(d_error, label='dtrace')
     # plt.plot(rs.eval_points(ref_trace[:,1:]), label='ref')
     # plt.grid()
     plt.legend()
@@ -644,7 +616,6 @@ if __name__ == '__main__':
     plt.xlim(0, trace.shape[0])
     plt.ylim(ymin=0.0)
     plt.title('MSE')
-
 
     print('dir name:', dir_name)
     print('uwb:', np.mean(u_error), np.std(u_error))
