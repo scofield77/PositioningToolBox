@@ -584,14 +584,14 @@ class ImuEKFComplex:
                 w = w + gaussian_pdf_v(np.linalg.norm(particles - beacon_set[j, :], axis=1),
                                        np.ones_like(w) * measurement[j],
                                        np.ones_like(w) * R[j, j] * 50.0)
-            print('befoer cal  normal w', w.sum(), '\nR', R)
+            # print('befoer cal  normal w', w.sum(), '\nR', R)
             s = np.sum(np.exp(w))
             # plt.figure()
             # plt.title('w')
             # plt.plot(w, label='after')
             # plt.legend()
             # plt.show()
-            print('s', s, 'mean w', np.mean(w), np.exp(np.mean(w)))
+            # print('s', s, 'mean w', np.mean(w), np.exp(np.mean(w)))
 
             # w = w - np.log(np.sum(np.exp(w)))
 
@@ -610,7 +610,7 @@ class ImuEKFComplex:
                     axis=0)  # actually variance of noise.
                 # R[i,i] = np.std(np.linalg.norm(particles-beacon_set[i,:],axis=1)*np.exp(w),axis=0)
             # print('R',R, 'w',w.sum())
-        print('counter :', counter)
+        # print('counter :', counter)
         self.R_k = R * 1.0
 
         # vote for each measurement
@@ -656,7 +656,7 @@ class ImuEKFComplex:
         # print('score:', all_m_score)
 
         # index = np.where(cluster)
-        print('------------mc robust ekf------------')
+        # print('------------mc robust ekf------------')
 
     def measurement_uwb_mc(self, measurement, cov_m, beacon_set, ref_trace):
         '''
