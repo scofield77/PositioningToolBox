@@ -497,6 +497,8 @@ class ImuEKFComplex:
 
         self.prob_state = pplus
 
+        self.R = Rk * 1.0
+
     def measurement_uwb_mc_itea(self, measurement, cov_m, beacon_set, ref_trace):
         '''
         Use particle simulator posterior distribution.

@@ -317,6 +317,7 @@ if __name__ == '__main__':
     uwb_index = 0
 
     uwb_R_rekf = np.zeros_like(uwb_data)
+    uwb_R_iekf = np.zeros_like(uwb_data)
     uwb_R_mckf = np.zeros_like(uwb_data)
 
     for i in range(imu_data.shape[0]):
@@ -447,6 +448,12 @@ if __name__ == '__main__':
                     drkf.measurement_uwb_iterate(np.asarray(uwb_data[uwb_index, 1:]),
                                                  np.ones(1) * 0.01,
                                                  beacon_set, ref_trace)
+                    tmp_index = 0
+                    for k in range(1,uwb_data.shape[1]):
+                        if uwb_data[uwb_index,k] > 0.0 and beacon_set[k-1,0] < 5000.0 :
+                            uwb_R_iekf[uwb_index,k] = drkf.R[tmp_index,tmp_index] * 1.0
+                            tmp_index+=1
+
                     uwb_ref_trace[uwb_index, :] = refrkf.state[0:3]
 
                     uwb_index += 1
@@ -544,14 +551,30 @@ if __name__ == '__main__':
     # plt.grid()
 
     plt.figure()
-    plt.subplot(211)
+    plt.subplot(411)
     plt.title('uwb R mc')
     plt.plot(uwb_R_mckf[:, 1:])
     plt.grid()
 
-    plt.subplot(212)
+    plt.subplot(412)
+    plt.title('uwb R rekf')
     plt.plot(uwb_R_rekf[:, 1:])
     plt.grid()
+
+    plt.subplot(413)
+    plt.title('uwb R iekf')
+    plt.plot(uwb_R_iekf[:,1:])
+    plt.grid()
+
+
+    plt.subplot(414)
+    plt.title('ref uwb')
+    ref_uwb_m = np.linalg.norm(uwb_ref_trace-beacon_set,axis=1)
+    plt.plot(ref_uwb_m)
+    plt.plot(uwb_data[:,1:])
+
+
+
 
     plt.figure()
     plt.title('Trajectory')
