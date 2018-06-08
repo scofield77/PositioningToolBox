@@ -394,7 +394,7 @@ if __name__ == '__main__':
                     #                        np.ones(1)*0.01,
                     #                        beacon_set, ref_trace)
                     orkf.measurement_uwb_mc_itea(np.asarray(uwb_data[uwb_index, 1:]),
-                                                 np.ones(1) * 0.01,
+                                                 np.ones(1) * 0.1,
                                                  beacon_set, ref_trace)
 
                     tmp_index = 0
@@ -438,7 +438,7 @@ if __name__ == '__main__':
                             rkf.measurement_uwb_robust(uwb_data[uwb_index, j],
                                                        np.ones(1) * 0.1,
                                                        np.transpose(beacon_set[j - 1, :]),
-                                                       j, 6.0, 1.0)
+                                                       j, 6.0, 0.0)
                             uwb_R_rekf[uwb_index, j] = rkf.R_k[0] * 1.0
 
                             # if uwb_filter_list[j-1].cov<0.02:
@@ -578,6 +578,7 @@ if __name__ == '__main__':
         for j in range(uwb_data.shape[0]):
             if uwb_data[j,i+1] > 0.0 and beacon_set[i,0] < 5000.0:
                 diff_uwb_m[j,i] = ref_uwb_m[j,i]-uwb_data[j,i+1]
+    plt.ylim([-10.0,10.0])
 
 
     # plt.plot(ref_uwb_m)
