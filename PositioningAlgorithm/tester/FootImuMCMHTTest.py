@@ -576,7 +576,7 @@ if __name__ == '__main__':
             ref_uwb_m[:,i] = np.linalg.norm(uwb_ref_trace-beacon_set[i,:],axis=1)
         # ref_uwb_m[uwb_data[:,i+1]>0.0,i] = 0.0
         for j in range(uwb_data.shape[0]):
-            if uwb_data[j,i+1] > 0.0:
+            if uwb_data[j,i+1] > 0.0 and beacon_set[i,0] < 5000.0:
                 diff_uwb_m[j,i] = ref_uwb_m[j,i]-uwb_data[j,i+1]
 
 
