@@ -363,7 +363,7 @@ if __name__ == '__main__':
         if (i > 5) and (i < imu_data.shape[0] - 5):
             # print('i:',i)
             # zv_state[i] = z_tester.GLRT_Detector(imu_data[i - 4:i + 4, 1:8])
-            refrkf.measurement(0.001, ref_score)
+            refrkf.measurement(0.01, ref_score)
             if zv_state[i] > 0.5:
                 fkf.measurement_function_zv(np.asarray((0, 0, 0)),
                                             np.diag((0.0001, 0.0001, 0.0001)))
@@ -445,13 +445,16 @@ if __name__ == '__main__':
                             #     rkf.measurement_uwb(uwb_filter_list[j - 1].m,
                             #                         uwb_filter_list[j - 1].cov,
                             #                         np.transpose(beacon_set[j - 1, :]))
-                    drkf.measurement_uwb_iterate(np.asarray(uwb_data[uwb_index, 1:]),
+                    # drkf.measurement_uwb_iterate(np.asarray(uwb_data[uwb_index, 1:]),
+                    #                              np.ones(1) * 0.01,
+                    #                              beacon_set, ref_trace)
+                    drkf.measurement_uwb_mc(np.asarray(uwb_data[uwb_index, 1:]),
                                                  np.ones(1) * 0.01,
                                                  beacon_set, ref_trace)
                     tmp_index = 0
                     for k in range(1, uwb_data.shape[1]):
                         if uwb_data[uwb_index, k] > 0.0 and beacon_set[k - 1, 0] < 5000.0:
-                            uwb_R_iekf[uwb_index, k] = drkf.R[tmp_index, tmp_index] * 1.0
+                            uwb_R_iekf[uwb_index, k] = drkf.R_k[tmp_index, tmp_index] * 1.0
                             tmp_index += 1
 
                     uwb_ref_trace[uwb_index, :] = refrkf.state[0:3]
