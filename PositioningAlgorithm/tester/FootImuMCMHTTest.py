@@ -570,12 +570,19 @@ if __name__ == '__main__':
     plt.subplot(414)
     plt.title('ref uwb')
     ref_uwb_m = np.zeros_like(uwb_data[:,1:])
+    diff_uwb_m = np.zeros_like(ref_uwb_m)
     for i in range(ref_uwb_m.shape[1]):
-        if beacon_set[i,0] < 5000.0:
+        if beacon_set[i,0] < 5000.0 and uwb_data[:,i+1].max() > 0.0:
             ref_uwb_m[:,i] = np.linalg.norm(uwb_ref_trace-beacon_set[i,:],axis=1)
+        # ref_uwb_m[uwb_data[:,i+1]>0.0,i] = 0.0
+        for j in range(uwb_data.shape[0]):
+            if uwb_data[j,i+1] > 0.0:
+                diff_uwb_m[j,i] = ref_uwb_m[j,i]-uwb_data[j,i+1]
 
-    plt.plot(ref_uwb_m)
-    plt.plot(uwb_data[:,1:])
+
+    # plt.plot(ref_uwb_m)
+    # plt.plot(uwb_data[:,1:])
+    plt.plot(diff_uwb_m)
 
 
 
