@@ -574,65 +574,25 @@ class ImuEKFComplex:
             # print('normal w:',np.mean(w),'ana w:', np.log(1/float(w.shape[0])))
             particles = np.random.multivariate_normal(self.state[0:3] * 1.0, self.prob_state[0:3, 0:3] * 150.0,
                                                       size=particles.shape[0])
-            # print('prior mean:', np.mean(particles, axis=0))
-            # print('prior std:', np.std(particles, axis=0))
-            # print('initial w ',w.sum(),'R',R)
-            # plt.figure()
-            # plt.plot(w, label='before')
 
             for j in range(beacon_set.shape[0]):
                 w = w + gaussian_pdf_v(np.linalg.norm(particles - beacon_set[j, :], axis=1),
                                        np.ones_like(w) * measurement[j],
                                        np.ones_like(w) * R[j, j] * 50.0)
-            # print('befoer cal  normal w', w.sum(), '\nR', R)
             s = np.sum(np.exp(w))
-            # plt.figure()
-            # plt.title('w')
-            # plt.plot(w, label='after')
-            # plt.legend()
-            # plt.show()
-            # print('s', s, 'mean w', np.mean(w), np.exp(np.mean(w)))
 
-            # w = w - np.log(np.sum(np.exp(w)))
 
-            # print('cal w', np.sum(np.exp(w)), '\nR', R)
 
-            # pw =np.exp(w)
-            # for i in range(pw.shape[0]):
-            #     if np.is
-            # pw[np.isnan(pw)] = 0.0
-            # pw[np.isinf(pw)] = 0.0
 
             for i in range(beacon_set.shape[0]):
                 R[i, i] = np.sum(
                     np.abs(np.linalg.norm(particles - beacon_set[i, :], axis=1) - measurement[i]) * np.exp(w) / np.sum(
                         np.exp(w)),
-                    axis=0)  # actually variance of noise.
+                    axis=0) **2.0 # actually variance of noise.
                 # R[i,i] = np.std(np.linalg.norm(particles-beacon_set[i,:],axis=1)*np.exp(w),axis=0)
-            # print('R',R, 'w',w.sum())
-        # print('counter :', counter)
         self.R_k = R * 1.0
 
-        # vote for each measurement
-        # plt.figure(11)
-        # plt.clf()
-        # plt.hist(w*float(w.shape[0]))
-        # plt.pause(0.1)
 
-        # plt.figure(11)
-        # plt.clf()
-        # plt.title('posterior hist')
-        # plt.hist2d(particles[:, 0], particles[:, 1], bins=50, weights=w)
-        # plt.pause(0.1)
-
-        # all_m_score = np.zeros_like(measurement)
-        # for i in range(beacon_set.shape[0]):
-        #     all_m_score[i] = np.sum(np.abs(np.linalg.norm(particles - beacon_set[i, :], axis=1) - measurement[i]) * w,
-        #                             axis=0)
-        # tm = np.linalg.norm(particles-beacon_set[i,:],axis=1)
-        # avg = np.average(tm,weights=w)
-        # all_m_score[i] = np.average((tm-avg)**2.0,weights=w)
-        # all_m_score[i] = np.std(np.linalg.norm(particles-beacon_set[i,:],axis=1), weight=w)
         for i in range(beacon_set.shape[0]):
             self.measurement_uwb(np.asarray(measurement[i]),
                                  np.ones(1) * (R[i, i]),
@@ -640,23 +600,7 @@ class ImuEKFComplex:
             if np.isnan(self.state).any():
                 print('error', i, self.state)
 
-        #     if all_m_score[i] < cov_m[0] * 10.0:
-        #         self.measurement_uwb(np.asarray(measurement[i]),
-        #                              np.ones(1) * cov_m[0],
-        #                              np.transpose(beacon_set[i, :]))
-        #     elif all_m_score[i] < cov_m[0] * 20.0:
-        #         self.measurement_uwb_robust(np.asarray(measurement[i]),
-        #                                     np.ones(1) * (all_m_score[i] ** 4.0),
-        #                                     np.transpose(beacon_set[i, :]), i)
-        #     else:
-        #         # print('def')
-        #         self.measurement_uwb_robust(np.asarray(measurement[i]),
-        #                                     np.ones(1) * (all_m_score[i] ** 8.0),
-        #                                     np.transpose(beacon_set[i, :]), i)
-        # print('score:', all_m_score)
 
-        # index = np.where(cluster)
-        # print('------------mc robust ekf------------')
 
     def measurement_uwb_mc(self, measurement, cov_m, beacon_set, ref_trace):
         '''

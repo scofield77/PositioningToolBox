@@ -438,7 +438,7 @@ if __name__ == '__main__':
                             rkf.measurement_uwb_robust(uwb_data[uwb_index, j],
                                                        np.ones(1) * 0.01,
                                                        np.transpose(beacon_set[j - 1, :]),
-                                                       j, 3.0, -10.0)
+                                                       j, 6.0, -10.0)
                             uwb_R_rekf[uwb_index, j] = rkf.R_k[0] * 1.0
 
                             # if uwb_filter_list[j-1].cov<0.02:
