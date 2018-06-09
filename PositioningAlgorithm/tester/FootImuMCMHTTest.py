@@ -390,12 +390,12 @@ if __name__ == '__main__':
                     # rkf.measurement_uwb_mc(np.asarray(uwb_data[uwb_index,1:]),
                     #                        np.ones(1)*0.01,
                     #                        beacon_set, ref_trace)
-                    # kf.measurement_uwb_mc(np.asarray(uwb_data[uwb_index,1:]),
-                    #                        np.ones(1)*0.01,
-                    #                        beacon_set, ref_trace)
-                    orkf.measurement_uwb_mc_itea(np.asarray(uwb_data[uwb_index, 1:]),
-                                                 np.ones(1) * 0.01,
-                                                 beacon_set, ref_trace)
+                    orkf.measurement_uwb_mc(np.asarray(uwb_data[uwb_index,1:]),
+                                           np.ones(1)*0.01,
+                                           beacon_set, ref_trace)
+                    # orkf.measurement_uwb_mc_itea(np.asarray(uwb_data[uwb_index, 1:]),
+                    #                              np.ones(1) * 0.01,
+                    #                              beacon_set, ref_trace)
 
                     tmp_index = 0
                     for k in range(1, uwb_data.shape[1]):
