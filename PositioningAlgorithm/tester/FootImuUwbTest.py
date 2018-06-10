@@ -347,7 +347,7 @@ if __name__ == '__main__':
                                              np.diag((0.0001, 0.0001, 0.0001)))
 
             if uwb_data[uwb_index, 0] < imu_data[i, 0]:
-                drkf.measurement(0.0001, ref_score)
+                drkf.measurement_reftrace(0.0001, ref_score)
                 if uwb_index < uwb_data.shape[0] - 1:
                     # orkf.measurement_uwb_robust_multi(np.asarray(uwb_data[uwb_index, 1:]),
                     #                                   np.ones(1) * 0.1,

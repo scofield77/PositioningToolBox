@@ -859,7 +859,7 @@ class ImuEKFComplex:
 
         self.state[6:9] = dcm2euler(q2dcm(self.rotation_q))
 
-    def measurement(self, cov_m, ref_f):
+    def measurement_reftrace(self, cov_m, ref_f):
         z = np.ones(1) * 0.0
         y = np.ones(1) * ref_f.eval_point2d(self.state[0:2])
 

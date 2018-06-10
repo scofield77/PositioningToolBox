@@ -363,7 +363,7 @@ if __name__ == '__main__':
         if (i > 5) and (i < imu_data.shape[0] - 5):
             # print('i:',i)
             # zv_state[i] = z_tester.GLRT_Detector(imu_data[i - 4:i + 4, 1:8])
-            refrkf.measurement(0.01, ref_score)
+            refrkf.measurement_reftrace(0.01, ref_score)
             if zv_state[i] > 0.5:
                 fkf.measurement_function_zv(np.asarray((0, 0, 0)),
                                             np.diag((0.0001, 0.0001, 0.0001)))
