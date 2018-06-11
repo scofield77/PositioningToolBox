@@ -294,7 +294,6 @@ if __name__ == '__main__':
     # plt.title('zv state')
     # plt.plot(zv_stateawwww
 
-
     uwb_index = 0
 
     for i in range(imu_data.shape[0]):
@@ -401,7 +400,6 @@ if __name__ == '__main__':
                                                  np.ones(1) * 0.1,
                                                  beacon_set, ref_trace, ka_squard=6.0)
                     uwb_ref_trace[uwb_index, :] = drkf.state[0:3]
-
 
                     # uwb_est_data[uwb_index, 1:] = np.linalg.norm(rkf.state[0:3] - beacon_set)
                     # for j in range(1,uwb_data.shape[1]):
