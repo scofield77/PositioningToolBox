@@ -502,11 +502,13 @@ if __name__ == '__main__':
     plt.plot(rtrace[:, 0], rtrace[:, 1], '-', color=color_dict['REKF'], label='Robust EKF')
     plt.plot(ortrace[:, 0], ortrace[:, 1], '-', color=color_dict['RIEKF'], label='Robust IEKF')
     # plt.plot(dtrace[:, 0], dtrace[:, 1], '-+', label='d ekf')
-    # plt.plot(uwb_trace[:, 0], uwb_trace[:, 1], '+', color=color_dict['UWB'], label='uwb')
+    plt.plot(uwb_trace[:, 0], uwb_trace[:, 1], '+', color=color_dict['UWB'], label='uwb')
     # plt.plot(ref_trace[:, 1], ref_trace[:, 2], '-', label='ref')
     # for i in range(beacon_set.shape[0]):
     #     if uwb_data[i + 1, :].max() > 0 and beacon_set[i, 0] < 5000.0:
     #         plt.text(beacon_set[i, 0], beacon_set[i, 1], s=str(i + 1))
+    plt.xlabel('X/m')
+    plt.ylabel('Y/m')
 
     for i in range(len(uwb_valid)):
         if uwb_data[:, uwb_valid[i]].max() > 0:
