@@ -498,6 +498,7 @@ class ImuEKFComplex:
         self.prob_state = pplus
 
         self.R = Rk * 1.0
+        self.R_k = Rk * 1.0
 
     def measurement_uwb_mc_itea(self, measurement, cov_m, beacon_set, ref_trace):
         '''
@@ -712,23 +713,6 @@ class ImuEKFComplex:
                                  np.transpose(beacon_set[i, :]))
 
 
-        #     if all_m_score[i] < cov_m[0] * 10.0:
-        #         self.measurement_uwb(np.asarray(measurement[i]),
-        #                              np.ones(1) * cov_m[0],
-        #                              np.transpose(beacon_set[i, :]))
-        #     elif all_m_score[i] < cov_m[0] * 20.0:
-        #         self.measurement_uwb_robust(np.asarray(measurement[i]),
-        #                                     np.ones(1) * (all_m_score[i] ** 4.0),
-        #                                     np.transpose(beacon_set[i, :]), i)
-        #     else:
-        #         # print('def')
-        #         self.measurement_uwb_robust(np.asarray(measurement[i]),
-        #                                     np.ones(1) * (all_m_score[i] ** 8.0),
-        #                                     np.transpose(beacon_set[i, :]), i)
-        # print('score:', all_m_score)
-
-        # index = np.where(cluster)
-        # print('------------mc robust ekf------------')
 
     def measurement_uwb_robust_multi(self, measurement, cov_m, beacon_set, ka_squard):
         # @jit()# @jit(nopython=True)

@@ -445,12 +445,12 @@ if __name__ == '__main__':
                             #     rkf.measurement_uwb(uwb_filter_list[j - 1].m,
                             #                         uwb_filter_list[j - 1].cov,
                             #                         np.transpose(beacon_set[j - 1, :]))
-                    # drkf.measurement_uwb_iterate(np.asarray(uwb_data[uwb_index, 1:]),
-                    #                              np.ones(1) * 0.01,
-                    #                              beacon_set, ref_trace)
-                    drkf.measurement_uwb_mc(np.asarray(uwb_data[uwb_index, 1:]),
-                                            np.ones(1) * 0.01,
-                                            beacon_set, ref_trace)
+                    drkf.measurement_uwb_iterate(np.asarray(uwb_data[uwb_index, 1:]),
+                                                 np.ones(1) * 0.01,
+                                                 beacon_set, ref_trace)
+                    # drkf.measurement_uwb_mc(np.asarray(uwb_data[uwb_index, 1:]),
+                    #                         np.ones(1) * 0.01,
+                    #                         beacon_set, ref_trace)
                     tmp_index = 0
                     for k in range(1, uwb_data.shape[1]):
                         if uwb_data[uwb_index, k] > 0.0 and beacon_set[k - 1, 0] < 5000.0:
