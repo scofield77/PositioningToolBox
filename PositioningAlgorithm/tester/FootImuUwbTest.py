@@ -62,7 +62,8 @@ if __name__ == '__main__':
     # dir_name = '/home/steve/Data/FusingLocationData/0017/'
     # dir_name = '/home/steve/Data/FusingLocationData/0013/'
     # dir_name = '/home/steve/Data/NewFusingLocationData/0044/'
-    dir_name = 'D:/Data/NewFusingLocationData/0044/'
+    # dir_name = 'D:/Data/NewFusingLocationData/0040/'
+    dir_name = 'D:/Data/NewFusingLocationData/0039/'
     # dir_name = 'C:/Data/NewFusingLocationData/0039/'
 
     ref_score = Refscor(dir_name)
@@ -90,8 +91,8 @@ if __name__ == '__main__':
     # initial_orientation = 80.0 * np.pi / 180.0  # 38
     # initial_orientation = 80.0 * np.pi / 180.0  # 37
     # initial_orientation = 80.0 * np.pi / 180.0  # 39
-    # initial_orientation = 80.0 * np.pi / 180.0  # 40
-    initial_orientation = 50.0 * np.pi / 180.0  # 44
+    initial_orientation = 80.0 * np.pi / 180.0  # 40
+    # initial_orientation = 50.0 * np.pi / 180.0  # 44
 
     '''
     Delete some beacon's data randomly.
@@ -106,9 +107,9 @@ if __name__ == '__main__':
     #     uwb_data[:, uwb_valid[random_index[i]]] *= 0.0
     #     uwb_data[:, uwb_valid[random_index[i]]] -= 10.0
 
-    delet_index = [29]  # use 3 beacons
+    # delet_index = [29]  # use 6 beacons
     # delet_index = [30, 33, 35, 36]  # use 3 beacons
-    # delet_index = [30, 31, 33, 34, 35]  # use 2 beacons
+    delet_index = [30, 31, 33, 34, 35]  # use 2 beacons
     # print('delet index:', type(delet_index), delet_index)
     for i in range(len(delet_index)):
         print('deleted:', delet_index[i])
@@ -391,6 +392,7 @@ if __name__ == '__main__':
                                                        np.ones(1) * 0.1,
                                                        np.transpose(beacon_set[j - 1, :]),
                                                        j, 6.0, 1.0)
+
                             # if uwb_filter_list[j-1].cov<0.02:
                             #     rkf.measurement_uwb(uwb_filter_list[j - 1].m,
                             #                         uwb_filter_list[j - 1].cov,
@@ -399,6 +401,7 @@ if __name__ == '__main__':
                                                  np.ones(1) * 0.1,
                                                  beacon_set, ref_trace, ka_squard=6.0)
                     uwb_ref_trace[uwb_index, :] = drkf.state[0:3]
+
 
                     # uwb_est_data[uwb_index, 1:] = np.linalg.norm(rkf.state[0:3] - beacon_set)
                     # for j in range(1,uwb_data.shape[1]):
@@ -498,11 +501,11 @@ if __name__ == '__main__':
         plt.plot([ref_vis[i, 0], ref_vis[i, 2]], [ref_vis[i, 1], ref_vis[i, 3]], '-', color=color_dict['ref'],
                  alpha=0.5, lw='10')
     plt.plot(trace[:, 0], trace[:, 1], '-', color=color_dict['Standard'], label='Standard EKF')
-    plt.plot(ftrace[:, 0], ftrace[:, 1], '-', color=color_dict['Foot'], label='Foot')
+    # plt.plot(ftrace[:, 0], ftrace[:, 1], '-', color=color_dict['Foot'], label='Foot')
     plt.plot(rtrace[:, 0], rtrace[:, 1], '-', color=color_dict['REKF'], label='Robust EKF')
     plt.plot(ortrace[:, 0], ortrace[:, 1], '-', color=color_dict['RIEKF'], label='Robust IEKF')
     # plt.plot(dtrace[:, 0], dtrace[:, 1], '-+', label='d ekf')
-    plt.plot(uwb_trace[:, 0], uwb_trace[:, 1], '+', color=color_dict['UWB'], label='uwb')
+    # plt.plot(uwb_trace[:, 0], uwb_trace[:, 1], '+', color=color_dict['UWB'], label='uwb')
     # plt.plot(ref_trace[:, 1], ref_trace[:, 2], '-', label='ref')
     # for i in range(beacon_set.shape[0]):
     #     if uwb_data[i + 1, :].max() > 0 and beacon_set[i, 0] < 5000.0:
