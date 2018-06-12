@@ -5,7 +5,7 @@ import numpy as np
 import scipy as sp
 
 import matplotlib.pyplot as plt
-
+from PositioningAlgorithm.OptimizationAlgorithm import UwbStaticLocation
 
 
 
@@ -19,7 +19,8 @@ if __name__ == '__main__':
     def plot_static_measurement(dir_name):
         uwb_data = np.loadtxt(dir_name + 'uwb_data.csv', delimiter=',')
         beacon_set = np.loadtxt(dir_name + 'beaconset_no_mac.csv', delimiter=',')
-
+        usl = UwbStaticLocation.UwbStaticLocation(beacon_set)
+        pose = usl.calculate_position(uwb_data[:, 1:])
         # plt.figure()
         for i in range(beacon_set.shape[0]):
             if beacon_set[i, 0] < 1000.0 and np.max(uwb_data[:, i + 1]) > 0.0:
@@ -30,6 +31,7 @@ if __name__ == '__main__':
                 plt.hist(tmp_uwb_data[tmp_uwb_data > 0.0],
                          label=str(tmp_uwb_data[tmp_uwb_data > 0].shape[0]) + '/' + str(tmp_uwb_data.shape[0]))
 
+
                 plt.legend()
         plt.figure()
         plt.title('beacon')
@@ -39,6 +41,11 @@ if __name__ == '__main__':
                 plt.text(beacon_set[i, 0], beacon_set[i, 1], 'label:' + str(i))
                 i_list.append(i)
         plt.plot(beacon_set[i_list, 0], beacon_set[i_list, 1], '*')
+
+        plt.plot(pose[0],pose[1],'r+')
+
+        plt.text(pose[0],pose[1],'position')
+
         plt.grid()
         print(np.linalg.norm(beacon_set[29, :] - beacon_set[32, :]))
 
