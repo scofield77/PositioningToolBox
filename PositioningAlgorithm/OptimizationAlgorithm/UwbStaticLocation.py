@@ -21,6 +21,20 @@ class UwbStaticLocation:
         self.measurements = np.zeros([beacon_set.shape[0],1])
         self.beacon_set = beacon_set * 1.0
 
+zz
+    def positioning_error_function(self,pose):
+        '''
+
+        :param pose:
+        :return:
+        '''
+
+
+
+
+
+
+
 
 
 
