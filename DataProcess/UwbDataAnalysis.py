@@ -7,8 +7,6 @@ import scipy as sp
 import matplotlib.pyplot as plt
 from PositioningAlgorithm.OptimizationAlgorithm import UwbStaticLocation
 
-
-
 if __name__ == '__main__':
     # dir_name = '/home/steve/Data/NewFusingLocationData/0044/'
     base_dir_name = 'D:/Data/NewFusingLocationData/'
@@ -31,9 +29,8 @@ if __name__ == '__main__':
                 plt.hist(tmp_uwb_data[tmp_uwb_data > 0.0],
                          label=str(tmp_uwb_data[tmp_uwb_data > 0].shape[0]) + '/' + str(tmp_uwb_data.shape[0]))
 
-
                 plt.legend()
-        plt.figure()
+        plt.figure(111)
         plt.title('beacon')
         i_list = list()
         for i in range(beacon_set.shape[0]):
@@ -42,14 +39,16 @@ if __name__ == '__main__':
                 i_list.append(i)
         plt.plot(beacon_set[i_list, 0], beacon_set[i_list, 1], '*')
 
-        plt.plot(pose[0],pose[1],'r+')
+        plt.plot(pose[0], pose[1], 'r+')
 
-        plt.text(pose[0],pose[1],'position')
+        plt.text(pose[0], pose[1], 'p'+dir_name.split('/')[-2])
 
         plt.grid()
-        print(np.linalg.norm(beacon_set[29, :] - beacon_set[32, :]))
+        print(dir_name,np.linalg.norm(pose - beacon_set[32, :]))
 
 
-    plot_static_measurement(test_dir_name)
+    # plot_static_measurement(test_dir_name)
+    for i in range(53,61):
+        plot_static_measurement(base_dir_name+'%04d/'%(i))
 
     plt.show()
