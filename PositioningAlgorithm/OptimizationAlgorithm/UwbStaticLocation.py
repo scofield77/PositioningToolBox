@@ -74,6 +74,9 @@ class UwbStaticLocation:
     def calculate_position(self, measurement):
         self.measurements = measurement * 1.0
 
+
+        self.m_weight = np.zeros(self.measurements.shape[1])
+
         initial_pose = np.zeros(3)
         result = minimize(self.positioning_error_function,
                           initial_pose,
