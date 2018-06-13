@@ -63,7 +63,10 @@ if __name__ == '__main__':
         i_list = list()
         for i in range(beacon_set.shape[0]):
             if beacon_set[i, 0] < 1000.0 and np.max(uwb_data[:, i + 1]) > 0.0:
-                plt.text(beacon_set[i, 0], beacon_set[i, 1], str(i - 29))
+                if i- 29 < 3:
+                    plt.text(beacon_set[i, 0], beacon_set[i, 1], str(i - 29))
+                else:
+                    plt.text(beacon_set[i, 0], beacon_set[i, 1], str(i - 29-1))
                 i_list.append(i)
         plt.plot(beacon_set[i_list, 0], beacon_set[i_list, 1], 'r*')
 
