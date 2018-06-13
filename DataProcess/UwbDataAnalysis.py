@@ -40,26 +40,26 @@ if __name__ == '__main__':
                 tmp_uwb_data = uwb_data[:, i + 1] * 1.0
                 plt.hist(tmp_uwb_data[tmp_uwb_data > 0.0],
                          label=str(tmp_uwb_data[tmp_uwb_data > 0].shape[0]) + '/' + str(tmp_uwb_data.shape[0]))
-                plt.axvline(np.linalg.norm(pose - beacon_set[i, :]), color='k', linestyle='dashed', linewidth=1)
+                # plt.axvline(np.linalg.norm(pose - beacon_set[i, :]), color='k', linestyle='dashed', linewidth=1)
                 # plt.tight_layout()
 
                 if p_i == 1:
-                    plt.title(str(i-29),loc='left')
+                    # plt.title(str(i - 29), loc='left')
                     # plt.ylabel('Number')
-                    plt.ylabel('Beacon:'+str(valid_index)+'\nNumber')
+                    plt.ylabel('Beacon:' + str(valid_index) + '\nNumber')
 
-                if valid_index == valid_count-1:
+                if valid_index == valid_count - 1:
                     plt.xlabel('dist/m')
 
                 if valid_index == 0:
-                    plt.title('Test Number:'+str(p_i))
+                    plt.title('T' + str(p_i))
 
                 valid_index += 1
                 plt.legend()
         # plt.tight_layout()
-        plt.subplots_adjust(wspace=0.5,hspace=0.5)
+        plt.subplots_adjust(wspace=0.5, hspace=0.5)
         plt.figure(111)
-        plt.title('beacon')
+        plt.title('Beacons and Test points')
         i_list = list()
         for i in range(beacon_set.shape[0]):
             if beacon_set[i, 0] < 1000.0 and np.max(uwb_data[:, i + 1]) > 0.0:
@@ -69,7 +69,7 @@ if __name__ == '__main__':
 
         plt.plot(pose[0], pose[1], 'b+')
 
-        plt.text(pose[0], pose[1], 'p' + dir_name.split('/')[-2])
+        plt.text(pose[0] , pose[1], 'T'+ str(p_i),horizontalalignment='center', fontsize=10)
 
         plt.grid()
         print(dir_name, np.linalg.norm(pose - beacon_set[29, :]))
