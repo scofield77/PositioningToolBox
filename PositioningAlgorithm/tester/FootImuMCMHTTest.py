@@ -107,9 +107,9 @@ if __name__ == '__main__':
     #     uwb_data[:, uwb_valid[random_index[i]]] -= 10.0
 
     # delet_index = [ 29]  # use 6 beacons
-    # delet_index = [ 33, 35]  # use 5 beacons
+    delet_index = [ 33, 36]  # use 5 beacons
     # delet_index = [30, 33, 35]  # use 4 beacons
-    delet_index = [30, 33, 35, 36]  # use 3 beacons
+    # delet_index = [30, 33, 35, 36]  # use 3 beacons
     # delet_index = [30, 31, 33, 34, 35]  # use 2 beacons
     # print('delet index:', type(delet_index), delet_index)
     # for i in range(len(delet_index)):
@@ -391,7 +391,7 @@ if __name__ == '__main__':
                     #                        np.ones(1)*0.01,
                     #                        beacon_set, ref_trace)
                     orkf.measurement_uwb_mc(np.asarray(uwb_data[uwb_index, 1:]),
-                                            np.ones(1) * 0.01,
+                                            np.ones(1) * 0.1,
                                             beacon_set, ref_trace)
                     # orkf.measurement_uwb_mc_itea(np.asarray(uwb_data[uwb_index, 1:]),
                     #                              np.ones(1) * 0.01,
@@ -436,7 +436,7 @@ if __name__ == '__main__':
                                                np.ones(1) * 0.5,
                                                np.transpose(beacon_set[j - 1, :]))
                             rkf.measurement_uwb_robust(uwb_data[uwb_index, j],
-                                                       np.ones(1) * 0.01,
+                                                       np.ones(1) * 0.1,
                                                        np.transpose(beacon_set[j - 1, :]),
                                                        j, 6.0, -10.0)
                             uwb_R_rekf[uwb_index, j] = rkf.R_k[0] * 1.0
