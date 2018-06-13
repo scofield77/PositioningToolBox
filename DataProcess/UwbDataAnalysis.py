@@ -55,7 +55,7 @@ if __name__ == '__main__':
 
 
     # plot_static_measurement(test_dir_name)
-    for i in range(53,63):
+    for i in range(53,62):
         plot_static_measurement(base_dir_name + '%04d/' % (i))
 
     plt.show()
