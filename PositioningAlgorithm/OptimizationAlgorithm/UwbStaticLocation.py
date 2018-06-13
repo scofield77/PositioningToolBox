@@ -95,5 +95,5 @@ class UwbStaticLocation:
         initial_pose = result.x
         result = minimize(self.positioning_error_robust_function,
                           initial_pose)
-        # print('minimize result', result.x)
+        print('minimize result', result.fun)
         return result.x
