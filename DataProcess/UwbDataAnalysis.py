@@ -19,10 +19,16 @@ if __name__ == '__main__':
         beacon_set = np.loadtxt(dir_name + 'beaconset_no_mac.csv', delimiter=',')
         usl = UwbStaticLocation.UwbStaticLocation(beacon_set)
         pose = usl.calculate_position(uwb_data[:, 1:])
-        # plt.figure()
+        plt.figure(int(dir_name.split('/')[-2]))
+        valid_count = 0
+        for i in range(beacon_set.shape[0]):
+            if beacon_set[i,0] < 1000.0 and np.max(uwb_data[:,i+1])>0.0:
+                valid_count+=1
+        valid_index = 0
         for i in range(beacon_set.shape[0]):
             if beacon_set[i, 0] < 1000.0 and np.max(uwb_data[:, i + 1]) > 0.0:
-                plt.figure()
+                valid_index+=1
+                plt.subplot(100 * valid_count+10+valid_index)
                 plt.title('label:' + str(i))
 
                 tmp_uwb_data = uwb_data[:, i + 1] * 1.0
@@ -41,14 +47,14 @@ if __name__ == '__main__':
 
         plt.plot(pose[0], pose[1], 'r+')
 
-        plt.text(pose[0], pose[1], 'p'+dir_name.split('/')[-2])
+        plt.text(pose[0], pose[1], 'p' + dir_name.split('/')[-2])
 
         plt.grid()
-        print(dir_name,np.linalg.norm(pose - beacon_set[32, :]))
+        print(dir_name, np.linalg.norm(pose - beacon_set[32, :]))
 
 
     # plot_static_measurement(test_dir_name)
-    for i in range(53,61):
-        plot_static_measurement(base_dir_name+'%04d/'%(i))
+    for i in range(56, 59):
+        plot_static_measurement(base_dir_name + '%04d/' % (i))
 
     plt.show()

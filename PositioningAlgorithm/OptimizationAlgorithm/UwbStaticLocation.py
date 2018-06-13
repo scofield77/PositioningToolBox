@@ -43,7 +43,7 @@ class UwbStaticLocation:
             for i in range(measurement.shape[0]):
                 for j in range(measurement.shape[1]):
                     if measurement[i, j] > 0.0 and beaconset[j, 0] < 5000.0:
-                        error_sum += rou((measurement[i,j] - np.linalg.norm(pose - beaconset[j, :])) ** 2.0 )*(1.0 / measurement[i,j])
+                        error_sum += rou((measurement[i,j] - np.linalg.norm(pose - beaconset[j, :])) ** 2.0 )/( measurement[i,j] ** 0.5)
             return error_sum ** 0.5
 
         return compute_error(pose, self.measurements, self.beacon_set)
