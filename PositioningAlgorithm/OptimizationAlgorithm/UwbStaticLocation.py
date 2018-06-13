@@ -43,9 +43,9 @@ class UwbStaticLocation:
             error_sum = 0
             for i in range(measurement.shape[0]):
                 for j in range(measurement.shape[1]):
-                    if measurement[i, j] > 0.0 and beaconset[j, 0] < 5000.0 and m_w[j] > 0.95:
-                        error_sum += rou((measurement[i, j] - np.linalg.norm(pose - beaconset[j, :])) ** 2.0)# / (
-                                    # measurement[i, j] ** 0.5)
+                    if measurement[i, j] > 0.0 and beaconset[j, 0] < 5000.0 and m_w[j,0] > 0.95 and m_w[j,1] < 0.5:
+                        error_sum += rou((measurement[i, j] - np.linalg.norm(pose - beaconset[j, :])) ** 2.0)  # / (
+                        # measurement[i, j] ** 0.5)
             return error_sum ** 0.5
 
         return compute_error(pose, self.measurements, self.beacon_set, self.m_weight)
@@ -72,16 +72,18 @@ class UwbStaticLocation:
     def calculate_position(self, measurement):
         self.measurements = measurement * 1.0
 
-        self.m_weight = np.zeros(self.measurements.shape[1])
+        self.m_weight = np.zeros([self.measurements.shape[1],2])
 
         for i in range(self.measurements.shape[1]):
-            if np.max(self.measurements[:, i]) > 0.0 and self.beacon_set[i,0] < 5000.0:
+            if np.max(self.measurements[:, i]) > 0.0 and self.beacon_set[i, 0] < 5000.0:
                 tmp_measurement = self.measurements[:, i] * 1.0
                 valid_number = (tmp_measurement[tmp_measurement > 0.0]).shape[0]
-                print(np.mean(tmp_measurement[tmp_measurement>0.0]),
-                      np.std(tmp_measurement[tmp_measurement>0.0]),
-                      float(tmp_measurement[tmp_measurement>0.0].shape[0])/float(tmp_measurement.shape[0]))
-                self.m_weight[i] = float(tmp_measurement[tmp_measurement>0.0].shape[0])/float(tmp_measurement.shape[0])
+                # print(np.mean(tmp_measurement[tmp_measurement > 0.0]),
+                #       np.std(tmp_measurement[tmp_measurement > 0.0]),
+                #       float(tmp_measurement[tmp_measurement > 0.0].shape[0]) / float(tmp_measurement.shape[0]))
+                self.m_weight[i,0] = float(tmp_measurement[tmp_measurement > 0.0].shape[0]) / float(
+                    tmp_measurement.shape[0])
+                self.m_weight[i,1] = np.std(tmp_measurement[tmp_measurement>0.0])
 
         initial_pose = np.zeros(3)
         result = minimize(self.positioning_error_function,
@@ -91,5 +93,5 @@ class UwbStaticLocation:
         result = minimize(self.positioning_error_robust_function,
                           initial_pose,
                           method='BFGS')
-        print('minimize result', result.x)
+        # print('minimize result', result.x)
         return result.x

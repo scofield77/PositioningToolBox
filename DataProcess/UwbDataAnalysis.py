@@ -34,6 +34,7 @@ if __name__ == '__main__':
                 tmp_uwb_data = uwb_data[:, i + 1] * 1.0
                 plt.hist(tmp_uwb_data[tmp_uwb_data > 0.0],
                          label=str(tmp_uwb_data[tmp_uwb_data > 0].shape[0]) + '/' + str(tmp_uwb_data.shape[0]))
+                plt.axvline(np.linalg.norm(pose-beacon_set[i,:]),color='k',linestyle='dashed',linewidth=1)
 
                 plt.legend()
         plt.figure(111)
@@ -41,9 +42,9 @@ if __name__ == '__main__':
         i_list = list()
         for i in range(beacon_set.shape[0]):
             if beacon_set[i, 0] < 1000.0 and np.max(uwb_data[:, i + 1]) > 0.0:
-                plt.text(beacon_set[i, 0], beacon_set[i, 1], 'label:' + str(i))
+                plt.text(beacon_set[i, 0], beacon_set[i, 1],  str(i-29))
                 i_list.append(i)
-        plt.plot(beacon_set[i_list, 0], beacon_set[i_list, 1], '*')
+        plt.plot(beacon_set[i_list, 0], beacon_set[i_list, 1], 'r*')
 
         plt.plot(pose[0], pose[1], 'r+')
 
@@ -54,7 +55,7 @@ if __name__ == '__main__':
 
 
     # plot_static_measurement(test_dir_name)
-    for i in range(56, 59):
+    for i in range(53,61):
         plot_static_measurement(base_dir_name + '%04d/' % (i))
 
     plt.show()
