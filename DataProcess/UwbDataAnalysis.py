@@ -30,18 +30,34 @@ if __name__ == '__main__':
         for i in range(beacon_set.shape[0]):
             if beacon_set[i, 0] < 1000.0 and np.max(uwb_data[:, i + 1]) > 0.0:
                 print(valid_index, p_i, valid_index)
-                plt.subplot(100 * valid_count + 10 * total_num + valid_index + ((p_i - 1) * 6) + 1)
+                num = 100 * valid_count + 10 * total_num + valid_index + ((p_i - 1) * 6) + 1
+                print(num)
+                # plt.subplot(num)
+                plt.subplot2grid([valid_count + 1, total_num + 1], [valid_index, p_i])
                 # plt.subplot(100*)
-                plt.title(str(i - 29))
+                # plt.title(str(i - 29))
 
                 tmp_uwb_data = uwb_data[:, i + 1] * 1.0
                 plt.hist(tmp_uwb_data[tmp_uwb_data > 0.0],
                          label=str(tmp_uwb_data[tmp_uwb_data > 0].shape[0]) + '/' + str(tmp_uwb_data.shape[0]))
                 plt.axvline(np.linalg.norm(pose - beacon_set[i, :]), color='k', linestyle='dashed', linewidth=1)
-                plt.tight_layout()
+                # plt.tight_layout()
+
+                if p_i == 1:
+                    plt.title(str(i-29),loc='left')
+                    # plt.ylabel('Number')
+                    plt.ylabel('Beacon:'+str(valid_index)+'\nNumber')
+
+                if valid_index == valid_count-1:
+                    plt.xlabel('dist/m')
+
+                if valid_index == 0:
+                    plt.title('Test Number:'+str(p_i))
 
                 valid_index += 1
                 plt.legend()
+        # plt.tight_layout()
+        plt.subplots_adjust(wspace=0.5,hspace=0.5)
         plt.figure(111)
         plt.title('beacon')
         i_list = list()
@@ -56,15 +72,14 @@ if __name__ == '__main__':
         plt.text(pose[0], pose[1], 'p' + dir_name.split('/')[-2])
 
         plt.grid()
-        print(dir_name, np.linalg.norm(pose - beacon_set[32, :]))
+        print(dir_name, np.linalg.norm(pose - beacon_set[29, :]))
 
 
     # plot_static_measurement(test_dir_name)
 
-    start_i = 53
-    total_num = 3
+    start_i = 56
+    total_num = 6
     for i in range(start_i, total_num + start_i):
         plot_static_measurement(base_dir_name + '%04d/' % (i), i - start_i + 1, total_num)
-
 
     plt.show()
