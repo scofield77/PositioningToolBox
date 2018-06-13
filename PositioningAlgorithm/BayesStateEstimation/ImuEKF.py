@@ -648,7 +648,7 @@ class ImuEKFComplex:
         # sample
         # for i in range(3):
         #     particles[:, i] = self.state[i] + rnd_p[:, i] * (self.prob_state[i, i] ** 0.5) * 20.0
-        particles = np.random.multivariate_normal(self.state[0:3], self.prob_state[0:3, 0:3] * 2000.0,
+        particles = np.random.multivariate_normal(self.state[0:3], self.prob_state[0:3, 0:3] * 20000.0,
                                                   size=particles.shape[0])
         # print('prior mean:', np.mean(particles, axis=0))
         # print('prior std:', np.std(particles, axis=0))
