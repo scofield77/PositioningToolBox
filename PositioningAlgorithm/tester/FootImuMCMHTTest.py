@@ -112,11 +112,11 @@ if __name__ == '__main__':
     # delet_index = [30, 33, 35]  # use 4 beacons
     # delet_index = [30, 33, 36]  # use 4 beacons
     # delet_index = [34, 33, 36]  # use 4 beacons
-    # delet_index = [31, 33, 36]  # use 4 beacons
+    delet_index = [31, 33, 36]  # use 4 beacons
     # delet_index = [30, 33, 35, 36]  # use 3 beacons
     # delet_index = [30, 33, 31, 36]  # use 3 beacons
     # delet_index = [31, 33, 36, 37]  # use 3 beacons
-    delet_index = [31, 33, 35, 37]  # use 3 beacons
+    # delet_index = [31, 33, 35, 37]  # use 3 beacons
     # delet_index = [30, 31, 33, 34, 35]  # use 2 beacons
     # print('delet index:', type(delet_index), delet_index)
     for i in range(len(delet_index)):
@@ -440,12 +440,12 @@ if __name__ == '__main__':
                                     print('error', uwb_filter_list[j - 1].beacon_set, beacon_set[j - 1, :])
 
                             kf.measurement_uwb(np.asarray(uwb_data[uwb_index, j]),
-                                               np.ones(1) * 0.5,
+                                               np.ones(1) *  0.5,
                                                np.transpose(beacon_set[j - 1, :]))
                             rkf.measurement_uwb_robust(uwb_data[uwb_index, j],
                                                        np.ones(1) * 0.01,
                                                        np.transpose(beacon_set[j - 1, :]),
-                                                       j, 6.0, -10.0)
+                                                       j, 8.0, -10.0)
                             uwb_R_rekf[uwb_index, j] = rkf.R_k[0] * 1.0
 
                             # if uwb_filter_list[j-1].cov<0.02:
