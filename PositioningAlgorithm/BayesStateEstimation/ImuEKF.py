@@ -636,17 +636,11 @@ class ImuEKFComplex:
         w = np.ones(shape=particles.shape[0])
         w = w / w.sum()
 
-        # rnd_p = np.random.normal(0.0, 1.0, size=particles.shape)
-        # rnd_p  = np.random.multivariate_normal()
 
         # sample
-        # for i in range(3):
-        #     particles[:, i] = self.state[i] + rnd_p[:, i] * (self.prob_state[i, i] ** 0.5) * 20.0
         particles = np.random.multivariate_normal(self.state[0:3], self.prob_state[0:3, 0:3] * 20000.0,
                                                   size=particles.shape[0])
 
-        # print('prior mean:', np.mean(particles, axis=0))
-        # print('prior std:', np.std(particles, axis=0))
 
         # plt.figure(10)
         # plt.clf()
@@ -658,24 +652,11 @@ class ImuEKFComplex:
         def gaussian_distribution(x, miu, sigma):
             a = 1.0 / sigma / math.sqrt(2.0 * 3.1415926)
             b = -1.0 * ((x - miu) * (x - miu) / 2.0 / sigma / sigma)
-            # if math.isnan(a):
-            #     print('a is nan', x, miu, sigma)
-            # if math.isnan(b):
-            #     print('b is nan', x, miu, sigma)
-            # print(a * math.exp(b))#,a,b, x,miu,sigma)
             return a * math.exp(b)
 
         gaussian_pdf_v = np.vectorize(gaussian_distribution)
 
-        # select_rnd = np.random.randint(0, measurement.shape[0] - 1, size=particles.shape[0])
-        # for i in range(w.shape[0]):
-        #     w[i] = w[i] * gaussian_distribution(np.linalg.norm(particles[i,:]-beacon_set[select_rnd[i],:]),measurement[select_rnd[i]],1.0)
-        #     w[i] = w[i] / abs(
-        #         np.linalg.norm(particles[i, :] - beacon_set[select_rnd[i], :]) - measurement[select_rnd[i]])
         for j in range(beacon_set.shape[0]):
-            # for i in range(w.shape[0]):
-            #     w[i] = w[i] * gaussian_distribution(np.linalg.norm(particles[i, :] - beacon_set[j, :]) * 1.0,
-            #                                     measurement[j], 1.0)
             w = w * gaussian_pdf_v(np.linalg.norm(particles - beacon_set[j, :], axis=1),
                                    np.ones_like(w) * measurement[j],
                                    np.ones_like(w) * 1.0)
