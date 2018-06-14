@@ -64,7 +64,7 @@ if __name__ == '__main__':
     # dir_name = '/home/steve/Data/NewFusingLocationData/0039/'
     # dir_name = '/home/steve/Data/NewFusingLocationData/0040/'
     # dir_name = 'C:/Data/NewFusingLocationData/0039/'
-    dir_name = 'D:/Data/NewFusingLocationData/0039/'
+    dir_name = 'D:/Data/NewFusingLocationData/0040/'
 
     ref_score = Refscor(dir_name)
     # imu_data = np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=',')
@@ -112,9 +112,11 @@ if __name__ == '__main__':
     # delet_index = [30, 33, 35]  # use 4 beacons
     # delet_index = [30, 33, 36]  # use 4 beacons
     # delet_index = [34, 33, 36]  # use 4 beacons
+    # delet_index = [31, 33, 36]  # use 4 beacons
     # delet_index = [30, 33, 35, 36]  # use 3 beacons
     # delet_index = [30, 33, 31, 36]  # use 3 beacons
-    delet_index = [31, 33, 36, 37]  # use 3 beacons
+    # delet_index = [31, 33, 36, 37]  # use 3 beacons
+    delet_index = [31, 33, 35, 37]  # use 3 beacons
     # delet_index = [30, 31, 33, 34, 35]  # use 2 beacons
     # print('delet index:', type(delet_index), delet_index)
     for i in range(len(delet_index)):
