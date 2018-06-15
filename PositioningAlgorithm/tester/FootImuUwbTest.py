@@ -494,7 +494,7 @@ if __name__ == '__main__':
     # plt.grid()
 
     plt.figure()
-    plt.title('Trajectory')
+    # plt.title('Trajectory')
     for i in range(ref_vis.shape[0]):
         plt.plot([ref_vis[i, 0], ref_vis[i, 2]], [ref_vis[i, 1], ref_vis[i, 3]], '-', color=color_dict['ref'],
                  alpha=0.5, lw='10')
@@ -508,15 +508,21 @@ if __name__ == '__main__':
     # for i in range(beacon_set.shape[0]):
     #     if uwb_data[i + 1, :].max() > 0 and beacon_set[i, 0] < 5000.0:
     #         plt.text(beacon_set[i, 0], beacon_set[i, 1], s=str(i + 1))
-    plt.xlabel('X/m')
-    plt.ylabel('Y/m')
+
+
+
+    plt.axis('equal')
 
     for i in range(len(uwb_valid)):
         if uwb_data[:, uwb_valid[i]].max() > 0:
             plt.text(beacon_set[uwb_valid[i] - 1, 0], beacon_set[uwb_valid[i] - 1, 1], s=str(i))
             plt.plot(beacon_set[uwb_valid[i] - 1, 0], beacon_set[uwb_valid[i] - 1, 1], 'r*')
-
-    plt.legend()
+    local_fsize = 20
+    plt.xlabel('X/m',fontsize=local_fsize)
+    plt.ylabel('Y/m',fontsize=local_fsize)
+    plt.xticks(fontsize = local_fsize)
+    plt.yticks(fontsize= local_fsize)
+    plt.legend(fontsize=local_fsize)
     plt.grid()
 
     plt.figure()
