@@ -598,7 +598,7 @@ class ImuEKFComplex:
                 print('error', i, self.state)
 
 
-       def measurement_uwb_sp(self, measurement, cov_m, beacon_set, ref_trace):
+    def measurement_uwb_sp(self, measurement, cov_m, beacon_set, ref_trace):
         '''
         Using Sigma points sample technology.
         :param measurement:
