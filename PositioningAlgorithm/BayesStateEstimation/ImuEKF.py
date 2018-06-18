@@ -640,9 +640,12 @@ class ImuEKFComplex:
         #                                           size=particles.shape[0])
         particles[0, :] = self.state[0:3] * 1.0
         particles[1, :] = self.state[0:3] * 1.0
+        L = sp.linalg.cholesky(self.prob_state[0:3,0:3] * 1.0)
         for i in range(3):
-            particles[i * 2, :] = self.state[0:3] * 1.0 + self.prob_state[0:3, i]
-            particles[i * 2 + 1, :] = self.state[0:3] * 1.0 - self.prob_state[0:3, i]
+            # particles[i * 2, :] = self.state[0:3] * 1.0 + self.prob_state[0:3, i]*10.0
+            particles[i * 2, :] = self.state[0:3] * 1.0 + L[0:3, i]*10.0
+            # particles[i * 2 + 1, :] = self.state[0:3] * 1.0 - self.prob_state[0:3, i]*10.0
+            particles[i * 2 + 1, :] = self.state[0:3] * 1.0 - L[0:3, i]*10.0
 
         # plt.figure(10)
         # plt.clf()

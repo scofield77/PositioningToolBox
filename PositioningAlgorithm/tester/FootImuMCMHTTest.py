@@ -64,7 +64,7 @@ if __name__ == '__main__':
     # dir_name = '/home/steve/Data/NewFusingLocationData/0039/'
     # dir_name = '/home/steve/Data/NewFusingLocationData/0040/'
     # dir_name = 'C:/Data/NewFusingLocationData/0039/'
-    dir_name = 'D:/Data/NewFusingLocationData/0040/'
+    dir_name = 'D:/Data/NewFusingLocationData/0039/'
 
     ref_score = Refscor(dir_name)
     # imu_data = np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=',')
@@ -112,9 +112,9 @@ if __name__ == '__main__':
     # delet_index = [30, 33, 35]  # use 4 beacons
     # delet_index = [30, 33, 36]  # use 4 beacons
     # delet_index = [34, 33, 36]  # use 4 beacons
-    delet_index = [31, 33, 36]  # use 4 beacons
+    # delet_index = [31, 33, 36]  # use 4 beacons
     # delet_index = [30, 33, 35, 36]  # use 3 beacons
-    # delet_index = [30, 33, 31, 36]  # use 3 beacons
+    delet_index = [30, 33, 31, 36]  # use 3 beacons
     # delet_index = [31, 33, 36, 37]  # use 3 beacons
     # delet_index = [31, 33, 35, 37]  # use 3 beacons
     # delet_index = [30, 31, 33, 34, 35]  # use 2 beacons
@@ -403,11 +403,11 @@ if __name__ == '__main__':
                     orkf.measurement_uwb_sp(np.asarray(uwb_data[uwb_index, 1:]),
                                             np.ones(1) * 0.01,
                                             beacon_set, ref_trace)
-
+                    #
                     # orkf.measurement_uwb_mc_itea(np.asarray(uwb_data[uwb_index, 1:]),
                     #                              np.ones(1) * 0.01,
                     #                              beacon_set, ref_trace)
-
+                    #
                     tmp_index = 0
                     for k in range(1, uwb_data.shape[1]):
 
@@ -456,12 +456,12 @@ if __name__ == '__main__':
                             #     rkf.measurement_uwb(uwb_filter_list[j - 1].m,
                             #                         uwb_filter_list[j - 1].cov,
                             #                         np.transpose(beacon_set[j - 1, :]))
-                    # drkf.measurement_uwb_iterate(np.asarray(uwb_data[uwb_index, 1:]),
-                    #                              np.ones(1) * 0.01,
-                    #                              beacon_set, ref_trace)
-                    drkf.measurement_uwb_sp(np.asarray(uwb_data[uwb_index, 1:]),
-                                            np.ones(1) * 0.01,
-                                            beacon_set, ref_trace)
+                    drkf.measurement_uwb_iterate(np.asarray(uwb_data[uwb_index, 1:]),
+                                                 np.ones(1) * 0.01,
+                                                 beacon_set, ref_trace)
+                    # drkf.measurement_uwb_sp(np.asarray(uwb_data[uwb_index, 1:]),
+                    #                         np.ones(1) * 0.01,
+                    #                         beacon_set, ref_trace)
                     tmp_index = 0
                     for k in range(1, uwb_data.shape[1]):
                         if uwb_data[uwb_index, k] > 0.0 and beacon_set[k - 1, 0] < 5000.0:
