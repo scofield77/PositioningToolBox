@@ -629,7 +629,7 @@ class ImuEKFComplex:
             self.R_k = self.R_k_all * 1.0
             return
 
-        particles = np.zeros(shape=(5, 3))
+        particles = np.zeros(shape=(8, 3))
         w = np.ones(shape=particles.shape[0])
         w = w / w.sum()
 
@@ -639,6 +639,11 @@ class ImuEKFComplex:
 
         # particles = np.random.multivariate_normal(self.state[0:3], np.identity(3) * 5.0,
         #                                           size=particles.shape[0])
+        particles[0,:] = self.state[0:3] * 1.0
+        particles[1,:] = self.state[0:3]  * 1.0
+        for i in range(3):
+            particles[i*2,:] = self.state[0:3] * 1.0 + self.prob_state[0:3,i]
+            particles[i*2+1,:] = self.state[0:3] * 1.0 - self.prob_state[0:3,i]
 
 
         # plt.figure(10)
