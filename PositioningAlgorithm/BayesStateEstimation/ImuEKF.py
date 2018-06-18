@@ -633,25 +633,17 @@ class ImuEKFComplex:
         w = w / w.sum()
 
         # sample
-        # particles = np.random.multivariate_normal(self.state[0:3], self.prob_state[0:3, 0:3] * 50000.0,
-        #                                           size=particles.shape[0])
-
-        # particles = np.random.multivariate_normal(self.state[0:3], np.identity(3) * 5.0,
-        #                                           size=particles.shape[0])
         particles[0, :] = self.state[0:3] * 1.0
         particles[1, :] = self.state[0:3] * 1.0
-        L = sp.linalg.cholesky(self.prob_state[0:3,0:3] * 1.0)
+        L = sp.linalg.cholesky(self.prob_state[0:3, 0:3] * 1.0)
         for i in range(3):
             # particles[i * 2, :] = self.state[0:3] * 1.0 + self.prob_state[0:3, i]*10.0
-            particles[i * 2, :] = self.state[0:3] * 1.0 + L[0:3, i]*10.0
+            particles[i * 2+2, :] = self.state[0:3] * 1.0 + L[0:3, i] * 10.0
             # particles[i * 2 + 1, :] = self.state[0:3] * 1.0 - self.prob_state[0:3, i]*10.0
-            particles[i * 2 + 1, :] = self.state[0:3] * 1.0 - L[0:3, i]*10.0
+            particles[i * 2 + 1+2, :] = self.state[0:3] * 1.0 - L[0:3, i] * 10.0
+            # w[i*2] = 1.2
+            # w[i*2+1] = 1.2
 
-        # plt.figure(10)
-        # plt.clf()
-        # plt.title('prior hist')
-        # plt.hist2d(particles[:, 0], particles[:, 1], bins=50, weights=w)
-        # plt.pause(0.1)
         # measurement
         # @jit(nopython=True)
         def gaussian_distribution(x, miu, sigma):
@@ -667,18 +659,6 @@ class ImuEKFComplex:
                                    np.ones_like(w) * 25.0)
         w = w / w.sum()
 
-        # vote for each measurement
-        # plt.figure(11)
-        # plt.clf()
-        # plt.hist(w*float(w.shape[0]))
-        # plt.pause(0.1)
-
-        # plt.figure(11)
-        # plt.clf()
-        # plt.title('posterior hist')
-        # plt.hist2d(particles[:, 0], particles[:, 1], bins=50, weights=w)
-        # plt.pause(0.1)
-
         self.R_k = np.identity(measurement.shape[0])
         all_m_score = np.zeros_like(measurement)
         for i in range(beacon_set.shape[0]):
@@ -690,8 +670,8 @@ class ImuEKFComplex:
             # if self.R_k[i, i] > 1.0:
             #     continue
             # else:
-            self.measurement_uwb(np.asarray(measurement[i] ),
-                                 np.ones(1) * (all_m_score[i] ** 2.0),
+            self.measurement_uwb(np.asarray(measurement[i]),
+                                 np.ones(1) * (all_m_score[i]),
                                  np.transpose(beacon_set[i, :]))
             # self.measurement_uwb(np.asarray(measurement[i]+m_diff),
             #                      np.ones(1) * (0.1+np.std((np.linalg.norm(particles-beacon_set[i,:])-measurement[i]))),
