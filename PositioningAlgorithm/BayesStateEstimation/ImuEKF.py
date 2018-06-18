@@ -597,7 +597,6 @@ class ImuEKFComplex:
             if np.isnan(self.state).any():
                 print('error', i, self.state)
 
-
     def measurement_uwb_sp(self, measurement, cov_m, beacon_set, ref_trace):
         '''
         Using Sigma points sample technology.
@@ -639,12 +638,11 @@ class ImuEKFComplex:
 
         # particles = np.random.multivariate_normal(self.state[0:3], np.identity(3) * 5.0,
         #                                           size=particles.shape[0])
-        particles[0,:] = self.state[0:3] * 1.0
-        particles[1,:] = self.state[0:3]  * 1.0
+        particles[0, :] = self.state[0:3] * 1.0
+        particles[1, :] = self.state[0:3] * 1.0
         for i in range(3):
-            particles[i*2,:] = self.state[0:3] * 1.0 + self.prob_state[0:3,i]
-            particles[i*2+1,:] = self.state[0:3] * 1.0 - self.prob_state[0:3,i]
-
+            particles[i * 2, :] = self.state[0:3] * 1.0 + self.prob_state[0:3, i]
+            particles[i * 2 + 1, :] = self.state[0:3] * 1.0 - self.prob_state[0:3, i]
 
         # plt.figure(10)
         # plt.clf()
@@ -684,25 +682,22 @@ class ImuEKFComplex:
             all_m_score[i] = np.sum(
                 np.abs(np.linalg.norm(particles - beacon_set[i, :], axis=1) - measurement[i]) ** 2.0 * w,
                 axis=0)  # *float(particles.shape[0]-1)/float(particles.shape[0])
-            m_diff = np.sum((np.linalg.norm(particles-beacon_set[i,:])-measurement[i])*w)
+            m_diff = np.sum((np.linalg.norm(particles - beacon_set[i, :]) - measurement[i]) * w)
             self.R_k[i, i] = all_m_score[i] ** 2.0
             # if self.R_k[i, i] > 1.0:
             #     continue
             # else:
-            self.measurement_uwb(np.asarray(measurement[i]+m_diff),
-                                 np.ones(1) * (all_m_score[i]),
+            self.measurement_uwb(np.asarray(measurement[i] ),
+                                 np.ones(1) * (all_m_score[i] ** 2.0),
                                  np.transpose(beacon_set[i, :]))
             # self.measurement_uwb(np.asarray(measurement[i]+m_diff),
-            #                      np.ones(1) * (),
+            #                      np.ones(1) * (0.1+np.std((np.linalg.norm(particles-beacon_set[i,:])-measurement[i]))),
             #                      np.transpose(beacon_set[i, :]))
-
 
             # tm = np.linalg.norm(particles-beacon_set[i,:],axis=1)
             # avg = np.average(tm,weights=w)
             # all_m_score[i] = np.average((tm-avg)**2.0,weights=w)
             # all_m_score[i] = np.std(np.linalg.norm(particles-beacon_set[i,:],axis=1), weight=w)
-
-
 
     def measurement_uwb_mc(self, measurement, cov_m, beacon_set, ref_trace):
         '''
@@ -785,18 +780,17 @@ class ImuEKFComplex:
             all_m_score[i] = np.sum(
                 np.abs(np.linalg.norm(particles - beacon_set[i, :], axis=1) - measurement[i]) ** 2.0 * w,
                 axis=0)  # *float(particles.shape[0]-1)/float(particles.shape[0])
-            m_diff = np.sum((np.linalg.norm(particles-beacon_set[i,:])-measurement[i])*w)
+            m_diff = np.sum((np.linalg.norm(particles - beacon_set[i, :]) - measurement[i]) * w)
             self.R_k[i, i] = all_m_score[i] ** 2.0
             # if self.R_k[i, i] > 1.0:
             #     continue
             # else:
-            self.measurement_uwb(np.asarray(measurement[i]+m_diff),
+            self.measurement_uwb(np.asarray(measurement[i] + m_diff),
                                  np.ones(1) * (all_m_score[i]),
                                  np.transpose(beacon_set[i, :]))
             # self.measurement_uwb(np.asarray(measurement[i]+m_diff),
             #                      np.ones(1) * (),
             #                      np.transpose(beacon_set[i, :]))
-
 
             # tm = np.linalg.norm(particles-beacon_set[i,:],axis=1)
             # avg = np.average(tm,weights=w)
