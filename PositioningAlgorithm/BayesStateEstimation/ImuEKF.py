@@ -583,8 +583,8 @@ class ImuEKFComplex:
                 particles[i * 2 + 2, :] = self.state[0:3] * 1.0 + L[0:3, i] * 10.0
                 # particles[i * 2 + 1, :] = self.state[0:3] * 1.0 - self.prob_state[0:3, i]*10.0
                 particles[i * 2 + 1 + 2, :] = self.state[0:3] * 1.0 - L[0:3, i] * 10.0
-                w[i * 2] += np.log(1.2)
-                w[i * 2 + 1] += np.log(1.2)
+                # w[i * 2] += np.log(1.2)
+                # w[i * 2 + 1] += np.log(1.2)
 
 
             for j in range(beacon_set.shape[0]):
@@ -751,11 +751,11 @@ class ImuEKFComplex:
         L = sp.linalg.cholesky(self.prob_state[0:3, 0:3] * 1.0)
         for i in range(3):
             # particles[i * 2, :] = self.state[0:3] * 1.0 + self.prob_state[0:3, i]*10.0
-            particles[i * 2 + 2, :] = self.state[0:3] * 1.0 + L[0:3, i] * 50.0
+            particles[i * 2 + 2, :] = self.state[0:3] * 1.0 + L[0:3, i]
             # particles[i * 2 + 1, :] = self.state[0:3] * 1.0 - self.prob_state[0:3, i]*10.0
-            particles[i * 2 + 1 + 2, :] = self.state[0:3] * 1.0 - L[0:3, i] * 50.0
-            w[i * 2] *= gaussian_distribution(10.0, 0.0, 1.0) / gaussian_distribution(0.0, 0.0, 1.0)
-            w[i * 2 + 1] *= gaussian_distribution(10.0, 0.0, 1.0) / gaussian_distribution(0.0, 0.0, 1.0)
+            particles[i * 2 + 1 + 2, :] = self.state[0:3] * 1.0 - L[0:3, i]
+            # w[i * 2] *= gaussian_distribution(10.0, 0.0, 1.0) / gaussian_distribution(0.0, 0.0, 1.0)
+            # w[i * 2 + 1] *= gaussian_distribution(10.0, 0.0, 1.0) / gaussian_distribution(0.0, 0.0, 1.0)
 
         # measurement
         # @jit(nopython=True)
