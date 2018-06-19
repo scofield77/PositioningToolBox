@@ -749,13 +749,16 @@ class ImuEKFComplex:
         particles[0, :] = self.state[0:3] * 1.0
         particles[1, :] = self.state[0:3] * 1.0
         L = sp.linalg.cholesky(self.prob_state[0:3, 0:3] * 1.0)
+        ka = 100.0
         for i in range(3):
             # particles[i * 2, :] = self.state[0:3] * 1.0 + self.prob_state[0:3, i]*10.0
-            particles[i * 2 + 2, :] = self.state[0:3] * 1.0 + L[0:3, i] * math.sqrt(3.0)
+            particles[i * 2 + 2, :] = self.state[0:3] * 1.0 + L[0:3, i] * math.sqrt(3.0+ka)
             # particles[i * 2 + 1, :] = self.state[0:3] * 1.0 - self.prob_state[0:3, i]*10.0
-            particles[i * 2 + 1 + 2, :] = self.state[0:3] * 1.0 - L[0:3, i] * math.sqrt(3.0)
-            # w[i * 2] *= gaussian_distribution(10.0, 0.0, 1.0) / gaussian_distribution(0.0, 0.0, 1.0)
+            particles[i * 2 + 1 + 2, :] = self.state[0:3] * 1.0 - L[0:3, i] * math.sqrt(3.0+ka)
+            # w[i * 2] *= gaussian_dstribution(10.0, 0.0, 1.0) / gaussian_distribution(0.0, 0.0, 1.0)
             # w[i * 2 + 1] *= gaussian_distribution(10.0, 0.0, 1.0) / gaussian_distribution(0.0, 0.0, 1.0)
+            w[i*2+2]  = w[i*2+2] / ka
+            w[i*2+1+2] = w[i*2+1+2] / ka
 
         # measurement
         # @jit(nopython=True)
