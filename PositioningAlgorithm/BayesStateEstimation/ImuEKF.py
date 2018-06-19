@@ -778,7 +778,7 @@ class ImuEKFComplex:
                 np.abs(np.linalg.norm(particles - beacon_set[i, :], axis=1) - measurement[i]) ** 2.0 * w,
                 axis=0)  # *float(particles.shape[0]-1)/float(particles.shape[0])
             # m_diff = np.sum((np.linalg.norm(particles - beacon_set[i, :]) - measurement[i]) * w)
-            self.R_k[i, i] = all_m_score[i]
+            self.R_k[i, i] = all_m_score[i] ** 0.5
             # if self.R_k[i, i] > 1.0:
             #     continue
             # else:

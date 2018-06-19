@@ -167,8 +167,8 @@ if __name__ == '__main__':
         return uwb_trace
 
 
-    # uwb_trace = cal(uwb_trace)
-    # print('uwb cost time:', time.time() - stime)
+    uwb_trace = cal(uwb_trace)
+    print('uwb cost time:', time.time() - stime)
 
     # ref_trace = np.loadtxt(dir_name + 'ref_trace.csv', delimiter=',')
 
@@ -628,7 +628,7 @@ if __name__ == '__main__':
     plt.plot(ortrace[:, 0], ortrace[:, 1], '-', color=color_dict['RIEKF'], label='Robust mc-EKF')
     # plt.plot(reftrace[:, 0], reftrace[:, 1], '-', label='ref_trace by rkf')
     # plt.plot(dtrace[:, 0], dtrace[:, 1], '-+', label='d ekf')
-    plt.plot(uwb_trace[:, 0], uwb_trace[:, 1], '+', color=color_dict['UWB'], label='uwb')
+    # plt.plot(uwb_trace[:, 0], uwb_trace[:, 1], '+', color=color_dict['UWB'], label='uwb')
     # plt.plot(ref_trace[:, 1], ref_trace[:, 2], '-', label='ref')
     # for i in range(beacon_set.shape[0]):
     #     if uwb_data[i + 1, :].max() > 0 and beacon_set[i, 0] < 5000.0:
@@ -722,45 +722,45 @@ if __name__ == '__main__':
     plt.ylim(0.0, 1.0)
     # plt.grid()
 
-    # plt.figure()
-    # plt.title('uwb')
-    # for i in range(1, uwb_data.shape[1]):
-    #     plt.plot(uwb_data[:, 0], uwb_data[:, i], '+-', label=str(i))
-    # plt.plot(uwb_data[:, 0], uwb_opt_res, '+-', label='res error')
-    # plt.grid()
-    # plt.legend()
-    # plt.figure()
-    # plt.subplot(411)
-    # plt.title('uwb R mc')
-    # plt.plot(uwb_R_mckf[:, 1:])
-    # plt.grid()
-    #
-    # plt.subplot(412)
-    # plt.title('uwb R rekf')
-    # plt.plot(uwb_R_rekf[:, 1:])
-    # plt.grid()
-    #
-    # plt.subplot(413)
-    # plt.title('uwb R iekf')
-    # plt.plot(uwb_R_iekf[:, 1:])
-    # plt.grid()
-    #
-    # plt.subplot(414)
-    # plt.title('ref uwb')
-    # ref_uwb_m = np.zeros_like(uwb_data[:, 1:])
-    # diff_uwb_m = np.zeros_like(ref_uwb_m)
-    # for i in range(ref_uwb_m.shape[1]):
-    #     if beacon_set[i, 0] < 5000.0 and uwb_data[:, i + 1].max() > 0.0:
-    #         ref_uwb_m[:, i] = np.linalg.norm(uwb_ref_trace - beacon_set[i, :], axis=1)
-    #     # ref_uwb_m[uwb_data[:,i+1]>0.0,i] = 0.0
-    #     for j in range(uwb_data.shape[0]):
-    #         if uwb_data[j, i + 1] > 0.0 and beacon_set[i, 0] < 5000.0:
-    #             diff_uwb_m[j, i] = ref_uwb_m[j, i] - uwb_data[j, i + 1]
-    # plt.ylim([-10.0, 10.0])
+    plt.figure()
+    plt.title('uwb')
+    for i in range(1, uwb_data.shape[1]):
+        plt.plot(uwb_data[:, 0], uwb_data[:, i], '+-', label=str(i))
+    plt.plot(uwb_data[:, 0], uwb_opt_res, '+-', label='res error')
+    plt.grid()
+    plt.legend()
+    plt.figure()
+    plt.subplot(411)
+    plt.title('uwb R mc')
+    plt.plot(uwb_R_mckf[:, 1:])
+    plt.grid()
+
+    plt.subplot(412)
+    plt.title('uwb R rekf')
+    plt.plot(uwb_R_rekf[:, 1:])
+    plt.grid()
+
+    plt.subplot(413)
+    plt.title('uwb R iekf')
+    plt.plot(uwb_R_iekf[:, 1:])
+    plt.grid()
+
+    plt.subplot(414)
+    plt.title('ref uwb')
+    ref_uwb_m = np.zeros_like(uwb_data[:, 1:])
+    diff_uwb_m = np.zeros_like(ref_uwb_m)
+    for i in range(ref_uwb_m.shape[1]):
+        if beacon_set[i, 0] < 5000.0 and uwb_data[:, i + 1].max() > 0.0:
+            ref_uwb_m[:, i] = np.linalg.norm(uwb_ref_trace - beacon_set[i, :], axis=1)
+        # ref_uwb_m[uwb_data[:,i+1]>0.0,i] = 0.0
+        for j in range(uwb_data.shape[0]):
+            if uwb_data[j, i + 1] > 0.0 and beacon_set[i, 0] < 5000.0:
+                diff_uwb_m[j, i] = ref_uwb_m[j, i] - uwb_data[j, i + 1]
+    plt.ylim([-10.0, 10.0])
 
     # plt.plot(ref_uwb_m)
     # plt.plot(uwb_data[:,1:])
-    # plt.plot(diff_uwb_m)
+    plt.plot(diff_uwb_m)
 
     plt.figure()
 
@@ -777,7 +777,7 @@ if __name__ == '__main__':
     plt.ylim(0.0, np.max(uwb_data[:, 1:]) + 2.0)
 
     plt.subplot(212)
-    plt.plot(uwb_data[:, 0] - uwb_data[0, 0], label='uwb')
+    plt.plot(uwb_data[:, 0] - uwb_data[0, 0], u_error, label='uwb')
     plt.plot(imu_data[:, 0] - uwb_data[0, 0], t_error, '-', color=color_dict['Standard'], label='Standard EKF')
     plt.plot(imu_data[:, 0] - uwb_data[0, 0], r_error, '-', color=color_dict['REKF'], label='Robust EKF')
     plt.plot(imu_data[:, 0] - uwb_data[0, 0], or_error, '-', color=color_dict['RIEKF'], label='SPMC EKF')
@@ -787,7 +787,7 @@ if __name__ == '__main__':
     plt.legend()
     plt.xlabel('Times/s')
     plt.ylabel('RMSE/m')
-    plt.xlim(0, trace.shape[0])
+    # plt.xlim(0, trace.shape[0])
     plt.ylim(ymin=0.0)
     plt.title('RMSE')
 
