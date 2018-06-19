@@ -64,7 +64,8 @@ if __name__ == '__main__':
     # dir_name = '/home/steve/Data/NewFusingLocationData/0039/'
     # dir_name = '/home/steve/Data/NewFusingLocationData/0040/'
     # dir_name = 'C:/Data/NewFusingLocationData/0039/'
-    dir_name = 'D:/Data/NewFusingLocationData/0040/'
+    # dir_name = 'D:/Data/NewFusingLocationData/0037/'
+    dir_name = 'D:/Data/NewFusingLocationData/0036/'
 
     ref_score = Refscor(dir_name)
     # imu_data = np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=',')
@@ -87,11 +88,11 @@ if __name__ == '__main__':
                               2.0))
 
     # initial_orientation = 80.0 * np.pi / 180.0  # 38-45
-    # initial_orientation = 50.0 * np.pi / 180.0  # 36
+    initial_orientation = 50.0 * np.pi / 180.0  # 36
     # initial_orientation = 80.0 * np.pi / 180.0  # 38
     # initial_orientation = 80.0 * np.pi / 180.0  # 37
     # initial_orientation = 80.0 * np.pi / 180.0  # 39
-    initial_orientation = 80.0 * np.pi / 180.0  # 40
+    # initial_orientation = 80.0 * np.pi / 180.0  # 40
 
     '''
     Delete some beacon's data randomly.
@@ -109,13 +110,13 @@ if __name__ == '__main__':
     # delet_index = [ 29]  # use 6 beacons
     # delet_index = [33, 35]  # use 5 beacons
     # delet_index = [33, 34]  # use 5 beacons
-    # delet_index = [30, 33, 35]  # use 4 beacons
+    delet_index = [30, 33, 35]  # use 4 beacons
     # delet_index = [30, 33, 36]  # use 4 beacons
     # delet_index = [34, 33, 36]  # use 4 beacons
     # delet_index = [31, 33, 36]  # use 4 beacons
     # delet_index = [30, 33, 35, 36]  # use 3 beacons
     # delet_index = [30, 33, 31, 36]  # use 3 beacons
-    delet_index = [31, 33, 36, 37]  # use 3 beacons
+    # delet_index = [31, 33, 36, 37]  # use 3 beacons
     # delet_index = [31, 33, 35, 37]  # use 3 beacons
     # delet_index = [30, 31, 33, 34, 35]  # use 2 beacons
     # print('delet index:', type(delet_index), delet_index)
@@ -568,38 +569,38 @@ if __name__ == '__main__':
     # plt.legend()
     # plt.grid()
 
-    plt.figure()
-    plt.subplot(411)
-    plt.title('uwb R mc')
-    plt.plot(uwb_R_mckf[:, 1:])
-    plt.grid()
-
-    plt.subplot(412)
-    plt.title('uwb R rekf')
-    plt.plot(uwb_R_rekf[:, 1:])
-    plt.grid()
-
-    plt.subplot(413)
-    plt.title('uwb R iekf')
-    plt.plot(uwb_R_iekf[:, 1:])
-    plt.grid()
-
-    plt.subplot(414)
-    plt.title('ref uwb')
-    ref_uwb_m = np.zeros_like(uwb_data[:, 1:])
-    diff_uwb_m = np.zeros_like(ref_uwb_m)
-    for i in range(ref_uwb_m.shape[1]):
-        if beacon_set[i, 0] < 5000.0 and uwb_data[:, i + 1].max() > 0.0:
-            ref_uwb_m[:, i] = np.linalg.norm(uwb_ref_trace - beacon_set[i, :], axis=1)
-        # ref_uwb_m[uwb_data[:,i+1]>0.0,i] = 0.0
-        for j in range(uwb_data.shape[0]):
-            if uwb_data[j, i + 1] > 0.0 and beacon_set[i, 0] < 5000.0:
-                diff_uwb_m[j, i] = ref_uwb_m[j, i] - uwb_data[j, i + 1]
-    plt.ylim([-10.0, 10.0])
+    # plt.figure()
+    # plt.subplot(411)
+    # plt.title('uwb R mc')
+    # plt.plot(uwb_R_mckf[:, 1:])
+    # plt.grid()
+    #
+    # plt.subplot(412)
+    # plt.title('uwb R rekf')
+    # plt.plot(uwb_R_rekf[:, 1:])
+    # plt.grid()
+    #
+    # plt.subplot(413)
+    # plt.title('uwb R iekf')
+    # plt.plot(uwb_R_iekf[:, 1:])
+    # plt.grid()
+    #
+    # plt.subplot(414)
+    # plt.title('ref uwb')
+    # ref_uwb_m = np.zeros_like(uwb_data[:, 1:])
+    # diff_uwb_m = np.zeros_like(ref_uwb_m)
+    # for i in range(ref_uwb_m.shape[1]):
+    #     if beacon_set[i, 0] < 5000.0 and uwb_data[:, i + 1].max() > 0.0:
+    #         ref_uwb_m[:, i] = np.linalg.norm(uwb_ref_trace - beacon_set[i, :], axis=1)
+    #     # ref_uwb_m[uwb_data[:,i+1]>0.0,i] = 0.0
+    #     for j in range(uwb_data.shape[0]):
+    #         if uwb_data[j, i + 1] > 0.0 and beacon_set[i, 0] < 5000.0:
+    #             diff_uwb_m[j, i] = ref_uwb_m[j, i] - uwb_data[j, i + 1]
+    # plt.ylim([-10.0, 10.0])
 
     # plt.plot(ref_uwb_m)
     # plt.plot(uwb_data[:,1:])
-    plt.plot(diff_uwb_m)
+    # plt.plot(diff_uwb_m)
 
     plt.figure()
     plt.title('Trajectory')

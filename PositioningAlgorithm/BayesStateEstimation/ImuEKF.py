@@ -751,9 +751,9 @@ class ImuEKFComplex:
         L = sp.linalg.cholesky(self.prob_state[0:3, 0:3] * 1.0)
         for i in range(3):
             # particles[i * 2, :] = self.state[0:3] * 1.0 + self.prob_state[0:3, i]*10.0
-            particles[i * 2 + 2, :] = self.state[0:3] * 1.0 + L[0:3, i]
+            particles[i * 2 + 2, :] = self.state[0:3] * 1.0 + L[0:3, i] * math.sqrt(3.0)
             # particles[i * 2 + 1, :] = self.state[0:3] * 1.0 - self.prob_state[0:3, i]*10.0
-            particles[i * 2 + 1 + 2, :] = self.state[0:3] * 1.0 - L[0:3, i]
+            particles[i * 2 + 1 + 2, :] = self.state[0:3] * 1.0 - L[0:3, i] * math.sqrt(3.0)
             # w[i * 2] *= gaussian_distribution(10.0, 0.0, 1.0) / gaussian_distribution(0.0, 0.0, 1.0)
             # w[i * 2 + 1] *= gaussian_distribution(10.0, 0.0, 1.0) / gaussian_distribution(0.0, 0.0, 1.0)
 
@@ -774,8 +774,8 @@ class ImuEKFComplex:
             all_m_score[i] = np.sum(
                 np.abs(np.linalg.norm(particles - beacon_set[i, :], axis=1) - measurement[i]) ** 2.0 * w,
                 axis=0)  # *float(particles.shape[0]-1)/float(particles.shape[0])
-            m_diff = np.sum((np.linalg.norm(particles - beacon_set[i, :]) - measurement[i]) * w)
-            self.R_k[i, i] = all_m_score[i] ** 2.0
+            # m_diff = np.sum((np.linalg.norm(particles - beacon_set[i, :]) - measurement[i]) * w)
+            self.R_k[i, i] = all_m_score[i]
             # if self.R_k[i, i] > 1.0:
             #     continue
             # else:
