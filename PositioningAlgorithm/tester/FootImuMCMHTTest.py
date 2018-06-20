@@ -730,23 +730,23 @@ if __name__ == '__main__':
     plt.grid()
     plt.legend()
     plt.figure()
-    plt.subplot(411)
-    plt.title('uwb R mc')
+    plt.subplot(311)
+    plt.title('(a)')
     plt.plot(uwb_R_mckf[:, 1:])
     plt.grid()
 
-    plt.subplot(412)
-    plt.title('uwb R rekf')
+    plt.subplot(312)
+    plt.title('(b)')
     plt.plot(uwb_R_rekf[:, 1:])
     plt.grid()
 
-    plt.subplot(413)
-    plt.title('uwb R iekf')
-    plt.plot(uwb_R_iekf[:, 1:])
-    plt.grid()
+    # plt.subplot(413)
+    # plt.title('uwb R iekf')
+    # plt.plot(uwb_R_iekf[:, 1:])
+    # plt.grid()
 
-    plt.subplot(414)
-    plt.title('ref uwb')
+    plt.subplot(313)
+    plt.title('(c)')
     ref_uwb_m = np.zeros_like(uwb_data[:, 1:])
     diff_uwb_m = np.zeros_like(ref_uwb_m)
     for i in range(ref_uwb_m.shape[1]):
@@ -756,7 +756,7 @@ if __name__ == '__main__':
         for j in range(uwb_data.shape[0]):
             if uwb_data[j, i + 1] > 0.0 and beacon_set[i, 0] < 5000.0:
                 diff_uwb_m[j, i] = ref_uwb_m[j, i] - uwb_data[j, i + 1]
-    plt.ylim([-10.0, 10.0])
+    # plt.ylim([-10.0, 10.0])
 
     # plt.plot(ref_uwb_m)
     # plt.plot(uwb_data[:,1:])
@@ -771,13 +771,13 @@ if __name__ == '__main__':
     plt.legend()
     plt.xlabel('Time/s')
     plt.ylabel('Range/m')
-    plt.title('UWB measurements')
+    plt.title('(a)')
     plt.tight_layout()
     # plt.xlim(0.0, uwb_data[-1, 0] - uwb_data[0, 0] + 10.0)
     plt.ylim(0.0, np.max(uwb_data[:, 1:]) + 2.0)
 
     plt.subplot(212)
-    plt.plot(uwb_data[:, 0] - uwb_data[0, 0], u_error, label='uwb')
+    # plt.plot(uwb_data[:, 0] - uwb_data[0, 0], u_error, label='uwb')
     plt.plot(imu_data[:, 0] - uwb_data[0, 0], t_error, '-', color=color_dict['Standard'], label='Standard EKF')
     plt.plot(imu_data[:, 0] - uwb_data[0, 0], r_error, '-', color=color_dict['REKF'], label='Robust EKF')
     plt.plot(imu_data[:, 0] - uwb_data[0, 0], or_error, '-', color=color_dict['RIEKF'], label='SPMC EKF')
@@ -789,6 +789,6 @@ if __name__ == '__main__':
     plt.ylabel('RMSE/m')
     # plt.xlim(0, trace.shape[0])
     plt.ylim(ymin=0.0)
-    plt.title('RMSE')
+    plt.title('(b)')
 
     plt.show()
