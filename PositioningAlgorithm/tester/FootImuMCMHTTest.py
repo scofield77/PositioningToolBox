@@ -108,13 +108,13 @@ if __name__ == '__main__':
     #     uwb_data[:, uwb_valid[random_index[i]]] -= 10.0
 
     # delet_index = [ 29]  # use 6 beacons
-    delet_index = [33, 35]  # use 5 beacons A
+    # delet_index = [33, 35]  # use 5 beacons A
     # delet_index = [33, 34]  # use 5 beacons B
     # delet_index = [30, 33, 35]  # use 4 beacons A
     # delet_index = [30, 33, 36]  # use 4 beacons B
     # delet_index = [34, 33, 36]  # use 4 beacons C
     # delet_index = [31, 33, 36]  # use 4 beacons D
-    # delet_index = [30, 33, 35, 36]  # use 3 beacons A
+    delet_index = [30, 33, 35, 36]  # use 3 beacons A
     # delet_index = [30, 33, 31, 36]  # use 3 beacons B
     # delet_index = [31, 33, 36, 37]  # use 3 beacons C
     # delet_index = [31, 33, 35, 37]  # use 3 beacons D
@@ -734,13 +734,13 @@ if __name__ == '__main__':
     plt.subplot(311)
     plt.title('(a)')
     plt.plot(uwb_R_mckf[:, 1:])
-    plt.ylabel('\sqart(R)/m',fontsize=local_fsize)
+    plt.ylabel('sqrt(R)/m',fontsize=local_fsize)
     # plt.grid()
 
     plt.subplot(312)
     plt.title('(b)')
     plt.plot(uwb_R_rekf[:, 1:])
-    plt.ylabel(r'R/m',fontsize=local_fsize)
+    plt.ylabel(r'sqrt(R)/m',fontsize=local_fsize)
     # plt.grid()
 
     # plt.subplot(413)
