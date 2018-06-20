@@ -756,7 +756,7 @@ if __name__ == '__main__':
         for j in range(uwb_data.shape[0]):
             if uwb_data[j, i + 1] > 0.0 and beacon_set[i, 0] < 5000.0:
                 diff_uwb_m[j, i] = ref_uwb_m[j, i] - uwb_data[j, i + 1]
-    # plt.ylim([-10.0, 10.0])
+    plt.ylim((-20.0,10.0))
 
     # plt.plot(ref_uwb_m)
     # plt.plot(uwb_data[:,1:])
