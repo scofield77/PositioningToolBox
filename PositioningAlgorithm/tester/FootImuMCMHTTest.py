@@ -64,8 +64,8 @@ if __name__ == '__main__':
     # dir_name = '/home/steve/Data/NewFusingLocationData/0039/'
     # dir_name = '/home/steve/Data/NewFusingLocationData/0040/'
     # dir_name = 'C:/Data/NewFusingLocationData/0039/'
-    dir_name = 'D:/Data/NewFusingLocationData/0037/'
-    # dir_name = 'D:/Data/NewFusingLocationData/0036/'
+    # dir_name = 'D:/Data/NewFusingLocationData/0037/'
+    dir_name = 'D:/Data/NewFusingLocationData/0036/'
 
     ref_score = Refscor(dir_name)
     # imu_data = np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=',')
@@ -88,9 +88,9 @@ if __name__ == '__main__':
                               2.0))
 
     # initial_orientation = 80.0 * np.pi / 180.0  # 38-45
-    # initial_orientation = 50.0 * np.pi / 180.0  # 36
+    initial_orientation = 50.0 * np.pi / 180.0  # 36
+    # initial_orientation = 80.0 * np.pi / 180.0  # 37
     # initial_orientation = 80.0 * np.pi / 180.0  # 38
-    initial_orientation = 80.0 * np.pi / 180.0  # 37
     # initial_orientation = 80.0 * np.pi / 180.0  # 39
     # initial_orientation = 80.0 * np.pi / 180.0  # 40
 
@@ -108,16 +108,16 @@ if __name__ == '__main__':
     #     uwb_data[:, uwb_valid[random_index[i]]] -= 10.0
 
     # delet_index = [ 29]  # use 6 beacons
-    delet_index = [33, 35]  # use 5 beacons
-    # delet_index = [33, 34]  # use 5 beacons
-    # delet_index = [30, 33, 35]  # use 4 beacons
-    # delet_index = [30, 33, 36]  # use 4 beacons
-    # delet_index = [34, 33, 36]  # use 4 beacons
-    # delet_index = [31, 33, 36]  # use 4 beacons
-    # delet_index = [30, 33, 35, 36]  # use 3 beacons
-    # delet_index = [30, 33, 31, 36]  # use 3 beacons
-    # delet_index = [31, 33, 36, 37]  # use 3 beacons
-    # delet_index = [31, 33, 35, 37]  # use 3 beacons
+    delet_index = [33, 35]  # use 5 beacons A
+    # delet_index = [33, 34]  # use 5 beacons B
+    # delet_index = [30, 33, 35]  # use 4 beacons A
+    # delet_index = [30, 33, 36]  # use 4 beacons B
+    # delet_index = [34, 33, 36]  # use 4 beacons C
+    # delet_index = [31, 33, 36]  # use 4 beacons D
+    # delet_index = [30, 33, 35, 36]  # use 3 beacons A
+    # delet_index = [30, 33, 31, 36]  # use 3 beacons B
+    # delet_index = [31, 33, 36, 37]  # use 3 beacons C
+    # delet_index = [31, 33, 35, 37]  # use 3 beacons D
     # delet_index = [30, 31, 33, 34, 35]  # use 2 beacons
     # print('delet index:', type(delet_index), delet_index)
     for i in range(len(delet_index)):
@@ -517,6 +517,7 @@ if __name__ == '__main__':
 
 
     uwb_id_offset = 28
+    # plt.rc('text',usetex=True)
 
     color_dict = {
         'ref': 'gray',
@@ -739,7 +740,7 @@ if __name__ == '__main__':
     plt.subplot(312)
     plt.title('(b)')
     plt.plot(uwb_R_rekf[:, 1:])
-    plt.ylabel('\sqart(R)/m',fontsize=local_fsize)
+    plt.ylabel(r'R/m',fontsize=local_fsize)
     # plt.grid()
 
     # plt.subplot(413)
@@ -758,8 +759,10 @@ if __name__ == '__main__':
         for j in range(uwb_data.shape[0]):
             if uwb_data[j, i + 1] > 0.0 and beacon_set[i, 0] < 5000.0:
                 diff_uwb_m[j, i] = ref_uwb_m[j, i] - uwb_data[j, i + 1]
+                if diff_uwb_m[j,i] > 30.0:
+                    diff_uwb_m[j,i ] = 0.0
     # plt.ylim((-20.0,10.0))
-    plt.ylim(ymax=25.0)
+    # plt.ylim(ymax=25.0)
     plt.ylabel('Diff/m',fontsize=local_fsize)
     plt.xlabel('Time Step',fontsize=local_fsize)
     plt.subplots_adjust(hspace=0.5)

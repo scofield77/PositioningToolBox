@@ -306,7 +306,7 @@ class ImuEKFComplex:
                 # self.uwb_eta_dict[beacon_id].pop()
 
         cov_m = R_k
-        self.R_k = R_k
+        self.R_k = R_k ** 0.5
         # print('-------------')
 
         self.K = (self.prob_state.dot(np.transpose(self.H))).dot(
