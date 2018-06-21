@@ -742,13 +742,13 @@ if __name__ == '__main__':
     plt.subplot(311)
     plt.title('(a)')
     plt.plot(uwb_R_mckf[:, 1:])
-    plt.ylabel('sqrt(R)/m',fontsize=local_fsize)
+    plt.ylabel('sqrt(R)/m', fontsize=local_fsize)
     # plt.grid()
 
     plt.subplot(312)
     plt.title('(b)')
     plt.plot(uwb_R_rekf[:, 1:])
-    plt.ylabel(r'sqrt(R)/m',fontsize=local_fsize)
+    plt.ylabel(r'sqrt(R)/m', fontsize=local_fsize)
     # plt.grid()
 
     # plt.subplot(413)
@@ -767,12 +767,12 @@ if __name__ == '__main__':
         for j in range(uwb_data.shape[0]):
             if uwb_data[j, i + 1] > 0.0 and beacon_set[i, 0] < 5000.0:
                 diff_uwb_m[j, i] = ref_uwb_m[j, i] - uwb_data[j, i + 1]
-                if diff_uwb_m[j,i] > 30.0:
-                    diff_uwb_m[j,i ] = 0.0
+                if diff_uwb_m[j, i] > 30.0:
+                    diff_uwb_m[j, i] = 0.0
     # plt.ylim((-20.0,10.0))
     # plt.ylim(ymax=25.0)
-    plt.ylabel('Diff/m',fontsize=local_fsize)
-    plt.xlabel('Time Step',fontsize=local_fsize)
+    plt.ylabel('Diff/m', fontsize=local_fsize)
+    plt.xlabel('Time Step', fontsize=local_fsize)
     plt.subplots_adjust(hspace=0.5)
 
     # plt.plot(ref_uwb_m)
