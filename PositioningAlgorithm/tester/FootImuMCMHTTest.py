@@ -519,13 +519,21 @@ if __name__ == '__main__':
     uwb_id_offset = 28
     # plt.rc('text',usetex=True)
 
+    # color_dict = {
+    #     'ref': 'gray',
+    #     'UWB': 'lightblue',
+    #     'Foot': 'darkorange',
+    #     'Standard': 'seagreen',
+    #     'REKF': 'blue',
+    #     'RIEKF': 'red'
+    # }
     color_dict = {
         'ref': 'gray',
         'UWB': 'lightblue',
         'Foot': 'darkorange',
-        'Standard': 'seagreen',
-        'REKF': 'blue',
-        'RIEKF': 'red'
+        'Standard': 'blue',
+        'REKF': 'red',
+        'RIEKF': 'seagreen'
     }
     plt.figure()
     # for i in range(beacon_set.shape[0]):
