@@ -586,11 +586,10 @@ class ImuEKFComplex:
                 # w[i * 2] += np.log(1.2)
                 # w[i * 2 + 1] += np.log(1.2)
 
-
             for j in range(beacon_set.shape[0]):
                 w = w + gaussian_pdf_v(np.linalg.norm(particles - beacon_set[j, :], axis=1),
                                        np.ones_like(w) * measurement[j],
-                                       np.ones_like(w) * R[j, j] *50.0)
+                                       np.ones_like(w) * R[j, j] * 50.0)
             s = np.sum(np.exp(w))
 
             for i in range(beacon_set.shape[0]):
@@ -752,13 +751,13 @@ class ImuEKFComplex:
         ka = 100.0
         for i in range(3):
             # particles[i * 2, :] = self.state[0:3] * 1.0 + self.prob_state[0:3, i]*10.0
-            particles[i * 2 + 2, :] = self.state[0:3] * 1.0 + L[0:3, i] * math.sqrt(3.0+ka)
+            particles[i * 2 + 2, :] = self.state[0:3] * 1.0 + L[0:3, i] * math.sqrt(3.0 + ka)
             # particles[i * 2 + 1, :] = self.state[0:3] * 1.0 - self.prob_state[0:3, i]*10.0
-            particles[i * 2 + 1 + 2, :] = self.state[0:3] * 1.0 - L[0:3, i] * math.sqrt(3.0+ka)
+            particles[i * 2 + 1 + 2, :] = self.state[0:3] * 1.0 - L[0:3, i] * math.sqrt(3.0 + ka)
             # w[i * 2] *= gaussian_dstribution(10.0, 0.0, 1.0) / gaussian_distribution(0.0, 0.0, 1.0)
             # w[i * 2 + 1] *= gaussian_distribution(10.0, 0.0, 1.0) / gaussian_distribution(0.0, 0.0, 1.0)
-            w[i*2+2]  = w[i*2+2] / ka
-            w[i*2+1+2] = w[i*2+1+2] / ka
+            w[i * 2 + 2] = w[i * 2 + 2] / ka
+            w[i * 2 + 1 + 2] = w[i * 2 + 1 + 2] / ka
 
         # measurement
         # @jit(nopython=True)
