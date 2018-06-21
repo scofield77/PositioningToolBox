@@ -398,7 +398,7 @@ if __name__ == '__main__':
                             #                         np.transpose(beacon_set[j - 1, :]))
                     drkf.measurement_uwb_iterate(np.asarray(uwb_data[uwb_index, 1:]),
                                                  np.ones(1) * 0.1,
-                                                 beacon_set, ref_trace, ka_squard=6.0)
+                                                 beacon_set, ref_trace, chi_squard=6.0)
                     uwb_ref_trace[uwb_index, :] = drkf.state[0:3]
 
                     # uwb_est_data[uwb_index, 1:] = np.linalg.norm(rkf.state[0:3] - beacon_set)

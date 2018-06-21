@@ -384,14 +384,14 @@ class ImuEKFComplex:
 
         self.prob_state = pplus
 
-    def measurement_uwb_iterate(self, measurement, cov_m, beacon_set, ref_trace, ka_squard=10.0):
+    def measurement_uwb_iterate(self, measurement, cov_m, beacon_set, ref_trace, chi_squard=10.0):
         '''
         Robust iekf based uwb measurement
         :param measurement:
         :param cov_m:
         :param beacon_set:
         :param ref_trace:
-        :param ka_squard:
+        :param chi_squard:
         :return:
         '''
 
@@ -443,7 +443,7 @@ class ImuEKFComplex:
                     # print(pv, v[index[i]])
                     # ka_squard = 7.0
 
-                    if gamma < ka_squard:  # or i < np.floor(index.shape[0] / 2):
+                    if gamma < chi_squard:  # or i < np.floor(index.shape[0] / 2):
                         # break_flag=True
                         mask[index[i]] = 1.0
                         # Rk[index[i],index[i]]=cov_m[0]
@@ -457,7 +457,7 @@ class ImuEKFComplex:
                         # mask[index[i]] = ka_squard / gamma * 1.0
                         # mask[index[i]] = 0.5#ka_squard/gamma
                         # Rk[index[i], index[i]] = ((gamma / ka_squard)**0.1) * Rk[index[i], index[i]]
-                        Rk[index[i], index[i]] = ((gamma / ka_squard)) * Rk[index[i], index[i]]
+                        Rk[index[i], index[i]] = ((gamma / chi_squard)) * Rk[index[i], index[i]]
                         # Rk[index[i],index[i]] = ((gamma/ka_squard)) * cov_m[0]
 
                         # mask[index[i]] = 1.0 / gamma
