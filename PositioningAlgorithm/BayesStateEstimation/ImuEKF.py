@@ -302,7 +302,9 @@ class ImuEKFComplex:
                     # print(self.uwb_eta_dict[beacon_id][-serial_length:],lambda_k, R_k[0])
                     if lambda_k > T_d:
                         robust_loop_flag = True
-                        R_k[0] = eta_k[0] / ka_squard * R_k[0]
+                        # R_k[0] = eta_k[0] / ka_squard * R_k[0]
+                        tk = eta_k[0] / ka_squard
+                        R_k[0] = (tk-1.0)*(self.H.dot(self.prob_state)).dot(np.transpose(self.H))[0]+tk * R_k[0]
                 # self.uwb_eta_dict[beacon_id].pop()
 
         cov_m = R_k
