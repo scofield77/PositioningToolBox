@@ -108,10 +108,10 @@ if __name__ == '__main__':
     #     uwb_data[:, uwb_valid[random_index[i]]] -= 10.0
 
     # delet_index = [ 29]  # use 6 beacons
-    # delet_index = [33, 35]  # use 5 beacons A
+    delet_index = [33, 35]  # use 5 beacons A
     # delet_index = [33, 34]  # use 5 beacons B
     # delet_index = [30, 33, 35]  # use 4 beacons A
-    delet_index = [30, 33, 36]  # use 4 beacons B
+    # delet_index = [30, 33, 36]  # use 4 beacons B
     # delet_index = [34, 33, 36]  # use 4 beacons C
     # delet_index = [31, 33, 36]  # use 4 beacons D
     # delet_index = [30, 33, 35, 36]  # use 3 beacons A
