@@ -844,6 +844,13 @@ class ImuEKFComplex:
         # measurement
         # @jit(nopython=True)
         def gaussian_distribution(x, miu, sigma):
+            '''
+            probability distribution function.
+            :param x:
+            :param miu: mean
+            :param sigma: std
+            :return:
+            '''
             a = 1.0 / sigma / math.sqrt(2.0 * 3.1415926)
             b = -1.0 * ((x - miu) * (x - miu) / 2.0 / sigma / sigma)
             return a * math.exp(b)
