@@ -509,8 +509,6 @@ if __name__ == '__main__':
     #     if uwb_data[i + 1, :].max() > 0 and beacon_set[i, 0] < 5000.0:
     #         plt.text(beacon_set[i, 0], beacon_set[i, 1], s=str(i + 1))
 
-
-
     plt.axis('equal')
 
     for i in range(len(uwb_valid)):
@@ -518,10 +516,10 @@ if __name__ == '__main__':
             plt.text(beacon_set[uwb_valid[i] - 1, 0], beacon_set[uwb_valid[i] - 1, 1], s=str(i))
             plt.plot(beacon_set[uwb_valid[i] - 1, 0], beacon_set[uwb_valid[i] - 1, 1], 'r*')
     local_fsize = 12
-    plt.xlabel('X/m',fontsize=local_fsize)
-    plt.ylabel('Y/m',fontsize=local_fsize)
-    plt.xticks(fontsize = local_fsize)
-    plt.yticks(fontsize= local_fsize)
+    plt.xlabel('X/m', fontsize=local_fsize)
+    plt.ylabel('Y/m', fontsize=local_fsize)
+    plt.xticks(fontsize=local_fsize)
+    plt.yticks(fontsize=local_fsize)
     plt.legend(fontsize=local_fsize)
     plt.grid()
 
@@ -533,8 +531,8 @@ if __name__ == '__main__':
         plt.plot(uwb_data[:, 0] - uwb_data[0, 0], uwb_data[:, uwb_valid[i]], '+', label='id:' + str(i))
     # plt.grid()
     plt.legend(fontsize=local_fsize)
-    plt.xlabel('Time/s',fontsize=local_fsize)
-    plt.ylabel('Range/m',fontsize=local_fsize)
+    plt.xlabel('Time/s', fontsize=local_fsize)
+    plt.ylabel('Range/m', fontsize=local_fsize)
     plt.xticks(fontsize=local_fsize)
     plt.yticks(fontsize=local_fsize)
     # plt.title('UWB measurements')
@@ -616,8 +614,8 @@ if __name__ == '__main__':
     # plt.plot(rs.eval_points(ref_trace[:,1:]), label='ref')
     # plt.grid()
     plt.legend(fontsize=local_fsize)
-    plt.xlabel('Time step',fontsize=local_fsize)
-    plt.ylabel('RMSE/m',fontsize=local_fsize)
+    plt.xlabel('Time step', fontsize=local_fsize)
+    plt.ylabel('RMSE/m', fontsize=local_fsize)
     plt.xticks(fontsize=local_fsize)
     plt.yticks(fontsize=local_fsize)
     plt.xlim(0, trace.shape[0])
@@ -655,11 +653,11 @@ if __name__ == '__main__':
     plt.step(x, ecdf_or(x), color=color_dict['RIEKF'], label='Robust IEKF')
     #
     plt.legend(fontsize=local_fsize)
-    plt.xlabel('RMSE/m',fontsize=local_fsize)
-    plt.ylabel('cumulative probability',fontsize=local_fsize)
+    plt.xlabel('RMSE/m', fontsize=local_fsize)
+    plt.ylabel('cumulative probability', fontsize=local_fsize)
     plt.xticks(fontsize=local_fsize)
     plt.yticks(fontsize=local_fsize)
-    plt.xlim(xmin=0.0,xmax=4.0)
+    plt.xlim(xmin=0.0, xmax=4.0)
     plt.ylim(0.0, 1.0)
     # plt.grid()
     # plt.figure()
