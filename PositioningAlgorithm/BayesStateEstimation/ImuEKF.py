@@ -369,6 +369,7 @@ class ImuEKFComplex:
             # y = rou(y)
             H = np.zeros(shape=(measurement.shape[0], self.state.shape[0]))
             H[:, 0:3] = (xop[0:3] - beacon_set) / y.reshape(-1, 1)  # * d_rou(y.reshape(-1, 1))
+            # new version
 
             K = (pminus.dot(np.transpose(H))).dot(
                 np.linalg.inv(H.dot(pminus.dot(np.transpose(H))) + Rk))
