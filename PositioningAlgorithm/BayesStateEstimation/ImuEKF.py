@@ -380,8 +380,8 @@ class ImuEKFComplex:
             xplus = xminus + dx
             # print('it')
 
-            if once_flag is True:
-                break
+            # if once_flag is True:
+            #     break
 
         self.state = self.state + dx
 
