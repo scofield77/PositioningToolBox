@@ -367,6 +367,7 @@ class ImuEKFComplex:
             xop = xplus * 1.0
             y = np.linalg.norm(xop[0:3] - beacon_set, axis=1)
             # y = rou(y)
+
             H = np.zeros(shape=(measurement.shape[0], self.state.shape[0]))
             H[:, 0:3] = (xop[0:3] - beacon_set) / y.reshape(-1, 1)  # * d_rou(y.reshape(-1, 1))
             # new version
@@ -375,7 +376,8 @@ class ImuEKFComplex:
                 np.linalg.inv(H.dot(pminus.dot(np.transpose(H))) + Rk))
             kh = K.dot(H)
             pplus = (np.identity(kh.shape[0]) - kh).dot(pminus)
-            # if tp_plus
+            # if tp_plus:
+            #     dx = K.dot((measurement - y - H.dot(xminus - xop)))
             dx = K.dot((measurement - y - H.dot(xminus - xop)))
             xplus = xminus + dx
             # print('it')
