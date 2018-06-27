@@ -32,3 +32,5 @@ class INSPF:
     def __init__(self, particle_number, initial_state, initial_cov):
         self.particle_num = particle_number
 
+        self.
+
