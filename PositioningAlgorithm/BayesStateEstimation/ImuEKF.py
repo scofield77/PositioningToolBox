@@ -659,7 +659,7 @@ class ImuEKFComplex:
 
         # rnd_p = np.random.normal(0.0, 1.0, size=particles.shape)
         # rnd_p  = np.random.multivariate_normal()
-        def gaussian_distribution(x, miu, sigma):
+        def gaussian_distribution_log(x, miu, sigma):
             # print('sigma',sigma)
             a = 1.0 / sigma / math.sqrt(2.0 * 3.1415926)
             b = -1.0 * ((x - miu) * (x - miu) / 2.0 / sigma / sigma)
@@ -674,7 +674,7 @@ class ImuEKFComplex:
             else:
                 return math.log(a) * (b)
 
-        gaussian_pdf_v = np.vectorize(gaussian_distribution)
+        gaussian_pdf_v = np.vectorize(gaussian_distribution_log)
 
         p_mean = self.state[0:3] * 1.0
         p_std = self.prob_state
