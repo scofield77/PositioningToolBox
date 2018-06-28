@@ -53,3 +53,5 @@ if __name__ == '__main__':
     # stream = cuda.stream()
     # with stream.auto_synchronize():
     #     imu_data_device = cuda.to_device(imu_data, stream=stream)
+
+    print('imu data shape', imu_data.shape)
