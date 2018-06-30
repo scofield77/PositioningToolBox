@@ -23,10 +23,8 @@
          佛祖保佑       永无BUG 
 '''
 
-
-from numba  import jit,cuda,float64
+from numba import jit, cuda, float64
 import numba
-
 
 import numpy as np
 import scipy as sp
