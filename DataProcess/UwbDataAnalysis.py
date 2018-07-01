@@ -83,7 +83,7 @@ if __name__ == '__main__':
 
     start_i = 56
     total_num = 3
-    total_num = 6
+    # total_num = 6
     # total_num = 9
     for i in range(start_i, total_num + start_i):
         plot_static_measurement(base_dir_name + '%04d/' % (i), i - start_i + 1, total_num)
