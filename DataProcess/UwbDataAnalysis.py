@@ -28,6 +28,7 @@ if __name__ == '__main__':
                 valid_count += 1
         valid_index = 0
         for i in range(beacon_set.shape[0]):
+            # Plot each beacon's measurement.
             if beacon_set[i, 0] < 1000.0 and np.max(uwb_data[:, i + 1]) > 0.0:
                 print(valid_index, p_i, valid_index)
                 num = 100 * valid_count + 10 * total_num + valid_index + ((p_i - 1) * 6) + 1
@@ -81,7 +82,9 @@ if __name__ == '__main__':
     # plot_static_measurement(test_dir_name)
 
     start_i = 56
+    total_num = 3
     total_num = 6
+    # total_num = 9
     for i in range(start_i, total_num + start_i):
         plot_static_measurement(base_dir_name + '%04d/' % (i), i - start_i + 1, total_num)
 
