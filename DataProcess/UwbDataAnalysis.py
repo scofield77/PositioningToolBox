@@ -38,15 +38,17 @@ if __name__ == '__main__':
                 # plt.subplot(100*)
                 # plt.title(str(i - 29))
 
-                print('beacon_id:', i, 'point id:', p_i,
-                      'mean:', np.mean(tmp_uwb_data[tmp_uwb_data > 0.0]),
-                      'std:', np.std(tmp_uwb_data[tmp_uwb_data > 0]))
+                # print('beacon_id:', i, 'point id:', p_i,
+                #       'mean:', np.mean(tmp_uwb_data[tmp_uwb_data > 0.0]),
+                #       'std:', np.std(tmp_uwb_data[tmp_uwb_data > 0]))
                 tmp_uwb_data = uwb_data[:, i + 1] * 1.0
                 plt.hist(tmp_uwb_data[tmp_uwb_data > 0.0],
                          label=str(tmp_uwb_data[tmp_uwb_data > 0].shape[0]) + '/' + str(tmp_uwb_data.shape[0]))
                 # plt.axvline(np.linalg.norm(pose - beacon_set[i, :]), color='k', linestyle='dashed', linewidth=1)
                 # plt.tight_layout()
-
+                print('beacon_id:', i, 'point id:', p_i,
+                      'mean:', np.mean(tmp_uwb_data[tmp_uwb_data > 0.0]),
+                      'std:', np.std(tmp_uwb_data[tmp_uwb_data > 0]))
                 if p_i == 1:
                     # plt.title(str(i - 29), loc='left')
                     # plt.ylabel('Number')
