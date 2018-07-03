@@ -70,6 +70,8 @@ if __name__ == '__main__':
                     plt.text(beacon_set[i, 0], beacon_set[i, 1], str(i - 29-1))
                 i_list.append(i)
         plt.plot(beacon_set[i_list, 0], beacon_set[i_list, 1], 'r*')
+        plt.xlabel('X/m')
+        plt.ylabel('Y/m')
 
         plt.plot(pose[0], pose[1], 'b+')
 
