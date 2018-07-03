@@ -38,6 +38,9 @@ if __name__ == '__main__':
                 # plt.subplot(100*)
                 # plt.title(str(i - 29))
 
+                print('beacon_id:', i, 'point id:', p_i,
+                      'mean:', np.mean(tmp_uwb_data[tmp_uwb_data > 0.0]),
+                      'std:', np.std(tmp_uwb_data[tmp_uwb_data > 0]))
                 tmp_uwb_data = uwb_data[:, i + 1] * 1.0
                 plt.hist(tmp_uwb_data[tmp_uwb_data > 0.0],
                          label=str(tmp_uwb_data[tmp_uwb_data > 0].shape[0]) + '/' + str(tmp_uwb_data.shape[0]))
@@ -64,10 +67,10 @@ if __name__ == '__main__':
         i_list = list()
         for i in range(beacon_set.shape[0]):
             if beacon_set[i, 0] < 1000.0 and np.max(uwb_data[:, i + 1]) > 0.0:
-                if i- 29 < 3:
+                if i - 29 < 3:
                     plt.text(beacon_set[i, 0], beacon_set[i, 1], str(i - 29))
                 else:
-                    plt.text(beacon_set[i, 0], beacon_set[i, 1], str(i - 29-1))
+                    plt.text(beacon_set[i, 0], beacon_set[i, 1], str(i - 29 - 1))
                 i_list.append(i)
         plt.plot(beacon_set[i_list, 0], beacon_set[i_list, 1], 'r*')
         plt.xlabel('X/m')
@@ -75,7 +78,7 @@ if __name__ == '__main__':
 
         plt.plot(pose[0], pose[1], 'b+')
 
-        plt.text(pose[0] , pose[1], 'T'+ str(p_i),horizontalalignment='center', fontsize=10)
+        plt.text(pose[0], pose[1], 'T' + str(p_i), horizontalalignment='center', fontsize=10)
 
         plt.grid()
         print(dir_name, np.linalg.norm(pose - beacon_set[29, :]))
