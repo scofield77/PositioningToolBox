@@ -66,7 +66,7 @@ if __name__ == '__main__':
     # dir_name = 'C:/Data/NewFusingLocationData/0039/'
     # dir_name = 'D:/Data/NewFusingLocationData/0039/'
     # dir_name = 'D:/Data/NewFusingLocationData/0040/'
-    dir_name = 'D:/Data/NewFusingLocationData/0036/'
+    dir_name = 'D:/Data/NewFusingLocationData/0037/'
 
     ref_score = Refscor(dir_name)
     # imu_data = np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=',')
@@ -109,13 +109,13 @@ if __name__ == '__main__':
     #     uwb_data[:, uwb_valid[random_index[i]]] -= 10.0
 
     # delet_index = [ 29]  # use 6 beacons
-    delet_index = [33, 35]  # use 5 beacons A
+    # delet_index = [33, 35]  # use 5 beacons A
     # delet_index = [33, 34]  # use 5 beacons B
     # delet_index = [30, 33, 35]  # use 4 beacons A
     # delet_index = [30, 33, 36]  # use 4 beacons B
     # delet_index = [34, 33, 36]  # use 4 beacons C
     # delet_index = [31, 33, 36]  # use 4 beacons D
-    # delet_index = [30, 33, 35, 36]  # use 3 beacons A
+    delet_index = [30, 33, 35, 36]  # use 3 beacons A
     # delet_index = [30, 33, 31, 36]  # use 3 beacons B
     # delet_index = [31, 33, 36, 37]  # use 3 beacons C
     # delet_index = [31, 33, 35, 37]  # use 3 beacons D
