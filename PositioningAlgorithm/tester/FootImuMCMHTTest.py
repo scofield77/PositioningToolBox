@@ -67,6 +67,7 @@ if __name__ == '__main__':
     # dir_name = 'D:/Data/NewFusingLocationData/0039/'
     # dir_name = 'D:/Data/NewFusingLocationData/0040/'
     dir_name = 'D:/Data/NewFusingLocationData/0036/'
+    # dir_name = 'D:/Data/NewFusingLocationData/0037/'
 
     ref_score = Refscor(dir_name)
     # imu_data = np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=',')
@@ -109,9 +110,9 @@ if __name__ == '__main__':
     #     uwb_data[:, uwb_valid[random_index[i]]] -= 10.0
 
     # delet_index = [ 29]  # use 6 beacons
-    delet_index = [33, 35]  # use 5 beacons A
+    # delet_index = [33, 35]  # use 5 beacons A
     # delet_index = [33, 34]  # use 5 beacons B
-    # delet_index = [30, 33, 35]  # use 4 beacons A
+    delet_index = [30, 33, 35]  # use 4 beacons A
     # delet_index = [30, 33, 36]  # use 4 beacons B
     # delet_index = [34, 33, 36]  # use 4 beacons C
     # delet_index = [31, 33, 36]  # use 4 beacons D
@@ -633,12 +634,12 @@ if __name__ == '__main__':
         plt.plot([ref_vis[i, 0], ref_vis[i, 2]], [ref_vis[i, 1], ref_vis[i, 3]], '-', color=color_dict['ref'],
                  alpha=0.5, lw='10')
     plt.plot(trace[:, 0], trace[:, 1], '-', color=color_dict['Standard'], label='Standard EKF')
-    plt.plot(ftrace[:, 0], ftrace[:, 1], '-', color=color_dict['Foot'], label='Foot')
+    # plt.plot(ftrace[:, 0], ftrace[:, 1], '-', color=color_dict['Foot'], label='Foot')
     plt.plot(rtrace[:, 0], rtrace[:, 1], '-', color=color_dict['REKF'], label='R-EKF')
     plt.plot(ortrace[:, 0], ortrace[:, 1], '-', color=color_dict['RIEKF'], label='SP-EKF')
     # plt.plot(reftrace[:, 0], reftrace[:, 1], '-', label='ref_trace by rkf')
     # plt.plot(dtrace[:, 0], dtrace[:, 1], '-+', label='d ekf')
-    plt.plot(uwb_trace[:, 0], uwb_trace[:, 1], '+', color=color_dict['UWB'], label='UWB')
+    # plt.plot(uwb_trace[:, 0], uwb_trace[:, 1], '+', color=color_dict['UWB'], label='UWB')
     # plt.plot(ref_trace[:, 1], ref_trace[:, 2], '-', label='ref')
     # for i in range(beacon_set.shape[0]):
     #     if uwb_data[i + 1, :].max() > 0 and beacon_set[i, 0] < 5000.0:
@@ -787,7 +788,8 @@ if __name__ == '__main__':
 
     plt.subplot(211)
     for i in range(len(uwb_valid)):
-        plt.plot(uwb_data[:, 0] - uwb_data[0, 0], uwb_data[:, uwb_valid[i]], '+', label='id:' + str(i))
+        if np.max(uwb_data[:,uwb_valid[i]])>0:
+            plt.plot(uwb_data[:, 0] - uwb_data[0, 0], uwb_data[:, uwb_valid[i]], '+', label='id:' + str(i))
         # plt.grid()
     plt.legend()
     plt.xlabel('Time/s')
