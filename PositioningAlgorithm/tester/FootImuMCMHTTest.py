@@ -76,9 +76,6 @@ if __name__ == '__main__':
     imu_data[:, 1:4] = imu_data[:, 1:4] * 9.81
     imu_data[:, 4:7] = imu_data[:, 4:7] * (np.pi / 180.0)
 
-
-
-
     # uwb_data = np.loadtxt(dir_name + 'uwb_result.csv', delimiter=',')
     # beacon_set = np.loadtxt(dir_name + 'beaconSet.csv', delimiter=',')
     uwb_data = np.loadtxt(dir_name + 'uwb_data.csv', delimiter=',')
@@ -112,7 +109,7 @@ if __name__ == '__main__':
     #     uwb_data[:, uwb_valid[random_index[i]]] -= 10.0
 
     # delet_index = [ 29]  # use 6 beacons
-    # delet_index = [33, 35]  # use 5 beacons A
+    delet_index = [33, 35]  # use 5 beacons A
     # delet_index = [33, 34]  # use 5 beacons B
     # delet_index = [30, 33, 35]  # use 4 beacons A
     # delet_index = [30, 33, 36]  # use 4 beacons B
@@ -124,10 +121,10 @@ if __name__ == '__main__':
     # delet_index = [31, 33, 35, 37]  # use 3 beacons D
     # delet_index = [30, 31, 33, 34, 35]  # use 2 beacons
     # print('delet index:', type(delet_index), delet_index)
-    # for i in range(len(delet_index)):
-    #     print('deleted:', delet_index[i])
-    #     uwb_data[:, delet_index[i]] *= 0.0
-    #     uwb_data[:, delet_index[i]] -= 10.0
+    for i in range(len(delet_index)):
+        print('deleted:', delet_index[i])
+        uwb_data[:, delet_index[i]] *= 0.0
+        uwb_data[:, delet_index[i]] -= 10.0
 
     after_valid_list = list()
     for i in range(1, uwb_data.shape[1]):
@@ -636,12 +633,12 @@ if __name__ == '__main__':
         plt.plot([ref_vis[i, 0], ref_vis[i, 2]], [ref_vis[i, 1], ref_vis[i, 3]], '-', color=color_dict['ref'],
                  alpha=0.5, lw='10')
     plt.plot(trace[:, 0], trace[:, 1], '-', color=color_dict['Standard'], label='Standard EKF')
-    # plt.plot(ftrace[:, 0], ftrace[:, 1], '-', color=color_dict['Foot'], label='Foot')
-    plt.plot(rtrace[:, 0], rtrace[:, 1], '-', color=color_dict['REKF'], label='Robust EKF')
-    plt.plot(ortrace[:, 0], ortrace[:, 1], '-', color=color_dict['RIEKF'], label='Robust mc-EKF')
+    plt.plot(ftrace[:, 0], ftrace[:, 1], '-', color=color_dict['Foot'], label='Foot')
+    plt.plot(rtrace[:, 0], rtrace[:, 1], '-', color=color_dict['REKF'], label='R-EKF')
+    plt.plot(ortrace[:, 0], ortrace[:, 1], '-', color=color_dict['RIEKF'], label='SP-EKF')
     # plt.plot(reftrace[:, 0], reftrace[:, 1], '-', label='ref_trace by rkf')
     # plt.plot(dtrace[:, 0], dtrace[:, 1], '-+', label='d ekf')
-    # plt.plot(uwb_trace[:, 0], uwb_trace[:, 1], '+', color=color_dict['UWB'], label='uwb')
+    plt.plot(uwb_trace[:, 0], uwb_trace[:, 1], '+', color=color_dict['UWB'], label='UWB')
     # plt.plot(ref_trace[:, 1], ref_trace[:, 2], '-', label='ref')
     # for i in range(beacon_set.shape[0]):
     #     if uwb_data[i + 1, :].max() > 0 and beacon_set[i, 0] < 5000.0:
@@ -747,12 +744,14 @@ if __name__ == '__main__':
     plt.title('(a)')
     plt.plot(uwb_R_mckf[:, 1:])
     plt.ylabel('sqrt(R)/m', fontsize=local_fsize)
+    plt.ylim([0.0, 20.0])
     # plt.grid()
 
     plt.subplot(312)
     plt.title('(b)')
     plt.plot(uwb_R_rekf[:, 1:])
     plt.ylabel(r'sqrt(R)/m', fontsize=local_fsize)
+    plt.ylim([0.0, 20.0])
     # plt.grid()
 
     # plt.subplot(413)
@@ -777,6 +776,7 @@ if __name__ == '__main__':
     # plt.ylim(ymax=25.0)
     plt.ylabel('Diff/m', fontsize=local_fsize)
     plt.xlabel('Time Step', fontsize=local_fsize)
+    plt.ylim([0.0, 20.0])
     plt.subplots_adjust(hspace=0.5)
 
     # plt.plot(ref_uwb_m)
