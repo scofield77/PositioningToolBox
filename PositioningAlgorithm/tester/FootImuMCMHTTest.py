@@ -76,6 +76,9 @@ if __name__ == '__main__':
     imu_data[:, 1:4] = imu_data[:, 1:4] * 9.81
     imu_data[:, 4:7] = imu_data[:, 4:7] * (np.pi / 180.0)
 
+
+
+
     # uwb_data = np.loadtxt(dir_name + 'uwb_result.csv', delimiter=',')
     # beacon_set = np.loadtxt(dir_name + 'beaconSet.csv', delimiter=',')
     uwb_data = np.loadtxt(dir_name + 'uwb_data.csv', delimiter=',')
@@ -797,8 +800,8 @@ if __name__ == '__main__':
     plt.subplot(212)
     # plt.plot(uwb_data[:, 0] - uwb_data[0, 0], u_error, label='uwb')
     plt.plot(imu_data[:, 0] - uwb_data[0, 0], t_error, '-', color=color_dict['Standard'], label='Standard EKF')
-    plt.plot(imu_data[:, 0] - uwb_data[0, 0], r_error, '-', color=color_dict['REKF'], label='Robust EKF')
-    plt.plot(imu_data[:, 0] - uwb_data[0, 0], or_error, '-', color=color_dict['RIEKF'], label='SPMC EKF')
+    plt.plot(imu_data[:, 0] - uwb_data[0, 0], r_error, '-', color=color_dict['REKF'], label='R-EKF')
+    plt.plot(imu_data[:, 0] - uwb_data[0, 0], or_error, '-', color=color_dict['RIEKF'], label='SP-EKF')
     # plt.plot(d_error, label='dtrace')
     # plt.plot(rs.eval_points(ref_trace[:,1:]), label='ref')
     plt.grid()
