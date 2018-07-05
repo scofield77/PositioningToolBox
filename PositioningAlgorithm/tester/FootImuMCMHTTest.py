@@ -721,8 +721,8 @@ if __name__ == '__main__':
 
     # plt.step(x, ecdf_f(x), color=color_dict['Foot'], label='Foot')
     plt.step(x, ecdf_t(x), color=color_dict['Standard'], label='Standard EKF')
-    plt.step(x, ecdf_r(x), color=color_dict['REKF'], label='Robust EKF')
-    plt.step(x, ecdf_or(x), color=color_dict['RIEKF'], label='SPMC-EKF')
+    plt.step(x, ecdf_r(x), color=color_dict['REKF'], label='R-EKF')
+    plt.step(x, ecdf_or(x), color=color_dict['RIEKF'], label='SP-EKF')
     #
     plt.legend(fontsize=local_fsize)
     plt.xlabel('RMSE/m', fontsize=local_fsize)
