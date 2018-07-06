@@ -34,6 +34,6 @@ if __name__ == '__main__':
 
     z = x + 1.0
     plt.figure()
-    plt.plot(x,np.abs(np.log(gaussian_pdf_v(z,0.0,1.0)/gaussian_pdf_v(x,0.0,1.0))))
+    plt.plot(x, np.abs(np.log(gaussian_pdf_v(z, 0.0, 1.0) / gaussian_pdf_v(x, 0.0, 1.0))))
 
     plt.show()
