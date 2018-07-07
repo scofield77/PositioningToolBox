@@ -31,6 +31,9 @@ import scipy as sp
 
 import matplotlib.pyplot as plt
 
+
+from CudaAlgorithm.ParticleFilter import INSPF
+
 if __name__ == '__main__':
     print(numba.__version__)
     print(cuda.devices._runtime.gpus)
@@ -52,4 +55,24 @@ if __name__ == '__main__':
     # with stream.auto_synchronize():
     #     imu_data_device = cuda.to_device(imu_data, stream=stream)
 
+    initial_state_prob = np.diag((
+        0.001,
+        0.001,
+        0.001,
+        0.001,
+        0.001,
+        0.001,
+        0.001 * np.pi / 180.0,
+        0.001 * np.pi / 180.0,
+        0.001 * np.pi / 180.0#,
+        # 0.0001,
+        # 0.0001,
+        # 0.0001,
+        # 0.0001 * np.pi / 180.0,
+        # 0.0001 * np.pi / 180.0,
+        # 0.0001 * np.pi / 180.0
+    ))
+
     print('imu data shape', imu_data.shape)
+
+    ins_pf = INSPF.INSPF(10000,np.zeros(9),initial_state_prob)
