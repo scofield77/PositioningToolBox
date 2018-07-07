@@ -32,5 +32,5 @@ class INSPF:
     def __init__(self, particle_number, initial_state, initial_cov):
         self.particle_num = particle_number
 
-        max_block_number = cuda.gpus
+        # max_block_number = cuda.gpus
 
