@@ -58,5 +58,8 @@ class INSPF:
         self.particles = cuda.device_array([self.particle_num,
                                             initial_state.shape[0]],
                                            dtype=float64)
-        self.w = cuda.device_array([self.particle_num,1],
+        self.w = cuda.device_array([self.particle_num, 1],
                                    dtype=float64)
+
+
+
