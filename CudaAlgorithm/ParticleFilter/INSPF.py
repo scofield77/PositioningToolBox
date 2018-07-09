@@ -58,8 +58,20 @@ class INSPF:
         self.particles = cuda.device_array([self.particle_num,
                                             initial_state.shape[0]],
                                            dtype=float64)
+
+
         self.w = cuda.device_array([self.particle_num, 1],
                                    dtype=float64)
+
+        @cuda.jit()
+        def set_equal(w, value):
+            pos = cuda.grid(1)
+            if pos < w.shape[0]:
+                w[pos] = value
+
+        set_equal(self.w, float(1.0/float(self.w.shape[0])))
+
+
 
 
 
