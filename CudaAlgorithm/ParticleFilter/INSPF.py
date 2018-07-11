@@ -65,6 +65,12 @@ class INSPF:
 
         @cuda.jit()
         def initial_weight_equally(w, value):
+            '''
+            initial weight based on value.
+            :param w:
+            :param value:
+            :return:
+            '''
             pos = cuda.grid(1)
             if pos < w.shape[0]:
                 w[pos] = value
