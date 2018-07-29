@@ -47,7 +47,7 @@ def mergeData(file_name):
                 if flag_array[j] > 0.0:
                     flag_batch_end = True
                     i = i - 1
-                    break
+                    # break
                 flag_array[j] = source_data[i, j]
 
         if (i > 0 and source_data[i, 0] - source_data[i - 1, 0] > 0.2) or flag_batch_end:
@@ -59,3 +59,7 @@ def mergeData(file_name):
     for i in range(target_data.shape[0]):
         print(target_data[i,:])
     print('---------------------------------END----------------------------------------------')
+
+if __name__ == '__main__':
+        file_name  = 'C:\\Users\\steve\\Documents\\Tencent Files\\551619855\\FileRecv\\uwb_result.csv'
+        mergeData(file_name)
