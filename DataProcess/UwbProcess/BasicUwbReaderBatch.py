@@ -51,13 +51,6 @@ def mergeData(file_name):
                     flag_batch_end = True
                     i = i - 1
                 else:
-                    # for k in range(flag_array.shape[0]):
-                    #     target_basic_array.append(flag_array[k] * 1.0)
-                        # total_counter += 1
-                        # print('total counter',total_counter)
-
-                    # flag_array = np.zeros(source_data.shape[1]) - 10.0
-                    # flag_batch_end = False
 
                     flag_array[j] = source_data[i, j]
 
