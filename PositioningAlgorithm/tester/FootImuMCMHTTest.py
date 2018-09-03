@@ -66,7 +66,8 @@ if __name__ == '__main__':
     # dir_name = 'C:/Data/NewFusingLocationData/0039/'
     # dir_name = 'D:/Data/NewFusingLocationData/0039/'
     # dir_name = 'D:/Data/NewFusingLocationData/0040/'
-    dir_name = 'D:/Data/NewFusingLocationData/0036/'
+    # dir_name = 'D:/Data/NewFusingLocationData/0036/'
+    dir_name = '/home/steve/Data/NewFusingLocationData/0033/'
     # dir_name = 'D:/Data/NewFusingLocationData/0037/'
 
     ref_score = Refscor(dir_name)
@@ -88,9 +89,15 @@ if __name__ == '__main__':
     initial_pos = np.asarray((48.19834796,
                               44.89176719,
                               2.0))
+    initial_pos = np.asarray((63.0,
+                              22.0,
+                              2.0))#(32)
+
 
     # initial_orientation = 80.0 * np.pi / 180.0  # 38-45
-    initial_orientation = 50.0 * np.pi / 180.0  # 36
+    # initial_orientation = 50.0 * np.pi / 180.0  # 36
+    initial_orientation = -120.0 * np.pi / 180.0  # 32
+    initial_orientation = -110.0 * np.pi / 180.0  # 33
     # initial_orientation = 80.0 * np.pi / 180.0  # 37
     # initial_orientation = 80.0 * np.pi / 180.0  # 38
     # initial_orientation = 80.0 * np.pi / 180.0  # 39
@@ -110,13 +117,13 @@ if __name__ == '__main__':
     #     uwb_data[:, uwb_valid[random_index[i]]] -= 10.0
 
     # delet_index = [ 29]  # use 6 beacons
-    # delet_index = [33, 35]  # use 5 beacons A
+    delet_index = [33, 35]  # use 5 beacons A
     # delet_index = [33, 34]  # use 5 beacons B
     # delet_index = [30, 33, 35]  # use 4 beacons A
     # delet_index = [30, 33, 36]  # use 4 beacons B
     # delet_index = [34, 33, 36]  # use 4 beacons C
     # delet_index = [31, 33, 36]  # use 4 beacons D
-    delet_index = [30, 33, 35, 36]  # use 3 beacons A
+    # delet_index = [30, 33, 35, 36]  # use 3 beacons A
     # delet_index = [30, 33, 31, 36]  # use 3 beacons B
     # delet_index = [31, 33, 36, 37]  # use 3 beacons C
     # delet_index = [31, 33, 35, 37]  # use 3 beacons D

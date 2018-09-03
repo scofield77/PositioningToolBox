@@ -60,7 +60,7 @@ if __name__ == '__main__':
     # matplotlib.rcParams['toolbar'] = 'toolmanager'
     start_time = time.time()
     # dir_name = '/home/steve/Data/FusingLocationData/0017/'
-    dir_name = '/home/steve/Data/NewFusingLocationData/0032/'
+    dir_name = '/home/steve/Data/NewFusingLocationData/0033/'
 
     # dir_name = 'D:\\NewFusingLocationData\\0035\\'
 
@@ -78,7 +78,7 @@ if __name__ == '__main__':
     t_phone_imu_data = np.loadtxt(dir_name + 'HAND_SMARTPHONE_IMU.data',delimiter=',')
     # phone_imu_data = phone_imu_data[:,1:]
     phone_imu_data = np.zeros([t_phone_imu_data.shape[0],t_phone_imu_data.shape[1]-1])
-    phone_imu_data[:,0] = (t_phone_imu_data[:,0]-t_phone_imu_data[0,0] + t_phone_imu_data[0,1])
+    phone_imu_data[:,0] = (t_phone_imu_data[:,0]-t_phone_imu_data[0,0])*1e-6 + t_phone_imu_data[0,1]#left_imu_data[0,0]
     phone_imu_data[:,1:] = t_phone_imu_data[:,2:]
 
     print(phone_imu_data[-1,0]-phone_imu_data[0,0])
@@ -96,8 +96,9 @@ if __name__ == '__main__':
 
     plt.figure()
     plt.subplot(211)
-    for i in range(1,4):
-        plt.plot(phone_imu_data[:,0],phone_imu_data[:,i],'-+')
+    # for i in range(1,4):
+    #     plt.plot(phone_imu_data[:,0],phone_imu_data[:,i],'-+')
+    plt.plot(phone_imu_data[:,0],np.linalg.norm(phone_imu_data[:,1:4],axis=1)/10.0)
     plt.plot(left_imu_data[:,0],l_zv,'--y')
     plt.plot(right_imu_data[:,0],r_zv,'--r')
 
