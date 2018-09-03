@@ -66,8 +66,8 @@ if __name__ == '__main__':
     # dir_name = 'C:/Data/NewFusingLocationData/0039/'
     # dir_name = 'D:/Data/NewFusingLocationData/0039/'
     # dir_name = 'D:/Data/NewFusingLocationData/0040/'
-    # dir_name = 'D:/Data/NewFusingLocationData/0036/'
-    dir_name = 'D:/Data/NewFusingLocationData/0037/'
+    dir_name = 'D:/Data/NewFusingLocationData/0036/'
+    # dir_name = 'D:/Data/NewFusingLocationData/0037/'
 
     ref_score = Refscor(dir_name)
     # imu_data = np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=',')
@@ -90,8 +90,8 @@ if __name__ == '__main__':
                               2.0))
 
     # initial_orientation = 80.0 * np.pi / 180.0  # 38-45
-    # initial_orientation = 50.0 * np.pi / 180.0  # 36
-    initial_orientation = 80.0 * np.pi / 180.0  # 37
+    initial_orientation = 50.0 * np.pi / 180.0  # 36
+    # initial_orientation = 80.0 * np.pi / 180.0  # 37
     # initial_orientation = 80.0 * np.pi / 180.0  # 38
     # initial_orientation = 80.0 * np.pi / 180.0  # 39
     # initial_orientation = 80.0 * np.pi / 180.0  # 40
