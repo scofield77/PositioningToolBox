@@ -250,7 +250,7 @@ class StepDetectorSimple:
                     # if acc_df > 0:
 
 
-def test_simple_data():
+def try_simple_data():
     data = np.loadtxt('/home/steve/Data/pdr_imu.txt', delimiter=',')
     step_detector = StepDetector(5.0,2.0)
 
@@ -285,7 +285,7 @@ def test_simple_data():
     plt.show()
 
 
-def test_ipin_data():
+def try_ipin_data():
     file_name = '/home/steve/Data/IPIN2017Data/Track3/01-Training/CAR/logfile_CAR_R02-2017_S4.txt'
     # file_name = '/home/steve/Data/IPIN2017Data/Track3/01-Training/CAR/logfile_CAR_R01-2017_S4MINI.txt'
 
@@ -330,4 +330,4 @@ def test_ipin_data():
 
 if __name__ == '__main__':
     # test_ipin_data()
-    test_simple_data()
+    try_simple_data()

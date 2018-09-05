@@ -32,7 +32,7 @@ from AlgorithmTool.StepDetector import StepDetector
 from AlgorithmTool.StepLengthEstimator import StepLengthEstimatorV
 
 
-def test_simple_data():
+def try_simple_data():
     data = np.loadtxt('/home/steve/Data/pdr_imu.txt', delimiter=',')
     step_detector = StepDetector(2.1, 0.8)
     step_estimator = StepLengthEstimatorV()
@@ -139,6 +139,13 @@ def test_simple_data():
 
 
 def search_simple_data(alpha, beta):
+    '''
+    use to search hyperparameters (alpha and beta) in step detection function.
+    Plot the trace based on given parameters.
+    :param alpha:
+    :param beta:
+    :return:
+    '''
     data = np.loadtxt('/home/steve/Data/pdr_imu.txt', delimiter=',')
     # print('in1:',alpha,beta)
     step_detector = StepDetector(alpha, beta)
@@ -245,13 +252,51 @@ def search_simple_data(alpha, beta):
     # plt.show()
 
 
+def try_ipin_data():
+    file_name = '/home/steve/Data/IPIN2017Data/Track3/01-Training/CAR/logfile_CAR_R02-2017_S4.txt'
+    # file_name = '/home/steve/Data/IPIN2017Data/Track3/01-Training/CAR/logfile_CAR_R01-2017_S4MINI.txt'
+
+    ll = LogLoader(file_name)
+
+    acc = np.zeros([ll.acce.shape[0], 4])
+    acc[:, 0] = ll.acce[:, 0]
+    acc[:, 1:] = ll.acce[:, 2:5]
+
+    # show time interval
+    plt.figure()
+    plt.title('time interval')
+    plt.plot(acc[1:, 0] - acc[:-1, 0])
+    time_interval_array = acc[1:, 0] - acc[:-1, 0]
+
+    #
+    step_detector = StepDetector(2.1, 0.8)
+
+    plt.figure()
+    # for i in range(1, 4):
+    #     plt.plot(acc[:, 0], acc[:, i])
+    plt.plot(acc[:, 0], np.linalg.norm(acc[:, 1:], axis=1), '-')
+
+
+    step_flag = np.zeros(acc.shape[0])
+    step_alpha = np.zeros(acc.shape[0])
+    step_p = np.zeros_like(step_alpha)
+    step_v = np.zeros_like(step_alpha)
+    for i in range(1, acc.shape[0] - 1):
+        if step_detector.step_detection(acc[i - 1:i + 2, 1:], i, acc[i, 0]):
+            step_flag[i] = 10.0
+
+
+    plt.plot(acc[:, 0], step_flag, '-+r')
+    plt.grid()
+    plt.show()
 
 
 if __name__ == '__main__':
-    # test_simple_data()
+    # try_simple_data()
+    try_ipin_data()
 
-    value_list = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.3, 1.6, 1.8, 2.1, 2.5, 2.8, 3.2, 3.8]
-    for alpha in value_list:
-        for beta in value_list:
-            search_simple_data(alpha,beta)
+    # value_list = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.3, 1.6, 1.8, 2.1, 2.5, 2.8, 3.2, 3.8]
+    # for alpha in value_list:
+    #     for beta in value_list:
+    #         search_simple_data(alpha,beta)
 #
