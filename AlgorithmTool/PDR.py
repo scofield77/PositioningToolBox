@@ -245,6 +245,8 @@ def search_simple_data(alpha, beta):
     # plt.show()
 
 
+
+
 if __name__ == '__main__':
     # test_simple_data()
 
