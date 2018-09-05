@@ -230,7 +230,8 @@ class ImuEKFComplex:
 
         self.state = self.state + dx
 
-        self.rotation_q = quaternion_left_update(self.rotation_q, dx[6:9], -1.0)
+        # self.rotation_q = quaternion_left_update(self.rotation_q, dx[6:9], -1.0)
+        self.rotation_q = quaternion_right_update(self.rotation_q, dx[6:9], -1.0)
 
         self.state[6:9] = dcm2euler(q2dcm(self.rotation_q))
 

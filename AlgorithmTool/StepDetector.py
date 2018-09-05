@@ -34,7 +34,7 @@ import array
 
 class StepDetector:
 
-    def __init__(self, alpha=1.0,beta = 1.0):
+    def __init__(self, alpha=1.0, beta=1.0):
         self.counter = 0
         self.condidate_list = list()
         self.condidate_value = list()
@@ -69,7 +69,7 @@ class StepDetector:
         '''
         if np.linalg.norm(acc[1, :]) > max(np.linalg.norm(acc[0, :]), np.linalg.norm(acc[2, :])) and \
                 np.linalg.norm(acc[1, :]) > self.miu_alpha + self.sigma_alpha / self.alpha and \
-                np.linalg.norm(acc[1, :]) >  10.5 :
+                np.linalg.norm(acc[1, :]) > 10.5:
             return 1
         elif np.linalg.norm(acc[1, :]) < min(np.linalg.norm(acc[0, :]), np.linalg.norm(acc[2, :])) and \
                 np.linalg.norm(acc[1, :]) < self.miu_alpha - self.sigma_alpha / self.alpha:
@@ -89,10 +89,10 @@ class StepDetector:
             self.Thp = data_time - self.last_time_p - 0.05
             # print(self.Thp, self.Thv)
             self.Thp = 0.2
-            self.p_interval_list.append(data_time-self.last_time_p)
+            self.p_interval_list.append(data_time - self.last_time_p)
         else:
             self.p_interval_list.append(data_time - self.last_time_p)
-            self.Thp = data_time - self.last_time_p - np.std(np.asarray(self.p_interval_list))/self.beta
+            self.Thp = data_time - self.last_time_p - np.std(np.asarray(self.p_interval_list)) / self.beta
             if len(self.p_interval_list) > 5:
                 self.p_interval_list.pop(0)
             # print(self.Thp, self.Thv,'---')
@@ -116,7 +116,7 @@ class StepDetector:
             self.v_interval_list.append(data_time - self.last_time_v)
         else:
             self.v_interval_list.append(data_time - self.last_time_v)
-            self.Thv = data_time - self.last_time_v - np.std(np.asarray(self.v_interval_list))/self.beta
+            self.Thv = data_time - self.last_time_v - np.std(np.asarray(self.v_interval_list)) / self.beta
             if len(self.v_interval_list) > 5:
                 self.v_interval_list.pop(0)
         if self.Thv < 0.05:
@@ -175,11 +175,10 @@ class StepDetector:
             self.acc_buffer.append(acc[1, 1])
             self.acc_buffer.append(acc[1, 2])
 
-            if np.frombuffer(self.acc_buffer,dtype=np.float).shape[0]  > 40:
+            if np.frombuffer(self.acc_buffer, dtype=np.float).shape[0] > 40:
                 all_acc = np.frombuffer(self.acc_buffer, dtype=np.float).reshape([-1, 3])
                 self.acc_buffer = array.array('d')
                 self.sigma_alpha = np.std(np.linalg.norm(all_acc, axis=1))
-
 
         return step_flag
 
@@ -252,7 +251,7 @@ class StepDetectorSimple:
 
 def try_simple_data():
     data = np.loadtxt('/home/steve/Data/pdr_imu.txt', delimiter=',')
-    step_detector = StepDetector(5.0,2.0)
+    step_detector = StepDetector(5.0, 2.0)
 
     acc = np.zeros([data.shape[0], 4])
     acc[:, 0] = data[:, 0]
@@ -278,9 +277,9 @@ def try_simple_data():
         step_p[i] = step_detector.alpha_p
         step_v[i] = step_detector.alpha_v
     plt.plot(acc[:, 0], step_flag, '-+r')
-    plt.plot(acc[:,0],step_alpha,'--g')
-    plt.plot(acc[:,0], step_p,'--y')
-    plt.plot(acc[:,0],step_v,'--y')
+    plt.plot(acc[:, 0], step_alpha, '--g')
+    plt.plot(acc[:, 0], step_p, '--y')
+    plt.plot(acc[:, 0], step_v, '--y')
     plt.grid()
     plt.show()
 
@@ -302,13 +301,12 @@ def try_ipin_data():
     time_interval_array = acc[1:, 0] - acc[:-1, 0]
 
     #
-    step_detector = StepDetector(2.0,1.0)
+    step_detector = StepDetector(2.0, 1.0)
 
     plt.figure()
     # for i in range(1, 4):
     #     plt.plot(acc[:, 0], acc[:, i])
     plt.plot(acc[:, 0], np.linalg.norm(acc[:, 1:], axis=1), '-')
-
 
     step_flag = np.zeros(acc.shape[0])
     step_alpha = np.zeros(acc.shape[0])
@@ -321,9 +319,9 @@ def try_ipin_data():
         step_p[i] = step_detector.alpha_p
         step_v[i] = step_detector.alpha_v
     plt.plot(acc[:, 0], step_flag, '-+r')
-    plt.plot(acc[:,0],step_alpha,'--g')
-    plt.plot(acc[:,0], step_p,'--y')
-    plt.plot(acc[:,0],step_v,'--y')
+    plt.plot(acc[:, 0], step_alpha, '--g')
+    plt.plot(acc[:, 0], step_p, '--y')
+    plt.plot(acc[:, 0], step_v, '--y')
     plt.grid()
     plt.show()
 
