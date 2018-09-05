@@ -246,10 +246,10 @@ def search_simple_data(alpha, beta):
 
 
 if __name__ == '__main__':
-    test_simple_data()
-    #
-    # value_list = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.3, 1.6, 1.8, 2.1, 2.5, 2.8, 3.2, 3.8]
-    # for alpha in value_list:
-    #     for beta in value_list2:
-    #         search_simple_data(alpha,beta)
+    # test_simple_data()
+
+    value_list = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.3, 1.6, 1.8, 2.1, 2.5, 2.8, 3.2, 3.8]
+    for alpha in value_list:
+        for beta in value_list:
+            search_simple_data(alpha,beta)
 #
