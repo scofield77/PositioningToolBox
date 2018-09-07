@@ -146,5 +146,34 @@ def try_simple_data():
 
     plt.show()
 
+
+def try_simple_data_ori():
+    from AlgorithmTool.StepDetector import StepDetector
+    from AlgorithmTool.StepLengthEstimator import StepLengthEstimatorV
+
+
+    data = np.loadtxt('/home/steve/Data/pdr_imu.txt', delimiter=',')
+    step_detector = StepDetector(2.1, 0.8)
+    step_estimator = StepLengthEstimatorV()
+
+    acc = np.zeros([data.shape[0], 4])
+    acc[:, 0] = data[:, 0]
+    acc[:, 1:] = data[:, 2:5]
+    gyr = np.zeros([data.shape[0], 4])
+    mag = np.zeros([data.shape[0], 4])
+    ori = np.zeros([data.shape[0], 4])
+
+    gyr[:, 0] = data[:, 0]
+    gyr[:, 1:] = data[:, 5:8]
+
+    mag[:, 0] = data[:, 0]
+    mag[:, 1:] = data[:, 8:11]
+
+    ori[:, 0] = data[:, 0]
+    ori[:, 1:] = data[:, 11:14]
+
+
 if __name__ == '__main__':
+    try_simple_data_ori()
+
 
