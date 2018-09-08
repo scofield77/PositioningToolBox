@@ -344,8 +344,8 @@ def try_simple_data_ori(gyr_sigam=0.1, mag_sigma=0.1):
     from AlgorithmTool.StepLengthEstimator import StepLengthEstimatorV
 
     # data = np.loadtxt('/home/steve/Data/pdr_imu.txt', delimiter=',')
-    # data = np.loadtxt('/home/steve/Data/phoneData/0001/HAND_SMARTPHONE_IMU.data', delimiter=',')
-    data = np.loadtxt('/home/steve/Data/phoneData/0004/SMARTPHONE2_IMU.data', delimiter=',')
+    # data = np.loadtxt('/home/steve/Data/phoneData/0003/HAND_SMARTPHONE_IMU.data', delimiter=',')
+    data = np.loadtxt('/home/steve/Data/phoneData/0004/SMARTPHONE3_IMU.data', delimiter=',')
     # print('data.shape:',data.shape)
     step_detector = StepDetector(2.1, 0.8)
     step_estimator = StepLengthEstimatorV()
@@ -411,8 +411,8 @@ def try_simple_data_ori(gyr_sigam=0.1, mag_sigma=0.1):
         if np.linalg.norm(mag[i, 1:]) > 1.0:
             cov = np.identity(3) * mag_sigma
             ahrs.measurement_function_mag(mag[i, 1:], cov)
-        if abs(np.linalg.norm(acc[i,1:]))>1.0:
-            ahrs.measurement_function_acc(acc[i,1:],np.identity(3)*0.1)
+        # if abs(np.linalg.norm(acc[i,1:]))>1.0:
+        #     ahrs.measurement_function_acc(acc[i,1:],np.identity(3)*0.1)
         # if np.linalg.norm(mag[i,1:]) > 1.0 and np.linalg.norm(acc[i,1:]) > 1.0:
         #     ahrs.measurement_function_acc_mag(acc[i,1:],mag[i,1:],np.ones([]))
         out_ori[i, 1:] = dcm2euler((q2dcm(ahrs.rotation_q)))
@@ -444,4 +444,4 @@ def try_simple_data_ori(gyr_sigam=0.1, mag_sigma=0.1):
 
 
 if __name__ == '__main__':
-    try_simple_data_ori()
+    try_simple_data_ori(0.01,0.1)
