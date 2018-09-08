@@ -100,22 +100,26 @@ class AHRSEKFSimple:
         tm = np.linalg.inv(q2dcm(self.rotation_q)).dot(self.ref_mag)
         # H = np.zeros([3,3])
         H = np.asarray([
-            [0.0,-tm[2],tm[1]],
-            [tm[2],0.0,-tm[0]],
-            [-tm[1],tm[0],0.0]
+            [0.0, -tm[2], tm[1]],
+            [tm[2], 0.0, -tm[0]],
+            [-tm[1], tm[0], 0.0]
         ])
 
-
+        # if
 
         mag = mag / np.linalg.norm(mag)
         # print('mag:', mag, 'rotated mag:',q2dcm(self.rotation_q).dot(mag),'ref mag',self.ref_mag)
         # print('mag:', mag, 'rotated ref mag:',np.linalg.inv(q2dcm(self.rotation_q)).dot(self.ref_mag),'ref mag',self.ref_mag)
 
+        try:
+            K = (self.prob_state.dot(np.transpose(H))).dot(
+                np.linalg.inv((H.dot(self.prob_state)).dot(np.transpose(H)) + cov_matrix)
+            )
+        except np.linalg.linalg.LinAlgError as e:
+            K = (self.prob_state.dot(np.transpose(H))).dot(
+                np.linalg.pinv((H.dot(self.prob_state)).dot(np.transpose(H)) + cov_matrix)
+            )
 
-
-        K = (self.prob_state.dot(np.transpose(H))).dot(
-            np.linalg.pinv((H.dot(self.prob_state)).dot(np.transpose(H)) + cov_matrix)
-        )
 
         before_p_norm = np.linalg.norm(self.prob_state)
         self.prob_state = (np.identity(self.prob_state.shape[0]) - K.dot(H)).dot(self.prob_state)
@@ -124,10 +128,10 @@ class AHRSEKFSimple:
 
         dx = K.dot(mag - np.linalg.inv(q2dcm(self.rotation_q)).dot(self.ref_mag))
 
-        self.rotation_q = quaternion_left_update(self.rotation_q, dx, 1.0)
+        self.rotation_q = quaternion_right_update(self.rotation_q, dx, 1.0)
+        # self.rotation_q = quaternion_left_update(self.rotation_q, dx, -1.0)
 
         self.state = dcm2euler(q2dcm(self.rotation_q))
-
 
     def measurement_function_acc(self, acc, cov_matrix):
         '''
@@ -139,16 +143,12 @@ class AHRSEKFSimple:
         tm = np.linalg.inv(q2dcm(self.rotation_q)).dot(self.ref_mag)
         # H = np.zeros([3,3])
         H = np.asarray([
-            [0.0,-tm[2],tm[1]],
-            [tm[2],0.0,-tm[0]],
-            [-tm[1],tm[0],0.0]
+            [0.0, -tm[2], tm[1]],
+            [tm[2], 0.0, -tm[0]],
+            [-tm[1], tm[0], 0.0]
         ])
 
-
-
         acc = acc / np.linalg.norm(acc)
-
-
 
         K = (self.prob_state.dot(np.transpose(H))).dot(
             np.linalg.pinv((H.dot(self.prob_state)).dot(np.transpose(H)) + cov_matrix)
@@ -159,7 +159,7 @@ class AHRSEKFSimple:
 
         self.prob_state = 0.5 * self.prob_state + 0.5 * np.transpose(self.prob_state)
 
-        dx = K.dot(acc - np.linalg.inv(q2dcm(self.rotation_q)).dot(np.asarray([0.0,0.0,1.0])))
+        dx = K.dot(acc - np.linalg.inv(q2dcm(self.rotation_q)).dot(np.asarray([0.0, 0.0, 1.0])))
 
         self.rotation_q = quaternion_left_update(self.rotation_q, dx, 1.0)
 
@@ -275,15 +275,13 @@ def try_simple_data():
     plt.show()
 
 
-
-
 def try_simple_data_ori():
     from AlgorithmTool.StepDetector import StepDetector
     from AlgorithmTool.StepLengthEstimator import StepLengthEstimatorV
 
     # data = np.loadtxt('/home/steve/Data/pdr_imu.txt', delimiter=',')
-    data = np.loadtxt('/home/steve/Data/phoneData/0003/HAND_SMARTPHONE_IMU.data', delimiter=',')
-    # data = np.loadtxt('/home/steve/Data/phoneData/0004/SMARTPHONE2_IMU.data', delimiter=',')
+    # data = np.loadtxt('/home/steve/Data/phoneData/0001/HAND_SMARTPHONE_IMU.data', delimiter=',')
+    data = np.loadtxt('/home/steve/Data/phoneData/0004/SMARTPHONE3_IMU.data', delimiter=',')
     # print('data.shape:',data.shape)
     step_detector = StepDetector(2.1, 0.8)
     step_estimator = StepLengthEstimatorV()
@@ -295,18 +293,19 @@ def try_simple_data_ori():
     mag = np.zeros([data.shape[0], 4])
     ori = np.zeros([data.shape[0], 4])
 
-    gyr[:, 0] = data[:, 1]-data[0,1]+data[0,0]
+    gyr[:, 0] = data[:, 1] - data[0, 1] + data[0, 0]
     gyr[:, 1:] = data[:, 5:8]
 
-    mag[:, 0] = data[:, 0]-data[0,1]+data[0,0]
+    mag[:, 0] = data[:, 0] - data[0, 1] + data[0, 0]
     mag[:, 1:] = data[:, 8:11]
+    # mag[:,2] = -1.0 * mag[:,2]
 
-    ori[:, 0] = data[:, 0]-data[0,1]+data[0,0]
+    ori[:, 0] = data[:, 0] - data[0, 1] + data[0, 0]
     ori[:, 1:] = data[:, 11:14]
     plt.figure()
-    for i in range(1,4):
-        plt.plot(acc[:,0],acc[:,i])
-    plt.plot(acc[:,0],np.linalg.norm(acc[:,1:],axis=1))
+    for i in range(1, 4):
+        plt.plot(acc[:, 0], acc[:, i])
+    plt.plot(acc[:, 0], np.linalg.norm(acc[:, 1:], axis=1))
     plt.grid()
 
     plt.figure()
@@ -321,11 +320,11 @@ def try_simple_data_ori():
     plt.legend()
     plt.subplot(413)
     for i in range(1, 4):
-        plt.plot(ori[:, 0], ori[:, i]/np.pi * 180.0, label=str(i))
+        plt.plot(ori[:, 0], ori[:, i] / np.pi * 180.0, label=str(i))
     plt.legend()
 
     ahrs = AHRSEKFSimple(np.ones([3, 3]) * 0.1)
-    ahrs.initial_state(mag[:10, 1:],ori[0,1:])
+    ahrs.initial_state(mag[:10, 1:], ori[0, 1:])
     # ahrs.initial_state_euler(ori[0, 1:])
 
     out_ori = np.zeros_like(mag)
@@ -335,21 +334,34 @@ def try_simple_data_ori():
     last_valid_mag_i = 0
 
     for i in range(1, out_ori.shape[0]):
+        for j in range(1,4):
+            if ori[i,j] < -np.pi:
+                ori[i,j] += 2.0 * np.pi
+            if ori[i,j] > np.pi:
+                ori[i,j] -= 2.0 * np.pi
         # print(i)
         if np.linalg.norm(gyr[i, 1:]) > 0.01:
-            ahrs.state_transaction_function(gyr[i, 1:], np.ones([3, 3]) * 0.001, gyr[i,0]-gyr[last_valid_gyr_i,0])
+            ahrs.state_transaction_function(gyr[i, 1:] , np.ones([3, 3]) * 0.001,
+                                            0.01)  # gyr[i,0]-gyr[last_valid_gyr_i,0])
             last_valid_gyr_i = i
         if np.linalg.norm(mag[i, 1:]) > 1.0:
-            ahrs.measurement_function_mag(mag[i, 1:], np.ones([3, 3]) * 0.1)
+            ahrs.measurement_function_mag(mag[i, 1:], np.ones([3, 3]) * 1.0)
         # if abs(np.linalg.norm(acc[i,1:])-9.8)<0.2:
         #     ahrs.measurement_function_acc(acc[i,1:],np.ones([3,3])*0.1)
         out_ori[i, 1:] = dcm2euler((q2dcm(ahrs.rotation_q)))
+        # print(q2dcm(ahrs.rotation_q).dot(mag[i,1:]))
         # out_ori[i,1:]  = np.linalg.inv(q2dcm(ahrs.rotation_q)).dot(acc[i,1:])
     # plt.figure()
     plt.subplot(414)
     for i in range(1, 4):
-        plt.plot(out_ori[:, 0], out_ori[:, i]/np.pi * 180.0)
+        plt.plot(out_ori[:, 0], out_ori[:, i] / np.pi * 180.0)
+    # plt.plot(out_ori)
     # print(out_ori)
+
+    plt.figure()
+    plt.plot(ori[:, 0], (ori[:, 3] - ori[0, 3]) / np.pi * 180.0, label='ori')
+    plt.plot(out_ori[:, 0], (out_ori[:, 3] - out_ori[0, 3]) / np.pi * 180.0, label='out ori')
+    plt.legend()
 
     # plt.figure()
     # plt.plot(time_array)
