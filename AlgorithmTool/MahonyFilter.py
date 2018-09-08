@@ -23,14 +23,13 @@
          佛祖保佑       永无BUG 
 '''
 
-
 import matplotlib.pyplot as plt
 
 import numpy as np
 import scipy as sp
 
-
 from AlgorithmTool.ImuTools import *
+
 
 class MahonyFilterBase:
     def __init__(self):
@@ -40,21 +39,58 @@ class MahonyFilterBase:
 
 
 class AHRSEKFSimple:
-    def __init__(self,initial_prob):
+    def __init__(self, initial_prob):
         self.state = np.zeros([4])
         self.prob_state = initial_prob
 
         self.rotation_q = np.zeros([4])
 
-        self.F = np.zeros([3,3])
-        self.G = np.zeros([3,3])
+        self.F = np.zeros([3, 3])
+        self.G = np.zeros([3, 3])
 
         self.ref_mag = np.zeros([3])
 
     def initial_state(self, mag_data):
-        self.ref_mag = np.mean(mag_data,axis=0)
+        self.ref_mag = np.mean(mag_data, axis=0)
+        print('mag sahpe:',self.ref_mag.shape)
+
+    def initial_state_euler(self, ori):
+        '''
+        Transform from ori to quaternion
+        :param ori:
+        :return:
+        '''
+        self.state = ori  # (euler2R(ori))
+        self.rotation_q = dcm2q(euler2R(ori))
+
+    def state_transaction_function(self,gyr_data,noise_matrix,time_interval):
+        '''
+
+        :param gyr_data:
+        :param noise_matrix:
+        :return:
+        '''
+        self.rotation_q = quaternion_right_update(self.rotation_q,gyr_data,time_interval)
+
+        Rb2t = q2dcm(self.rotation_q)
+        self.F = Rb2t * time_interval
+
+        self.G = -1.0 * time_interval * Rb2t
+
+        self.prob_state = (self.F.dot(self.prob_state)).dot(np.transpose(self.F)) + (self.G.dot(noise_matrix)).dot(
+            np.transpose(self.G))
+
+        self.prob_state = 0.5 * self.prob_state + 0.5 * self.prob_state.transpose()
 
 
+    # def measurement_function_mag(self,mag, cov_matrix):
+    #     '''
+    #
+    #     :param mag:
+    #     :param cov_matrix:
+    #     :return:
+    #     '''
+    #     self.H =
 
 
 
@@ -64,7 +100,6 @@ class AHRSEKFSimple:
 def try_simple_data():
     from AlgorithmTool.StepDetector import StepDetector
     from AlgorithmTool.StepLengthEstimator import StepLengthEstimatorV
-
 
     data = np.loadtxt('/home/steve/Data/pdr_imu.txt', delimiter=',')
     step_detector = StepDetector(2.1, 0.8)
@@ -175,9 +210,9 @@ def try_simple_data_ori():
     from AlgorithmTool.StepDetector import StepDetector
     from AlgorithmTool.StepLengthEstimator import StepLengthEstimatorV
 
-
     # data = np.loadtxt('/home/steve/Data/pdr_imu.txt', delimiter=',')
-    data = np.loadtxt('/home/steve/Data/phoneData/0001/HAND_SMARTPHONE_IMU.data', delimiter=',')
+    data = np.loadtxt('/home/steve/Data/phoneData/0003/HAND_SMARTPHONE_IMU.data', delimiter=',')
+    data = np.loadtxt('/home/steve/Data/phoneData/0004/SMARTPHONE3_IMU.data', delimiter=',')
     # print('data.shape:',data.shape)
     step_detector = StepDetector(2.1, 0.8)
     step_estimator = StepLengthEstimatorV()
@@ -200,24 +235,21 @@ def try_simple_data_ori():
 
     plt.figure()
     plt.subplot(311)
-    for i in range(1,4):
-        plt.plot(gyr[:,0],gyr[:,i],label=str(i))
+    for i in range(1, 4):
+        plt.plot(gyr[:, 0], gyr[:, i], label=str(i))
     plt.legend()
     plt.subplot(312)
-    for i in range(1,4):
-        plt.plot(mag[:,0],mag[:,i],label=str(i))
-    plt.plot(mag[:,0],np.arctan2(mag[:,1],mag[:,2])/np.pi * 180.0)
+    for i in range(1, 4):
+        plt.plot(mag[:, 0], mag[:, i], label=str(i))
+    plt.plot(mag[:, 0], np.arctan2(mag[:, 1], mag[:, 2]) / np.pi * 180.0)
     plt.legend()
     plt.subplot(313)
-    for i in range(1,4):
-        plt.plot(ori[:,0],ori[:,i],label=str(i))
+    for i in range(1, 4):
+        plt.plot(ori[:, 0], ori[:, i], label=str(i))
     plt.legend()
 
     plt.show()
 
 
-
 if __name__ == '__main__':
     try_simple_data_ori()
-
-
