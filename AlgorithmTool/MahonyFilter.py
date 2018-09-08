@@ -124,7 +124,7 @@ class AHRSEKFSimple:
 
         dx = K.dot(mag - np.linalg.inv(q2dcm(self.rotation_q)).dot(self.ref_mag))
 
-        self.rotation_q = quaternion_right_update(self.rotation_q, dx, 0.5)
+        self.rotation_q = quaternion_left_update(self.rotation_q, dx, 1.0)
 
         self.state = dcm2euler(q2dcm(self.rotation_q))
 
@@ -161,7 +161,7 @@ class AHRSEKFSimple:
 
         dx = K.dot(acc - np.linalg.inv(q2dcm(self.rotation_q)).dot(np.asarray([0.0,0.0,1.0])))
 
-        self.rotation_q = quaternion_right_update(self.rotation_q, dx, 1.0)
+        self.rotation_q = quaternion_left_update(self.rotation_q, dx, 1.0)
 
         self.state = dcm2euler(q2dcm(self.rotation_q))
 
@@ -344,6 +344,7 @@ def try_simple_data_ori():
         # if abs(np.linalg.norm(acc[i,1:])-9.8)<0.2:
         #     ahrs.measurement_function_acc(acc[i,1:],np.ones([3,3])*0.1)
         out_ori[i, 1:] = dcm2euler((q2dcm(ahrs.rotation_q)))
+        # out_ori[i,1:]  = np.linalg.inv(q2dcm(ahrs.rotation_q)).dot(acc[i,1:])
     # plt.figure()
     plt.subplot(414)
     for i in range(1, 4):
