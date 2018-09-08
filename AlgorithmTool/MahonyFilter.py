@@ -341,14 +341,15 @@ def try_simple_data_ori():
                 ori[i,j] -= 2.0 * np.pi
         # print(i)
         if np.linalg.norm(gyr[i, 1:]) > 0.01:
-            ahrs.state_transaction_function(gyr[i, 1:] , np.ones([3, 3]) * 0.001,
-                                            0.01)  # gyr[i,0]-gyr[last_valid_gyr_i,0])
+            ahrs.state_transaction_function(gyr[i, 1:] , np.ones([3, 3]) * 0.1,
+                                             gyr[i,0]-gyr[last_valid_gyr_i,0])
             last_valid_gyr_i = i
         if np.linalg.norm(mag[i, 1:]) > 1.0:
             ahrs.measurement_function_mag(mag[i, 1:], np.ones([3, 3]) * 1.0)
         # if abs(np.linalg.norm(acc[i,1:])-9.8)<0.2:
         #     ahrs.measurement_function_acc(acc[i,1:],np.ones([3,3])*0.1)
         out_ori[i, 1:] = dcm2euler((q2dcm(ahrs.rotation_q)))
+        acc[i,1:] = q2dcm(ahrs.rotation_q).dot(acc[i,1:])
         # print(q2dcm(ahrs.rotation_q).dot(mag[i,1:]))
         # out_ori[i,1:]  = np.linalg.inv(q2dcm(ahrs.rotation_q)).dot(acc[i,1:])
     # plt.figure()
@@ -365,6 +366,12 @@ def try_simple_data_ori():
 
     # plt.figure()
     # plt.plot(time_array)
+
+    plt.plot()
+    plt.title('modifie acc')
+    for i in range(1,4):
+        plt.plot(acc[:,0],acc[:,i],label=str(i))
+    plt.legend()
 
     plt.show()
 
