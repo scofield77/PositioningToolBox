@@ -30,9 +30,33 @@ import numpy as np
 import scipy as sp
 
 
+from AlgorithmTool.ImuTools import *
+
 class MahonyFilterBase:
     def __init__(self):
         self.name = 'base Mahony filter'
+
+        self.rotation_q = np.zeros([4])
+
+
+class AHRSEKFSimple:
+    def __init__(self,initial_prob):
+        self.state = np.zeros([4])
+        self.prob_state = initial_prob
+
+        self.rotation_q = np.zeros([4])
+
+        self.F = np.zeros([3,3])
+        self.G = np.zeros([3,3])
+
+        self.ref_mag = np.zeros([3])
+
+    def initial_state(self, mag_data):
+        self.ref_mag = np.mean(mag_data,axis=0)
+
+
+
+
 
 
 
@@ -152,7 +176,9 @@ def try_simple_data_ori():
     from AlgorithmTool.StepLengthEstimator import StepLengthEstimatorV
 
 
-    data = np.loadtxt('/home/steve/Data/pdr_imu.txt', delimiter=',')
+    # data = np.loadtxt('/home/steve/Data/pdr_imu.txt', delimiter=',')
+    data = np.loadtxt('/home/steve/Data/phoneData/0001/HAND_SMARTPHONE_IMU.data', delimiter=',')
+    # print('data.shape:',data.shape)
     step_detector = StepDetector(2.1, 0.8)
     step_estimator = StepLengthEstimatorV()
 
@@ -171,6 +197,24 @@ def try_simple_data_ori():
 
     ori[:, 0] = data[:, 0]
     ori[:, 1:] = data[:, 11:14]
+
+    plt.figure()
+    plt.subplot(311)
+    for i in range(1,4):
+        plt.plot(gyr[:,0],gyr[:,i],label=str(i))
+    plt.legend()
+    plt.subplot(312)
+    for i in range(1,4):
+        plt.plot(mag[:,0],mag[:,i],label=str(i))
+    plt.plot(mag[:,0],np.arctan2(mag[:,1],mag[:,2])/np.pi * 180.0)
+    plt.legend()
+    plt.subplot(313)
+    for i in range(1,4):
+        plt.plot(ori[:,0],ori[:,i],label=str(i))
+    plt.legend()
+
+    plt.show()
+
 
 
 if __name__ == '__main__':
