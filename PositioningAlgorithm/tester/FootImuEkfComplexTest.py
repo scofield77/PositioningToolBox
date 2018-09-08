@@ -100,7 +100,7 @@ if __name__ == '__main__':
     )),
         local_g=-9.81, time_interval=average_time_interval)
 
-    kf.initial_state(imu_data[:50, 1:7])
+    kf.initial_state(imu_data[:50, 1:7],mag=imu_data[0,7:10])
 
     zv_state = GLRT_Detector(imu_data[:, 1:7], sigma_a=1.0,
                              sigma_g=1.0 * np.pi / 180.0,
@@ -123,6 +123,7 @@ if __name__ == '__main__':
             if zv_state[i] > 0.5:
                 kf.measurement_function_zv(np.asarray((0, 0, 0)),
                                            np.diag((0.0001, 0.0001, 0.0001)))
+                # kf.measurement_function_mag(imu_data[i,7:10],np.identity(3)*0.05)
 
         # print(kf.state_x)
         # print( i /)

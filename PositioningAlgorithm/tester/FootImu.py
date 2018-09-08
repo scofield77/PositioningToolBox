@@ -34,7 +34,7 @@ from PositioningAlgorithm.BayesStateEstimation.KalmanFIlterBase import *
 
 from scipy.optimize import minimize
 
-from AlgorithmTool.ImuTools import settings, zero_velocity_tester
+from AlgorithmTool.ImuTools import *
 
 
 # @jit
@@ -151,8 +151,8 @@ if __name__ == '__main__':
     set_setting.sigma_a *= 5.0
     set_setting.sigma_g *= 5.0
 
-    z_tester = zero_velocity_tester(set_setting)
-    zv_state = z_tester.GLRT_Detector(imu_data[:, 1:7])
+    # z_tester = zero_velocity_tester(set_setting)
+    zv_state = GLRT_Detector(imu_data[:, 1:7])
 
     for i in range(imu_data.shape[0]):
         def inter_imu(s, i):
@@ -170,6 +170,7 @@ if __name__ == '__main__':
                                         np.diag((0.0001, 0.0001, 0.0001)),
                                         zero_velocity_measurement,
                                         update_function)
+
 
         # print(kf.state_x)
         # print( i /)

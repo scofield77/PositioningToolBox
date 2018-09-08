@@ -67,7 +67,7 @@ class ImuEKFComplex:
 
     def initial_state(self, imu_data: np.ndarray,
                       pos=np.asarray((0.0, 0.0, 0.0)),
-                      ori: float = 0.0):
+                      ori: float = 0.0, mag = np.asarray((0.0,0.0,0.0))):
         '''
         Initial state based on given position and orientation(angle of z-axis)
         :param imu_data:
@@ -84,6 +84,8 @@ class ImuEKFComplex:
         print('q:', self.rotation_q)
 
         self.I = np.identity(3)
+        self.ref_mag = q2dcm(self.rotation_q).dot(mag)
+        self.ref_mag  = self.ref_mag/np.linalg.norm(self.ref_mag)
 
     # @jit(nopython=True)
     def state_transaction_function(self,
@@ -159,6 +161,42 @@ class ImuEKFComplex:
         self.state[6:9] = dcm2euler(q2dcm(self.rotation_q))
 
         self.state[9:] = self.state[9:] + dx[9:]
+
+    def measurement_function_mag(self,m,cov_matrix):
+        H = np.zeros([3,self.state.shape[0]])
+        m = m/np.linalg.norm(m)
+
+        tm = np.linalg.inv(q2dcm(self.rotation_q)).dot(self.ref_mag)
+        # H = np.zeros([3,3])
+        Ht = np.asarray([
+            [0.0, -tm[2], tm[1]],
+            [tm[2], 0.0, -tm[0]],
+            [-tm[1], tm[0], 0.0]
+        ])
+
+
+        H[0:3,6:9] = Ht * 1.0
+
+        K = (self.prob_state.dot(np.transpose(H))).dot(
+            np.linalg.inv((H.dot(self.prob_state)).dot(np.transpose(H)) + cov_matrix)
+        )
+
+        before_p_norm = np.linalg.norm(self.prob_state)
+        self.prob_state = (np.identity(self.prob_state.shape[0]) - K.dot(H)).dot(self.prob_state)
+
+        self.prob_state = 0.5 * self.prob_state + 0.5 * np.transpose(self.prob_state)
+
+        dx = K.dot(m - H.dot(self.state))
+
+        self.state[0:6] = self.state[0:6] + dx[0:6]
+        #
+        # self.rotation_q = quaternion_left_update(self.rotation_q, dx[6:9], -1.0)
+        self.rotation_q = quaternion_right_update(self.rotation_q, dx[6:9], 1.0)
+        #
+        self.state[6:9] = dcm2euler(q2dcm(self.rotation_q))
+
+        self.state[9:] = self.state[9:] + dx[9:]
+
 
     def measurement_function_z_axis(self, m, cov_matrix):
         '''
