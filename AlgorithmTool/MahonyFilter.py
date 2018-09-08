@@ -135,6 +135,7 @@ class AHRSEKFSimple:
 
     def measurement_function_acc(self, acc, cov_matrix):
         '''
+        Correct attitude using orientation of accelerate.
 
         :param mag:
         :param cov_matrix:
@@ -175,6 +176,7 @@ class AHRSEKFSimple:
 
     def measurement_function_acc_mag(self, acc,mag, cov_matrix):
         '''
+        !!!! NEVER USED!!!!!!!!!!!!!!!!!!!
 
         :param mag:
         :param cov_matrix:
