@@ -120,7 +120,6 @@ class AHRSEKFSimple:
                 np.linalg.pinv((H.dot(self.prob_state)).dot(np.transpose(H)) + cov_matrix)
             )
 
-
         before_p_norm = np.linalg.norm(self.prob_state)
         self.prob_state = (np.identity(self.prob_state.shape[0]) - K.dot(H)).dot(self.prob_state)
 
@@ -168,13 +167,13 @@ class AHRSEKFSimple:
         self.prob_state = 0.5 * self.prob_state + 0.5 * np.transpose(self.prob_state)
 
         dx = K.dot(acc - np.linalg.inv(q2dcm(self.rotation_q)).dot(np.asarray([0.0, 0.0, 1.0])))
-        print('acc',acc,'rotated g:',np.linalg.inv(q2dcm(self.rotation_q)).dot(np.asarray([0.0, 0.0, 1.0])))
+        print('acc', acc, 'rotated g:', np.linalg.inv(q2dcm(self.rotation_q)).dot(np.asarray([0.0, 0.0, 1.0])))
 
         self.rotation_q = quaternion_right_update(self.rotation_q, dx, 1.0)
 
         self.state = dcm2euler(q2dcm(self.rotation_q))
 
-    def measurement_function_acc_mag(self, acc,mag, cov_matrix):
+    def measurement_function_acc_mag(self, acc, mag, cov_matrix):
         '''
         !!!! NEVER USED!!!!!!!!!!!!!!!!!!!
 
@@ -200,16 +199,13 @@ class AHRSEKFSimple:
             [-tm[1], tm[0], 0.0]
         ])
 
-        H = np.zeros([6,6])
-        H[0:3,0:3] = Hm
-        H[3:6,3:6] = Ha
-
-
+        H = np.zeros([6, 6])
+        H[0:3, 0:3] = Hm
+        H[3:6, 3:6] = Ha
 
         ma_array = np.zeros(6)
         ma_array[0:3] = mag / np.linalg.norm(mag)
         ma_array[3:6] = acc / np.linalg.norm(acc)
-
 
         try:
             K = (self.prob_state.dot(np.transpose(H))).dot(
@@ -231,6 +227,7 @@ class AHRSEKFSimple:
         self.rotation_q = quaternion_right_update(self.rotation_q, dx, 1.0)
 
         self.state = dcm2euler(q2dcm(self.rotation_q))
+
 
 def try_simple_data():
     from AlgorithmTool.StepDetector import StepDetector
@@ -347,7 +344,8 @@ def try_simple_data_ori(gyr_sigam=0.1, mag_sigma=0.1):
 
     # data = np.loadtxt('/home/steve/Data/pdr_imu.txt', delimiter=',')
     # data = np.loadtxt('/home/steve/Data/phoneData/0003/HAND_SMARTPHONE_IMU.data', delimiter=',')
-    data = np.loadtxt('/home/steve/Data/phoneData/0004/SMARTPHONE3_IMU.data', delimiter=',')
+    # data = np.loadtxt('/home/steve/Data/phoneData/0004/SMARTPHONE3_IMU.data', delimiter=',')
+    data = np.loadtxt('/home/steve/Data/phoneData/PDRUWBBLEMini/0005/SMARTPHONE2_IMU.data', delimiter=',')
     # print('data.shape:',data.shape)
     step_detector = StepDetector(2.1, 0.8)
     step_estimator = StepLengthEstimatorV()
@@ -400,25 +398,25 @@ def try_simple_data_ori(gyr_sigam=0.1, mag_sigma=0.1):
     last_valid_mag_i = 0
 
     for i in range(1, out_ori.shape[0]):
-        for j in range(1,4):
-            if ori[i,j] < -np.pi:
-                ori[i,j] += 2.0 * np.pi
-            if ori[i,j] > np.pi:
-                ori[i,j] -= 2.0 * np.pi
+        for j in range(1, 4):
+            if ori[i, j] < -np.pi:
+                ori[i, j] += 2.0 * np.pi
+            if ori[i, j] > np.pi:
+                ori[i, j] -= 2.0 * np.pi
         # print(i)
         if np.linalg.norm(gyr[i, 1:]) > 0.01:
-            ahrs.state_transaction_function(gyr[i, 1:] , np.identity(3) * gyr_sigam,
-                                             gyr[i,0]-gyr[last_valid_gyr_i,0])
+            ahrs.state_transaction_function(gyr[i, 1:], np.identity(3) * gyr_sigam,
+                                            gyr[i, 0] - gyr[last_valid_gyr_i, 0])
             last_valid_gyr_i = i
-        if np.linalg.norm(mag[i, 1:]) > 1.0:
-            cov = np.identity(3) * mag_sigma
-            ahrs.measurement_function_mag(mag[i, 1:], cov)
+        # if np.linalg.norm(mag[i, 1:]) > 1.0:
+        #     cov = np.identity(3) * mag_sigma
+        #     ahrs.measurement_function_mag(mag[i, 1:], cov)
         # if abs(np.linalg.norm(acc[i,1:]))>1.0:
         #     ahrs.measurement_function_acc(acc[i,1:],np.identity(3)*0.1)
         # if np.linalg.norm(mag[i,1:]) > 1.0 and np.linalg.norm(acc[i,1:]) > 1.0:
         #     ahrs.measurement_function_acc_mag(acc[i,1:],mag[i,1:],np.ones([]))
         out_ori[i, 1:] = dcm2euler((q2dcm(ahrs.rotation_q)))
-        acc[i,1:] = q2dcm(ahrs.rotation_q).dot(acc[i,1:])
+        acc[i, 1:] = q2dcm(ahrs.rotation_q).dot(acc[i, 1:])
         # print(q2dcm(ahrs.rotation_q).dot(mag[i,1:]))
         # out_ori[i,1:]  = np.linalg.inv(q2dcm(ahrs.rotation_q)).dot(acc[i,1:])
     # plt.figure()
@@ -438,12 +436,12 @@ def try_simple_data_ori(gyr_sigam=0.1, mag_sigma=0.1):
 
     plt.figure()
     plt.title('modifie acc')
-    for i in range(1,4):
-        plt.plot(acc[:,0],acc[:,i],label=str(i))
+    for i in range(1, 4):
+        plt.plot(acc[:, 0], acc[:, i], label=str(i))
     plt.legend()
 
     plt.show()
 
 
 if __name__ == '__main__':
-    try_simple_data_ori(0.01,0.1)
+    try_simple_data_ori(0.01, 0.1)

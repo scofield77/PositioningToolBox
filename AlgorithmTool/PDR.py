@@ -293,11 +293,13 @@ def try_ipin_data():
 
 def try_Phonemini_data():
     # data = np.loadtxt('/home/steve/Data/pdr_imu.txt', delimiter=',')
-    data = np.loadtxt('/home/steve/Data/phoneData/PDRUWBBLEMini/0005/SMARTPHONE3_IMU.data', delimiter=',')
-    step_detector = StepDetector(2.1, 0.8)
+    data = np.loadtxt('/home/steve/Data/phoneData/PDRUWBBLEMini/0006/SMARTPHONE3_IMU.data', delimiter=',')
+    step_detector = StepDetector(1.0, 0.8)
     step_estimator = StepLengthEstimatorV()
 
+    t = data[:,0]
     data = data[:,1:]
+    data[:,0] = t*1.0
 
     acc = np.zeros([data.shape[0], 4])
     acc[:, 0] = data[:, 0]
