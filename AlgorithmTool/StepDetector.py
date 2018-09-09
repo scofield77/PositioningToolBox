@@ -215,38 +215,7 @@ class StepDetectorSimple:
         '''
         step_flag = False
 
-        if np.linalg.norm(acc[1, :]) > max(np.linalg.norm(acc[0, :]), np.linalg.norm(acc[2, :])):
-            self.pk_num += 1
-            self.pk_ti.append(time)
-            if self.pk_num is 1:
-                if self.vy_num is 1:
-                    dlt_t_pv_1 = self.pk_ti[self.pk_num] - self.vy_ti[self.vy_num]
-                    if dlt_t_pv_1 > self.step_time * 0.5:
-                        self.step_counter += 1
-                        step_flag = True
-                        self.last_pk_acc = np.linalg.norm(acc[1, :])
 
-                    else:
-                        self.pk_num -= 1
-                        self.pk_ti.pop(-1)
-                else:
-                    self.step_counter += 1
-                    step_flag = True
-                    self.last_pk_acc = np.linalg.norm(acc[1, :])
-            else:
-                if self.pk_num - self.vy_num is 1:
-                    dlt_t_pk = time - self.pk_ti[self.pk_num - 1]
-                    dlt_t_pv_2 = self.pk_ti[self.pk_num] - self.vy_ti[self.vy_num]
-                    if dlt_t_pk > self.step_time and dlt_t_pv_2 > self.step_time * 0.5:  # true peak
-                        self.step_counter += 1
-                        step_flag = True
-                        self.last_pk_acc = np.linalg.norm(acc[1, :])
-                    else:
-                        self.pk_num -= 1
-                        self.pk_ti.pop(-1)
-                elif self.pk_num - self.vy_num > 1:
-                    acc_df = np.linalg.norm(acc[1, :]) - self.last_pk_acc
-                    # if acc_df > 0:
 
 
 def try_simple_data():
@@ -327,5 +296,5 @@ def try_ipin_data():
 
 
 if __name__ == '__main__':
-    # test_ipin_data()
-    try_simple_data()
+    try_ipin_data()
+    # try_simple_data()
