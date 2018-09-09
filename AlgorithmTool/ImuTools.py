@@ -39,7 +39,7 @@ from scipy.optimize import minimize
 
 class settings:
     '''
-    class contained all settings of imu .
+    class contained all settings of imu (especially IMU for ZUPT-based location).
     '''
 
     def __init__(self):
@@ -449,7 +449,19 @@ def get_initial_rotation(imu_data,
 
 
 # return state
+def imu_plot_aux(data, title_name='default'):
+    '''
 
+    :param data:
+    :param title_name:
+    :return:
+    '''
+    plt.figure()
+    plt.title(title_name)
+    for i in range(1, 4):
+        plt.plot(data[:, 0], data[:, i], label=str(i))
+    plt.grid()
+    plt.legend()
 
 if __name__ == '__main__':
     '''
