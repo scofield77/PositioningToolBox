@@ -37,7 +37,7 @@ if __name__ == '__main__':
     # step_detector = StepDetector(1.0, 0.8)
     # step_estimator = StepLengthEstimatorV()
 
-    t = data[:, 0]
+    t = data[:, 0]-data[0,0]
     data = data[:, 1:]
     data[:, 0] = t * 1.0
 
@@ -59,6 +59,9 @@ if __name__ == '__main__':
 
     # imu_plot_aux()
     imu_plot_aux(acc,'acc')
+
+
+    # def peak_and_valley_detector(acc,rotation);
 
 
 

@@ -167,7 +167,7 @@ class AHRSEKFSimple:
         self.prob_state = 0.5 * self.prob_state + 0.5 * np.transpose(self.prob_state)
 
         dx = K.dot(acc - np.linalg.inv(q2dcm(self.rotation_q)).dot(np.asarray([0.0, 0.0, 1.0])))
-        print('acc', acc, 'rotated g:', np.linalg.inv(q2dcm(self.rotation_q)).dot(np.asarray([0.0, 0.0, 1.0])))
+        # print('acc', acc, 'rotated g:', np.linalg.inv(q2dcm(self.rotation_q)).dot(np.asarray([0.0, 0.0, 1.0])))
 
         self.rotation_q = quaternion_right_update(self.rotation_q, dx, 1.0)
 
@@ -354,7 +354,7 @@ def try_simple_data_ori(gyr_sigam=0.1, mag_sigma=0.1):
     #
     plt.figure()
     plt.title('time compare')
-    plt.plot(data[:,0],'-+',label='time1')
+    plt.plot(data[:, 0], '-+', label='time1')
     # plt.plot(data2[:,1],'-+',label='time2')
     plt.grid()
     plt.legend()
@@ -366,17 +366,17 @@ def try_simple_data_ori(gyr_sigam=0.1, mag_sigma=0.1):
     mag = np.zeros([data.shape[0], 4])
     ori = np.zeros([data.shape[0], 4])
 
-    acc[:, 0] = data[:, 0] #- data[0, 1] + data[0, 0]
+    acc[:, 0] = data[:, 0]  # - data[0, 1] + data[0, 0]
     acc[:, 1:] = data[:, 2:5]
 
-    gyr[:, 0] = data[:, 1] #- data[0, 1] + data[0, 0]
+    gyr[:, 0] = data[:, 1]  # - data[0, 1] + data[0, 0]
     gyr[:, 1:] = data[:, 5:8]
 
-    mag[:, 0] = data[:, 0] #- data[0, 1] + data[0, 0]
+    mag[:, 0] = data[:, 0]  # - data[0, 1] + data[0, 0]
     mag[:, 1:] = data[:, 8:11]
     # mag[:,2] = -1.0 * mag[:,2]
 
-    ori[:, 0] = data[:, 0] #- data[0, 1] + data[0, 0]
+    ori[:, 0] = data[:, 0]  # - data[0, 1] + data[0, 0]
     ori[:, 1:] = data[:, 11:14]
     plt.figure()
     for i in range(1, 4):
@@ -420,11 +420,11 @@ def try_simple_data_ori(gyr_sigam=0.1, mag_sigma=0.1):
             ahrs.state_transaction_function(gyr[i, 1:], np.identity(3) * gyr_sigam,
                                             gyr[i, 0] - gyr[last_valid_gyr_i, 0])
             last_valid_gyr_i = i
-        # if np.linalg.norm(mag[i, 1:]) > 1.0:
-        #     cov = np.identity(3) * mag_sigma
-        #     ahrs.measurement_function_mag(mag[i, 1:], cov)
-        # if abs(np.linalg.norm(acc[i,1:]))>1.0:
-        #     ahrs.measurement_function_acc(acc[i,1:],np.identity(3)*0.1)
+        if np.linalg.norm(mag[i, 1:]) > 1.0:
+            cov = np.identity(3) * mag_sigma
+            ahrs.measurement_function_mag(mag[i, 1:], cov)
+        if abs(np.linalg.norm(acc[i, 1:]) - 9.81) < 1.0:
+            ahrs.measurement_function_acc(acc[i, 1:], np.identity(3) * 0.1)
         # if np.linalg.norm(mag[i,1:]) > 1.0 and np.linalg.norm(acc[i,1:]) > 1.0:
         #     ahrs.measurement_function_acc_mag(acc[i,1:],mag[i,1:],np.ones([]))
         out_ori[i, 1:] = dcm2euler((q2dcm(ahrs.rotation_q)))
