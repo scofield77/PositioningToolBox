@@ -345,26 +345,38 @@ def try_simple_data_ori(gyr_sigam=0.1, mag_sigma=0.1):
     # data = np.loadtxt('/home/steve/Data/pdr_imu.txt', delimiter=',')
     # data = np.loadtxt('/home/steve/Data/phoneData/0003/HAND_SMARTPHONE_IMU.data', delimiter=',')
     # data = np.loadtxt('/home/steve/Data/phoneData/0004/SMARTPHONE3_IMU.data', delimiter=',')
-    data = np.loadtxt('/home/steve/Data/phoneData/PDRUWBBLEMini/0005/SMARTPHONE2_IMU.data', delimiter=',')
+    data = np.loadtxt('/home/steve/Data/phoneData/PDRUWBBLEMini/0005/SMARTPHONE3_IMU.data', delimiter=',')
+    data2 = np.loadtxt('/home/steve/Data/phoneData/PDRUWBBLEMini/0005/SMARTPHONE2_IMU.data', delimiter=',')
     # print('data.shape:',data.shape)
     step_detector = StepDetector(2.1, 0.8)
     step_estimator = StepLengthEstimatorV()
 
+    #
+    plt.figure()
+    plt.title('time compare')
+    plt.plot(data[:,0],'-+',label='time1')
+    # plt.plot(data2[:,1],'-+',label='time2')
+    plt.grid()
+    plt.legend()
+
+    # data[:,0] = data[:,0] - data[0,1] + data[0,0]
+
     acc = np.zeros([data.shape[0], 4])
-    acc[:, 0] = data[:, 0]
-    acc[:, 1:] = data[:, 2:5]
     gyr = np.zeros([data.shape[0], 4])
     mag = np.zeros([data.shape[0], 4])
     ori = np.zeros([data.shape[0], 4])
 
-    gyr[:, 0] = data[:, 1] - data[0, 1] + data[0, 0]
+    acc[:, 0] = data[:, 0] #- data[0, 1] + data[0, 0]
+    acc[:, 1:] = data[:, 2:5]
+
+    gyr[:, 0] = data[:, 1] #- data[0, 1] + data[0, 0]
     gyr[:, 1:] = data[:, 5:8]
 
-    mag[:, 0] = data[:, 0] - data[0, 1] + data[0, 0]
+    mag[:, 0] = data[:, 0] #- data[0, 1] + data[0, 0]
     mag[:, 1:] = data[:, 8:11]
     # mag[:,2] = -1.0 * mag[:,2]
 
-    ori[:, 0] = data[:, 0] - data[0, 1] + data[0, 0]
+    ori[:, 0] = data[:, 0] #- data[0, 1] + data[0, 0]
     ori[:, 1:] = data[:, 11:14]
     plt.figure()
     for i in range(1, 4):

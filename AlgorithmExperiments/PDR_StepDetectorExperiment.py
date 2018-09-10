@@ -58,3 +58,8 @@ if __name__ == '__main__':
     ori[:, 1:] = data[:, 11:14]
 
     # imu_plot_aux()
+    imu_plot_aux(acc,'acc')
+
+
+
+    plt.show()
