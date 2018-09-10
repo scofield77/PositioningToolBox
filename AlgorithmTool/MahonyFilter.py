@@ -405,6 +405,7 @@ def try_simple_data_ori(gyr_sigam=0.1, mag_sigma=0.1):
     plt.subplot(412)
     for i in range(1, 4):
         plt.plot(mag[:, 0], mag[:, i], label=str(i))
+
     plt.plot(mag[:, 0], np.arctan2(mag[:, 1], mag[:, 2]) / np.pi * 180.0)
     plt.legend()
     plt.subplot(413)
