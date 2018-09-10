@@ -64,6 +64,19 @@ class AHRSEKFSimple:
         self.ref_mag = q2dcm(self.rotation_q).dot(self.ref_mag)
         print('mag sahpe:', self.ref_mag.shape, 'mag:', self.ref_mag)
 
+    def initial_state_with_acc(self, acc, mag_data, z_angle):
+        '''
+
+        :param mag_data:
+        :return:
+        '''
+        self.state, self.rotation_q = get_initial_rotation(acc, z_angle)
+
+        self.ref_mag = np.mean(mag_data, axis=0)
+        self.ref_mag = self.ref_mag / np.linalg.norm(self.ref_mag)
+        self.ref_mag = q2dcm(self.rotation_q).dot(self.ref_mag)
+        print('mag sahpe:', self.ref_mag.shape, 'mag:', self.ref_mag)
+
     # def initial_state_euler(self, ori):
     #     '''
     #     Transform from ori to quaternion
@@ -351,13 +364,13 @@ def try_simple_data_ori(gyr_sigam=0.1, mag_sigma=0.1):
     step_detector = StepDetector(2.1, 0.8)
     step_estimator = StepLengthEstimatorV()
 
-    #
-    plt.figure()
-    plt.title('time compare')
-    plt.plot(data[:, 0], '-+', label='time1')
-    # plt.plot(data2[:,1],'-+',label='time2')
-    plt.grid()
-    plt.legend()
+    # compara time in different files.
+    # plt.figure()
+    # plt.title('time compare')
+    # plt.plot(data[:, 0], '-+', label='time1')
+    # # plt.plot(data2[:,1],'-+',label='time2')
+    # plt.grid()
+    # plt.legend()
 
     # data[:,0] = data[:,0] - data[0,1] + data[0,0]
 
@@ -401,6 +414,7 @@ def try_simple_data_ori(gyr_sigam=0.1, mag_sigma=0.1):
 
     ahrs = AHRSEKFSimple(np.ones([3, 3]) * 0.1)
     ahrs.initial_state(mag[:10, 1:], ori[0, 1:])
+    ahrs.initial_state_with_acc(acc[1:10, 1:], mag[:10, 1:], ori[1, 3])
     # ahrs.initial_state_euler(ori[0, 1:])
 
     out_ori = np.zeros_like(mag)
@@ -423,7 +437,7 @@ def try_simple_data_ori(gyr_sigam=0.1, mag_sigma=0.1):
         if np.linalg.norm(mag[i, 1:]) > 1.0:
             cov = np.identity(3) * mag_sigma
             ahrs.measurement_function_mag(mag[i, 1:], cov)
-        if abs(np.linalg.norm(acc[i, 1:]) - 9.81) < 1.0:
+        if abs(np.linalg.norm(acc[i, 1:]) - 9.81) < 0.3:
             ahrs.measurement_function_acc(acc[i, 1:], np.identity(3) * 0.1)
         # if np.linalg.norm(mag[i,1:]) > 1.0 and np.linalg.norm(acc[i,1:]) > 1.0:
         #     ahrs.measurement_function_acc_mag(acc[i,1:],mag[i,1:],np.ones([]))

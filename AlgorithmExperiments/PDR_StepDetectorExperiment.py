@@ -61,7 +61,9 @@ if __name__ == '__main__':
     imu_plot_aux(acc,'acc')
 
 
-    # def peak_and_valley_detector(acc,rotation);
+    # def peak_and_valley_detector(acc,rotation):
+
+
 
 
 
