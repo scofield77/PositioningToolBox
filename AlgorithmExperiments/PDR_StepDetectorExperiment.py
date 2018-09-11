@@ -70,6 +70,8 @@ if __name__ == '__main__':
             flag_array[i] = np.linalg.norm(acc[i,1:])
 
     plt.plot(acc[:,0],flag_array,'+')
+    # plt.plot(mag[:,0],np.linalg.norm(mag[:,1:],axis=1)/5.0)
+    plt.plot(gyr[:,0],np.linalg.norm(gyr[:,1:],axis=1)/2.5)
 
 
 
