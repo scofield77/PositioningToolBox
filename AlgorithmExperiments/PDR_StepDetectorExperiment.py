@@ -62,6 +62,16 @@ if __name__ == '__main__':
 
 
     # def peak_and_valley_detector(acc,rotation):
+    flag_array = np.zeros(acc.shape[0])
+    for i in range(1,flag_array.shape[0]-1):
+        if np.linalg.norm(acc[i,1:]) > max(np.linalg.norm(acc[i-1,1:]),np.linalg.norm(acc[i+1,1:])):
+            flag_array[i] = np.linalg.norm(acc[i,1:])
+        elif np.linalg.norm(acc[i,1:]) < min(np.linalg.norm(acc[i-1,1:]),np.linalg.norm(acc[i+1,1:])):
+            flag_array[i] = np.linalg.norm(acc[i,1:])
+
+    plt.plot(acc[:,0],flag_array,'+')
+
+
 
 
 
