@@ -61,17 +61,19 @@ if __name__ == '__main__':
 
     # def peak_and_valley_detector(acc,rotation):
     flag_array = np.zeros(acc.shape[0])
+    step_array = np.zeros(acc.shape[0])
     # low_pass_array[0] = np.linalg.norm(acc[0,1:])
     low_pass_alpha_list = [0.002, 0.01, 0.2, 0.5, 0.8]
     low_pass_alpha_list = [0.0001, 0.0005, 0.001]  # , 0.002, 0.01]# 0.2, 0.5, 0.8]
     low_pass_array = np.zeros([acc.shape[0], len(low_pass_alpha_list)])
     low_pass_array[0, :] = 0.0 + np.linalg.norm(acc[0, 1:])
 
-    acc_atd = np.std(np.linalg.norm(acc[:, 1:], axis=1))
+    acc_std = np.std(np.linalg.norm(acc[:, 1:], axis=1))
+    print('acc std:', acc_std)
 
     last_peak = 0
     last_valley = 0
-    time_interval = 0.3
+    time_interval = 0.2
     small_time_interval = 0.1
 
     for i in range(1, flag_array.shape[0] - 1):
@@ -83,7 +85,7 @@ if __name__ == '__main__':
         ta = 0.3
         acc[i, 1:] = ta * acc[i, 1:] + (1.0 - ta) * acc[i - 1, 1:]
 
-        if abs(np.linalg.norm(acc[i, 1:]) - low_pass_array[i, 0]) > acc_atd * 1.0:
+        if abs(np.linalg.norm(acc[i, 1:]) - low_pass_array[i, 0]) > acc_std * 1.0:
             if np.linalg.norm(acc[i, 1:]) > max(np.linalg.norm(acc[i - 1, 1:]), np.linalg.norm(acc[i + 1, 1:])) and \
                     acc[i, 0] - acc[last_peak, 0] > time_interval and acc[i, 0] - acc[
                 last_valley, 0] > small_time_interval and last_peak <= last_valley:
@@ -93,9 +95,11 @@ if __name__ == '__main__':
                     and acc[i, 0] - acc[last_valley, 0] > time_interval and acc[i, 0] - acc[
                 last_peak, 0] > small_time_interval and last_valley < last_peak:
                 flag_array[i] = np.linalg.norm(acc[i, 1:])
+                step_array[i] = np.linalg.norm(acc[last_peak,1:])
                 last_valley = i
 
     plt.plot(acc[:, 0], flag_array, '+')
+    plt.plot(acc[:,0],step_array,'-+',label='step detector')
     # plt.plot(mag[:,0],np.linalg.norm(mag[:,1:],axis=1)/5.0)
     # plt.plot(gyr[:, 0], np.linalg.norm(gyr[:, 1:], axis=1) / 2.5)
     plt.legend()

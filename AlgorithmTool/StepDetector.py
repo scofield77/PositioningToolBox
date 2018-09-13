@@ -216,6 +216,37 @@ class StepDetectorSimple:
         step_flag = False
 
 
+class StepDetectorMannual():
+    def __init__(self, start_time,
+                 pv_time_interval,
+                 time_interval,
+                 low_pass_alpha,
+                 ref_low_pass_alpha,
+                 acc_sigma,
+                 initial_acc=9.81):
+        '''
+
+        :param start_time: start time of acc time stamp
+        :param pv_time_interval: minimum time interval between peak and valley.
+        :param time_interval: minimum time interval between adjacent peak points or valley points.
+        :param low_pass_alpha: low pass filter parameter for source acc.
+        :param ref_low_pass_alpha: low pass filter parameter for reference acc which should represent low frequency motion.
+        :param acc_sigma: std of acc during the whole process
+        :param initial_acc: for initial the acc algorithm
+        '''
+
+        self.last_peak_time = start_time
+        self.last_valley_time = start_time
+        self.acc_low_pass = initial_acc
+        self.acc_norm = initial_acc
+
+        self.pv_time_interval = pv_time_interval
+        self.time_interval = time_interval
+        self.low_pass_alpha = low_pass_alpha
+        self.ref_low_pass_alpha = ref_low_pass_alpha
+        self.acc_sigma = acc_sigma
+
+
 
 
 def try_simple_data():
