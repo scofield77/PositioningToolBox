@@ -67,8 +67,9 @@ if __name__ == '__main__':
     low_pass_array[0, :] = 0.0 + np.linalg.norm(acc[0, 1:])
 
     for i in range(1, flag_array.shape[0] - 1):
-        for low_pass_alpha, j in enumerate(low_pass_alpha_list):
-            low_pass_array[i, j] = (1.0 - low_pass_alpha) * low_pass_array[i - 1] + (low_pass_alpha) * np.linalg.norm(
+        for j, low_pass_alpha in enumerate(low_pass_alpha_list):
+            low_pass_array[i, j] = (1.0 - low_pass_alpha) * low_pass_array[i - 1, j] + (
+                low_pass_alpha) * np.linalg.norm(
                 acc[i, 1:])
 
         if np.linalg.norm(acc[i, 1:]) > max(np.linalg.norm(acc[i - 1, 1:]), np.linalg.norm(acc[i + 1, 1:])):
@@ -83,9 +84,8 @@ if __name__ == '__main__':
 
     # plt.plot(acc[:,0],low_pass_array,'--',label='low_pass')
     plt.figure()
-    for j in range(len(low_pass_alpha)):
-        plt.plot(low_pass_array[j,:],label=str(j))
+    for j in range(len(low_pass_alpha_list)):
+        plt.plot(low_pass_array[:, j], label=str(j))
     plt.legend()
-
 
     plt.show()
