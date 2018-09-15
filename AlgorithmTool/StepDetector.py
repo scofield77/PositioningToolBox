@@ -246,7 +246,9 @@ class StepDetectorMannual():
         self.ref_low_pass_alpha = ref_low_pass_alpha
         self.acc_sigma = acc_sigma
 
-
+    def check_step(self, acc):
+        self.acc_low_pass = (1.0 - self.low_pass_alpha) * self.acc_low_pass + \
+                            self.low_pass_alpha * np.linalg.norm(acc[1, 1:])
 
 
 def try_simple_data():
