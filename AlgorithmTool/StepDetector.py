@@ -259,6 +259,7 @@ class StepDetectorMannual():
                             self.low_pass_alpha * np.linalg.norm(acc[1, 1:])
 
         # self.acc_norm =
+        flag = False
 
 
         if abs(np.linalg.norm(acc[i, 1:]) - self.acc_low_pass) > self.acc_sigma * 1.0:
@@ -266,10 +267,10 @@ class StepDetectorMannual():
                     acc[1, 0] - self.last_peak_time > self.time_interval and \
                     acc[1, 0] -self.last_valley_time > self.pv_time_interval and \
                     self.last_peak_time<=self.last_valley_time:
-                # flag_array[i] = np.linalg.norm(acc[i, 1:])
+                flag = True
                 # last_peak = i
                 self.last_peak_time = acc[1,0]
-            elif np.linalg.norm(acc[i, 1:]) < min(np.linalg.norm(acc[i - 1, 1:]), np.linalg.norm(acc[i + 1, 1:])) \
+            elif np.linalg.norm(acc[1, 1:]) < min(np.linalg.norm(acc[i - 1, 1:]), np.linalg.norm(acc[i + 1, 1:])) \
                     and acc[i, 0] - acc[last_valley, 0] > time_interval and acc[i, 0] - acc[
                 last_peak, 0] > small_time_interval and last_valley < last_peak:
                 flag_array[i] = np.linalg.norm(acc[i, 1:])
