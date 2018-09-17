@@ -260,27 +260,35 @@ class StepDetectorMannual():
 
         # self.acc_norm =
         flag = False
+        state_flag = 0
 
 
-        if abs(np.linalg.norm(acc[i, 1:]) - self.acc_low_pass) > self.acc_sigma * 1.0:
-            if np.linalg.norm(acc[i, 1:]) > max(np.linalg.norm(acc[0, 1:]), np.linalg.norm(acc[2, 1:])) and \
+        if abs(np.linalg.norm(acc[1, 1:]) - self.acc_low_pass) > self.acc_sigma * 1.0:
+            if np.linalg.norm(acc[1, 1:]) > max(np.linalg.norm(acc[0, 1:]), np.linalg.norm(acc[2, 1:])) and \
                     acc[1, 0] - self.last_peak_time > self.time_interval and \
                     acc[1, 0] -self.last_valley_time > self.pv_time_interval and \
                     self.last_peak_time<=self.last_valley_time:
-                flag = True
+                # flag = True
+                state_flag =1
                 # last_peak = i
                 self.last_peak_time = acc[1,0]
-            elif np.linalg.norm(acc[1, 1:]) < min(np.linalg.norm(acc[i - 1, 1:]), np.linalg.norm(acc[i + 1, 1:])) \
-                    and acc[i, 0] - acc[last_valley, 0] > time_interval and acc[i, 0] - acc[
-                last_peak, 0] > small_time_interval and last_valley < last_peak:
-                flag_array[i] = np.linalg.norm(acc[i, 1:])
-                step_array[i] = np.linalg.norm(acc[last_peak,1:])
-                last_valley = i
+            elif np.linalg.norm(acc[1, 1:]) < min(np.linalg.norm(acc[0, 1:]), np.linalg.norm(acc[2, 1:])) \
+                    and acc[1,0] - self.last_valley_time > self.pv_time_interval and \
+                    acc[1, 0] - self.last_peak_time > self.time_interval and\
+                    self.last_valley_time < self.last_peak_time:
+                # flag_array[i] = np.linalg.norm(acc[i, 1:])
+                # step_array[i] = np.linalg.norm(acc[last_peak,1:])
+                # last_valley = i
+                self.last_valley_time = acc[1,0]
+                flag = True
+                state_flag = 0
+        return flag
 
 
 def try_simple_data():
     data = np.loadtxt('/home/steve/Data/pdr_imu.txt', delimiter=',')
     step_detector = StepDetector(5.0, 2.0)
+    # step_detector = StepDetectorMannual(data[0,0],1.4)
 
     acc = np.zeros([data.shape[0], 4])
     acc[:, 0] = data[:, 0]

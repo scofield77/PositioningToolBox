@@ -28,7 +28,7 @@ import numpy as np
 import scipy as sp
 
 from AlgorithmTool.LogLoader import LogLoader
-from AlgorithmTool.StepDetector import StepDetector
+from AlgorithmTool.StepDetector import *
 from AlgorithmTool.StepLengthEstimator import StepLengthEstimatorV
 
 
@@ -294,8 +294,10 @@ def try_ipin_data():
 def try_Phonemini_data():
     # data = np.loadtxt('/home/steve/Data/pdr_imu.txt', delimiter=',')
     data = np.loadtxt('/home/steve/Data/phoneData/PDRUWBBLEMini/0006/SMARTPHONE3_IMU.data', delimiter=',')
-    step_detector = StepDetector(1.0, 0.8)
-    step_estimator = StepLengthEstimatorV()
+    # step_detector = StepDetector(1.0, 0.8)
+    step_detector = StepDetectorMannual(data[0,0],1.4,0.4,0.8,0.9,0.1)
+
+    # step_estimator = StepLengthEstimatorV()
 
     t = data[:,0]
     data = data[:,1:]
@@ -346,9 +348,12 @@ def try_Phonemini_data():
         else:
             alpha = 0.2
             mag[i, 1:] = alpha * mag[i, 1:] + (1.0 - alpha) * mag[i, 1:]
-        if step_detector.step_detection(acc[i - 1:i + 2, 1:], i, acc[i, 0]):
-            step_flag[i] = step_estimator.step_length_estimate(step_detector.miu_alpha * 2.0) + 10.0
-            step_length = step_estimator.step_length_estimate(step_detector.miu_alpha * 2.0)
+        # if step_detector.step_detection(acc[i - 1:i + 2, 1:], i, acc[i, 0]):
+        if step_detector.step_detection(acc[i - 1:i + 2, 1:],  acc[i, 0]):
+            # step_flag[i] = step_estimator.step_length_estimate(step_detector.miu_alpha * 2.0) + 10.0
+            # step_length = step_estimator.step_length_estimate(step_detector.miu_alpha * 2.0)
+            step_flag[i] = 10.0
+            step_length = 1.2
             # if i < 10:
 
             if i < 50:
