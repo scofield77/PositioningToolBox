@@ -277,7 +277,6 @@ def try_ipin_data():
     #     plt.plot(acc[:, 0], acc[:, i])
     plt.plot(acc[:, 0], np.linalg.norm(acc[:, 1:], axis=1), '-')
 
-
     step_flag = np.zeros(acc.shape[0])
     step_alpha = np.zeros(acc.shape[0])
     step_p = np.zeros_like(step_alpha)
@@ -286,22 +285,27 @@ def try_ipin_data():
         if step_detector.step_detection(acc[i - 1:i + 2, 1:], i, acc[i, 0]):
             step_flag[i] = 10.0
 
-
     plt.plot(acc[:, 0], step_flag, '-+r')
     plt.grid()
     plt.show()
+
 
 def try_Phonemini_data():
     # data = np.loadtxt('/home/steve/Data/pdr_imu.txt', delimiter=',')
     data = np.loadtxt('/home/steve/Data/phoneData/PDRUWBBLEMini/0006/SMARTPHONE3_IMU.data', delimiter=',')
     # step_detector = StepDetector(1.0, 0.8)
-    step_detector = StepDetectorMannual(data[0,0],1.4,0.4,0.8,0.9,0.1)
+    step_detector = StepDetectorMannual(data[0, 0],
+                                        1.4,
+                                        0.4,
+                                        0.8,
+                                        0.9,
+                                        0.1)
 
     # step_estimator = StepLengthEstimatorV()
 
-    t = data[:,0]
-    data = data[:,1:]
-    data[:,0] = t*1.0
+    t = data[:, 0]
+    data = data[:, 1:]
+    data[:, 0] = t * 1.0
 
     acc = np.zeros([data.shape[0], 4])
     acc[:, 0] = data[:, 0]
@@ -339,9 +343,8 @@ def try_Phonemini_data():
 
     import math
     for i in range(1, acc.shape[0] - 1):
-        if np.linalg.norm(ori[i,1:]) < 1.0:
-            ori[i,1:] = ori[i-1,1:]*1.0
-
+        if np.linalg.norm(ori[i, 1:]) < 1.0:
+            ori[i, 1:] = ori[i - 1, 1:] * 1.0
 
         if np.linalg.norm(mag[i, 1:3]) < 0.1:
             mag[i, 1:] = mag[i - 1, 1:]
@@ -349,7 +352,7 @@ def try_Phonemini_data():
             alpha = 0.2
             mag[i, 1:] = alpha * mag[i, 1:] + (1.0 - alpha) * mag[i, 1:]
         # if step_detector.step_detection(acc[i - 1:i + 2, 1:], i, acc[i, 0]):
-        if step_detector.step_detection(acc[i - 1:i + 2, 1:],  acc[i, 0]):
+        if step_detector.step_detection(acc[i - 1:i + 2, 1:], acc[i, 0]):
             # step_flag[i] = step_estimator.step_length_estimate(step_detector.miu_alpha * 2.0) + 10.0
             # step_length = step_estimator.step_length_estimate(step_detector.miu_alpha * 2.0)
             step_flag[i] = 10.0
@@ -357,9 +360,9 @@ def try_Phonemini_data():
             # if i < 10:
 
             if i < 50:
-                simple_ori = ori[i, 2] #* 2.0
+                simple_ori = ori[i, 2]  # * 2.0
             else:
-                simple_ori = np.mean(ori[i - 50:i, 2]) #* 2.0
+                simple_ori = np.mean(ori[i - 50:i, 2])  # * 2.0
             # simple_ori = ori[i,1]*3.0
             # H
 
@@ -391,19 +394,19 @@ def try_Phonemini_data():
     plt.figure()
     plt.subplot(311)
     plt.title('gyr')
-    for i in range(1,4):
-        plt.plot(gyr[:,0],gyr[:,i])
+    for i in range(1, 4):
+        plt.plot(gyr[:, 0], gyr[:, i])
     plt.subplot(312)
     plt.title('mag')
-    for i in range(1,4):
-        plt.plot(mag[:,0],mag[:,i],'+',label=str(i))
-    plt.plot(mag[:,0],step_ori/np.pi * 180.0,'--+')
+    for i in range(1, 4):
+        plt.plot(mag[:, 0], mag[:, i], '+', label=str(i))
+    plt.plot(mag[:, 0], step_ori / np.pi * 180.0, '--+')
     plt.legend()
 
     plt.subplot(313)
     plt.title('ori')
-    for i in range(1,4):
-        plt.plot(ori[:,0],ori[:,i]/np.pi * 180.0,'+')
+    for i in range(1, 4):
+        plt.plot(ori[:, 0], ori[:, i] / np.pi * 180.0, '+')
 
     # plt.figure()
     # plt.plot(np.arctan2(mag[:,1],mag[:,2])/np.pi * 180.0)
