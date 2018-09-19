@@ -98,7 +98,8 @@ class settings:
 
 
 # @jit(cache=True)
-@jit(float64[:](float64[:, :], float64, float64, float64, float64, int32), nopython=True)#, parallel=True)#, cache=True)
+@jit(float64[:](float64[:, :], float64, float64, float64, float64, int32),
+     nopython=True)  # , parallel=True)#, cache=True)
 def GLRT_Detector(u,
                   sigma_a=0.4,
                   sigma_g=0.4 * np.pi / 180.0,
@@ -411,7 +412,7 @@ def q2dcm(q_in):
     return R
 
 
-@jit(nopython=True,cache=True)
+@jit(nopython=True, cache=True)
 def dcm2euler(R):
     euler = np.zeros(3)
     euler[0] = math.atan2(R[2, 1], R[2, 2])
@@ -449,7 +450,7 @@ def get_initial_rotation(imu_data,
 
 
 # return state
-def imu_plot_aux(data, title_name='default'):
+def imu_plot_aux(data, time=None, title_name='default'):
     '''
 
     :param data:
@@ -458,10 +459,17 @@ def imu_plot_aux(data, title_name='default'):
     '''
     plt.figure()
     plt.title(title_name)
-    for i in range(1, 4):
-        plt.plot(data[:, 0], data[:, i], label=str(i))
+
+    if time is None:
+        for i in range(1, 4):
+            plt.plot(data[:, 0], data[:, i], label=str(i))
+    else:
+        for i in range(data.shape[1]):
+            plt.plot(time, data[:, i], label=str(i))
+
     plt.grid()
     plt.legend()
+
 
 if __name__ == '__main__':
     '''
