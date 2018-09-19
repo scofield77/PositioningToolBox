@@ -50,18 +50,34 @@ if __name__ == '__main__':
     right_imu = imu_data_preprocess(np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=','))
     head_imu = imu_data_preprocess(np.loadtxt(dir_name + 'HEAD.data', delimiter=','))
     # phone_imu =imu_data_preprocess(np.)
-    phone_imu = np.loadtxt(dir_name + 'SMARTPHONE2_IMU.data', delimiter=',')[:,1:]
+    phone_imu = np.loadtxt(dir_name + 'SMARTPHONE2_IMU.data', delimiter=',')[:, 1:]
+    # phone_imu[:, 0] = phone_imu[0, 0] + (phone_imu[-1, 0] - phone_imu[0, 0]) / float(phone_imu.shape[0])
+    phone_imu_average_time_interval = (phone_imu[-1, 0] - phone_imu[0, 0]) / float(phone_imu.shape[0])
+    for i in range(1,phone_imu.shape[0]):
+        phone_imu[i,0] = phone_imu[i-1,0]+phone_imu_average_time_interval
 
 
-    # left_imu = left_imu[:, 1:]
-
+    # plot data
     # plt.figure()
     # plt.plot(left_imu[:,1:4],'acc')
     # imu_plot_aux(left_imu[:, 1:4], time=left_imu[:, 0], title_name='acc')
     # imu_plot_aux(left_imu[:, 4:7], time=left_imu[:, 0], title_name='gyr')
 
-    imu_plot_aux(phone_imu[:,1:4],phone_imu[:,0],'acc')
-    imu_plot_aux(phone_imu[:,4:7],phone_imu[:,0],'gyr')
+    # imu_plot_aux(phone_imu[:,1:4],phone_imu[:,0],'acc')
+    # imu_plot_aux(phone_imu[:,4:7],phone_imu[:,0],'gyr')
+
+    # plot Time compare
+    # plt.figure()
+    # plt.title('time compare')
+    # plt.plot(left_imu[:, 0], '+-', label='left')
+    # plt.plot(right_imu[:, 0], '+-', label='right')
+    # plt.plot(head_imu[:, 0], '+-', label='head')
+    # plt.plot(phone_imu[:, 0], '+-', label='phone')
+    #
+    # plt.grid()
+    # plt.legend()
+
+
 
 
     plt.show()
