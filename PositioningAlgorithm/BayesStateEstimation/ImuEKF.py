@@ -67,7 +67,7 @@ class ImuEKFComplex:
 
     def initial_state(self, imu_data: np.ndarray,
                       pos=np.asarray((0.0, 0.0, 0.0)),
-                      ori: float = 0.0, mag = np.asarray((0.0,0.0,0.0))):
+                      ori: float = 0.0, mag = np.asarray((1.0,0.0,0.0))):
         '''
         Initial state based on given position and orientation(angle of z-axis)
         :param imu_data:

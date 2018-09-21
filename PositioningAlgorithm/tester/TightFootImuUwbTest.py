@@ -208,8 +208,8 @@ if __name__ == '__main__':
     # initial_orientation = 50.0 * np.pi / 180.0  # 36
     # initial_orientation = 80.0 * np.pi / 180.0  # 38
     # initial_orientation = 80.0 * np.pi / 180.0  # 37
-    # initial_orientation = 80.0 * np.pi / 180.0  # 39
-    initial_orientation = 80.0 * np.pi / 180.0  # 40
+    initial_orientation = 80.0 * np.pi / 180.0  # 39
+    # initial_orientation = 80.0 * np.pi / 180.0  # 40
     orkf = ImuEKFComplex(np.diag((
         0.1,
         0.1,
