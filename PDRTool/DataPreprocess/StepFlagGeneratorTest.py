@@ -22,3 +22,61 @@
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 
          佛祖保佑       永无BUG 
 '''
+
+
+
+import numpy as np
+import scipy as sp
+import matplotlib.pyplot as plt
+
+from AlgorithmTool.ImuTools import *
+from PositioningAlgorithm.BayesStateEstimation.ImuEKF import ImuEKFComplex
+
+
+def imu_data_preprocess(imu_data):
+    '''
+
+    :param imu_data:
+    :return: time(s),acc x-y-z(m/s/s), gyr x-y-z (rad/s), mag(?)
+    '''
+    imu_data = imu_data[:, 1:]
+    imu_data[:, 1:4] = imu_data[:, 1:4] * 9.81
+    imu_data[:, 4:7] = imu_data[:, 4:7] * (np.pi / 180.0)
+
+    return imu_data * 1.0  #
+
+
+if __name__ == '__main__':
+    dir_name = '/home/steve/Data/PDR/0005/'
+
+    left_imu = imu_data_preprocess(np.loadtxt(dir_name + 'LEFT_FOOT.data', delimiter=','))
+    right_imu = imu_data_preprocess(np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=','))
+    head_imu = imu_data_preprocess(np.loadtxt(dir_name + 'HEAD.data', delimiter=','))
+    phone_imu = np.loadtxt(dir_name + 'SMARTPHONE2_IMU.data', delimiter=',')[:, 1:]
+    # process time interval
+    phone_imu_average_time_interval = (phone_imu[-1, 0] - phone_imu[0, 0]) / float(phone_imu.shape[0])
+    for i in range(1, phone_imu.shape[0]):
+        phone_imu[i, 0] = phone_imu[i - 1, 0] + phone_imu_average_time_interval
+
+    left_zv_state = GLRT_Detector(left_imu[:, 1:7], sigma_a=1.,
+                             sigma_g=1. * np.pi / 180.0,
+                             gamma=200,
+                             gravity=9.8,
+                         time_Window_size=15)
+
+
+    right_zv_state = GLRT_Detector(right_imu[:, 1:7], sigma_a=1.,
+                                  sigma_g=1. * np.pi / 180.0,
+                                   gamma=200,
+                                   gravity=9.8,
+                                   time_Window_size=15)
+
+
+
+    plt.figure()
+    plt.plot(left_imu[:,0],left_zv_state,label='left')
+    plt.plot(right_imu[:,0],right_zv_state,label='right')
+    plt.legend()
+
+
+    plt.show()
