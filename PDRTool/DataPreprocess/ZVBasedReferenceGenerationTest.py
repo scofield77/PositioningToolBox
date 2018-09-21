@@ -72,23 +72,24 @@ if __name__ == '__main__':
         0.0001 * np.pi / 180.0,
         0.0001 * np.pi / 180.0
     )),
-        local_g=-9.81, time_interval=(left_imu[-1,0]-left_imu[0,0])/float(left_imu.shape[0]))
-    print('average time interval:', (left_imu[-1,0]-left_imu[0,0])/float(left_imu.shape[0]))
-    zv_state = GLRT_Detector(left_imu[:, 1:7], sigma_a=1.5,
-                             sigma_g=1.5 * np.pi / 180.0,
+        local_g=-9.81, time_interval=(left_imu[-1, 0] - left_imu[0, 0]) / float(left_imu.shape[0]))
+    print('average time interval:', (left_imu[-1, 0] - left_imu[0, 0]) / float(left_imu.shape[0]))
+
+    kf.initial_state(left_imu[:50, 1:7],
+                     mag=left_imu[0, 7:10]
+                     )
+
+    zv_state = GLRT_Detector(left_imu[:, 1:7], sigma_a=1.,
+                             sigma_g=1. * np.pi / 180.0,
                              gamma=200,
                              gravity=9.8,
                              time_Window_size=5)
 
-    kf.initial_state(left_imu[:50, 1:7],
-                     )
-
     # imu_plot_aux(left_imu[:,1:4],left_imu[:,1:4],'acc')
     plt.figure()
     # plt.plot(left_imu[:,0],zv_state,'+-')
-    plt.plot(np.linalg.norm(left_imu[:,1:4],axis=1))
-    plt.plot(zv_state*10.0,'r-')
-
+    plt.plot(np.linalg.norm(left_imu[:, 1:4], axis=1))
+    plt.plot(zv_state * 10.0, 'r-')
 
     pos = np.zeros([left_imu.shape[0], 3])
 
@@ -99,13 +100,18 @@ if __name__ == '__main__':
                                                                  0.01 * np.pi / 180.0)))
         if zv_state[i] > 0.5:
             kf.measurement_function_zv(np.asarray((0, 0, 0)),
-                                       np.diag((0.001, 0.01, 0.001)))
+                                       np.diag((0.0001, 0.0001, 0.0001)))
         pos[i, :] = kf.state[:3]
-
 
     plt.figure()
     plt.plot(pos[:, 0], pos[:, 1], '-+')
     plt.grid()
+    plt.savefig(dir_name + 'ref_trace.png')
 
+    new_trace = np.zeros([pos.shape[0], 4])
+    new_trace[:, 0] = left_imu[:, 0]
+    new_trace[:, 1:] = pos
+    np.savetxt(dir_name + '/ref_trace_with_time.csv', new_trace, delimiter=',')
+    np.savetxt(dir_name + '/chronic_phone_data.csv', phone_imu, delimiter=',')
 
     plt.show()

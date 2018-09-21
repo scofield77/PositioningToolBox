@@ -59,7 +59,7 @@ if __name__ == '__main__':
     start_time = time.time()
     # dir_name = '/home/steve/Data/FusingLocationData/0017/'
     dir_name = '/home/steve/Data/NewFusingLocationData/0039/'
-    dir_name = '/home/steve/Data/PDR/0006/'
+    dir_name = '/home/steve/Data/PDR/0005/'
     # dir_name = 'D:\\NewFusingLocationData\\0035\\'
 
     imu_data = np.loadtxt(dir_name + 'LEFT_FOOT.data', delimiter=',')
