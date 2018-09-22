@@ -67,6 +67,11 @@ if __name__ == '__main__':
                                    gamma=300,
                                    gravity=9.8,
                                    time_Window_size=15)
+    plt.figure()
+    # plt.plot(left_imu[:,0]-right_imu[:left_imu.shape[0],0])
+    plt.plot(left_imu[:,0])
+    plt.plot(right_imu[:,0])
+    plt.grid()
 
     plt.figure()
     plt.plot(left_imu[:, 0], left_zv_state, label='left')
