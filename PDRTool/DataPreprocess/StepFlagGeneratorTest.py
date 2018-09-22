@@ -23,8 +23,6 @@
          佛祖保佑       永无BUG 
 '''
 
-
-
 import numpy as np
 import scipy as sp
 import matplotlib.pyplot as plt
@@ -58,25 +56,21 @@ if __name__ == '__main__':
     for i in range(1, phone_imu.shape[0]):
         phone_imu[i, 0] = phone_imu[i - 1, 0] + phone_imu_average_time_interval
 
-    left_zv_state = GLRT_Detector(left_imu[:, 1:7], sigma_a=1.,
-                             sigma_g=1. * np.pi / 180.0,
-                             gamma=200,
-                             gravity=9.8,
-                         time_Window_size=15)
-
-
-    right_zv_state = GLRT_Detector(right_imu[:, 1:7], sigma_a=1.,
+    left_zv_state = GLRT_Detector_prob(left_imu[:, 1:7], sigma_a=1.,
                                   sigma_g=1. * np.pi / 180.0,
-                                   gamma=200,
+                                  gamma=300,
+                                  gravity=9.8,
+                                  time_Window_size=15)
+
+    right_zv_state = GLRT_Detector_prob(right_imu[:, 1:7], sigma_a=1.,
+                                   sigma_g=1. * np.pi / 180.0,
+                                   gamma=300,
                                    gravity=9.8,
                                    time_Window_size=15)
 
-
-
     plt.figure()
-    plt.plot(left_imu[:,0],left_zv_state,label='left')
-    plt.plot(right_imu[:,0],right_zv_state,label='right')
+    plt.plot(left_imu[:, 0], left_zv_state, label='left')
+    plt.plot(right_imu[:, 0], right_zv_state, label='right')
     plt.legend()
-
 
     plt.show()

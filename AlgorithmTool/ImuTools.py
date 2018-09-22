@@ -168,6 +168,78 @@ def GLRT_Detector(u,
     return zupt
 
 
+# @jit(cache=True)
+@jit(float64[:](float64[:, :], float64, float64, float64, float64, int32),
+     nopython=True)  # , parallel=True)#, cache=True)
+def GLRT_Detector_prob(u,
+                       sigma_a=0.4,
+                       sigma_g=0.4 * np.pi / 180.0,
+                       gamma=280.0,
+                       gravity=9.8,
+                       time_Window_size=10):
+    '''
+    zero-velocity detect function.
+    :param u: imu data  acc(m/m^2) gyr(rad/s)
+    :param sigma_a:
+    :param sigma_g:
+    :param gamma:
+    :param gravity:
+    :param time_Window_size:
+    :return:
+    '''
+    g = gravity
+
+    sigma2_a = sigma_a
+    sigma2_g = sigma_g
+    sigma2_a = sigma2_a ** 2.0
+    sigma2_g = sigma2_g ** 2.0
+
+    W = time_Window_size
+    # W = u.
+
+    N = u.shape[0]
+    T = np.zeros((N - W + 1, 1))
+
+    for k in prange(N - W + 1):
+        # ya_m = np.mean(u[k:k + W - 1, 0:3], 0)
+        ya_m = np.zeros(3)
+        count = 0
+        for j in range(k, k + W - 1):
+            # ya_m = ya_m + u[j, 0]
+            # ya_m = ya_m + u[j, 1]
+            # ya_m = ya_m + u[j, 2]
+            for d in range(3):
+                ya_m[d] = ya_m[d] + u[j, d]
+            count += 1
+        ya_m = ya_m / float(count)
+        # print(ya_m.shape)
+
+        for l in range(k, k + W - 1):
+            # tmp = u[l, 0:3] - g * ya_m / np.linalg.norm(ya_m)
+            tmp = np.zeros(3)
+            for j in range(3):
+                tmp[j] = u[l, j] - g * ya_m[j] / np.linalg.norm(ya_m)
+
+            T[k] = T[k] + (np.linalg.norm(u[l, 3:6]) ** 2.0) / sigma2_g + \
+                   (np.linalg.norm(tmp) ** 2.0) / sigma2_a
+
+    T = T / W
+
+    zupt = np.zeros(shape=(u.shape[0]))
+    # import matplotlib.pyplot as plt
+    # plt.figure(1)
+    # plt.plot(T)
+    # plt.show()
+    for k in range(T.shape[0]):
+        # if T[k, 0] < gamma:
+        # zupt[k:k + W] = np.ones([W, 1])
+        for j in range(k, k + W):
+            zupt[j] = np.log(1.0+gamma/T[k,0])
+        # zupt[j] = T[k, 0] / gamma
+
+    return zupt
+
+
 # @jit('float64[:](float64[:],float64[:],float64)')
 @jit(float64[:](float64[:], float64[:], float64), nopython=True, cache=True)
 def quaternion_right_update(q, euler, rate):
