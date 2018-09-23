@@ -45,7 +45,7 @@ def imu_data_preprocess(imu_data):
 
 
 if __name__ == '__main__':
-    dir_name = '/home/steve/Data/PDR/0005/'
+    dir_name = '/home/steve/Data/PDR/0002/'
 
     left_imu = imu_data_preprocess(np.loadtxt(dir_name + 'LEFT_FOOT.data', delimiter=','))
     right_imu = imu_data_preprocess(np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=','))
@@ -105,12 +105,22 @@ if __name__ == '__main__':
 
 
     plt.figure()
+    plt.title('foot imu AND step flag')
     plt.plot(left_imu[:,0],np.linalg.norm(left_imu[:,1:4],axis=1),label='left')
     plt.plot(right_imu[:,0],np.linalg.norm(right_imu[:,1:4],axis=1),label='right')
     plt.plot(change_flag_array[:,0],change_flag_array[:,1],'*',label='change')
 
+    plt.grid()
+    plt.legend()
+
+    plt.figure()
+    plt.title('phone imu AND step flag')
+    plt.plot(phone_imu[:,0],np.linalg.norm(phone_imu[:,1:4],axis=1),label='phone')
+    plt.plot(change_flag_array[:,0],change_flag_array[:,1],'*',label='change')
 
     plt.grid()
     plt.legend()
+
+
 
     plt.show()
