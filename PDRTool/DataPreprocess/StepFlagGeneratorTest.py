@@ -67,16 +67,50 @@ if __name__ == '__main__':
                                    gamma=300,
                                    gravity=9.8,
                                    time_Window_size=15)
-    plt.figure()
-    # plt.plot(left_imu[:,0]-right_imu[:left_imu.shape[0],0])
-    plt.plot(left_imu[:,0])
-    plt.plot(right_imu[:,0])
-    plt.plot(phone_imu[:,0])
-    plt.grid()
+    # plt.figure()
+    # plt.plot(left_imu[:,0])
+    # plt.plot(right_imu[:,0])
+    # plt.plot(phone_imu[:,0])
+    # plt.grid()
+    from array import array
+
+    flag_array = array('d')
+
+    li = 1
+    ri = 1
+
+    while li < left_imu.shape[0] and ri < right_imu.shape[0]:
+        # if left_zv_state[li]-right_zv_state[ri]>0 and
+        pre_diff = left_zv_state[li-1]-right_zv_state[ri-1]
+        diff = left_zv_state[li]-right_zv_state[ri]
+
+        if pre_diff*diff <0.0:
+            flag_array.append(left_imu[li,0])
+            flag_array.append(15.0)
+
+
+
+        if left_imu[li,0] < right_imu[ri,0]:
+            li+=1
+        else:
+            ri+=1
+
+    change_flag_array = np.frombuffer(flag_array,dtype=np.float).reshape([-1,2])
 
     plt.figure()
     plt.plot(left_imu[:, 0], left_zv_state, label='left')
     plt.plot(right_imu[:, 0], right_zv_state, label='right')
+
+    plt.legend()
+
+
+    plt.figure()
+    plt.plot(left_imu[:,0],np.linalg.norm(left_imu[:,1:4],axis=1),label='left')
+    plt.plot(right_imu[:,0],np.linalg.norm(right_imu[:,1:4],axis=1),label='right')
+    plt.plot(change_flag_array[:,0],change_flag_array[:,1],'*',label='change')
+
+
+    plt.grid()
     plt.legend()
 
     plt.show()
