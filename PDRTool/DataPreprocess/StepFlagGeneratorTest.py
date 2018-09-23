@@ -71,6 +71,7 @@ if __name__ == '__main__':
     # plt.plot(left_imu[:,0]-right_imu[:left_imu.shape[0],0])
     plt.plot(left_imu[:,0])
     plt.plot(right_imu[:,0])
+    plt.plot(phone_imu[:,0])
     plt.grid()
 
     plt.figure()
