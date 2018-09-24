@@ -136,7 +136,7 @@ if __name__ == '__main__':
     # f_change = interp1d(change_flag_array[:, 0], change_flag_array[:, 1])
 
     plt.figure()
-    plt.plot(full_flag_array[:,0],full_flag_array[:,1])
+    plt.plot(full_flag_array[:,0],full_flag_array[:,1],'-+')
     plt.grid()
     np.savetxt(dir_name+'flag_array.csv', full_flag_array[:,1],delimiter=',')
 
