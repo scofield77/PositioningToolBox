@@ -130,14 +130,20 @@ if __name__ == '__main__':
 
     for i in range(full_flag_array.shape[0]):
         full_flag_array[i,1] = (np.min(np.abs(full_flag_array[i,0]-change_flag_array[:,0])))
-        full_flag_array[i,1] = np.exp(full_flag_array[i,1])
+        full_flag_array[i,1] = 1.0/(1.0+np.exp(-1.0*full_flag_array[i,1]))
+
 
 
     # f_change = interp1d(change_flag_array[:, 0], change_flag_array[:, 1])
 
     plt.figure()
+    plt.subplot(211)
     plt.plot(full_flag_array[:,0],full_flag_array[:,1],'-+')
     plt.grid()
     np.savetxt(dir_name+'flag_array.csv', full_flag_array[:,1],delimiter=',')
+
+    # plt.subplot(212)
+    plt.plot(phone_imu[:,0],np.linalg.norm(phone_imu[:,1:4],axis=1))
+
 
     plt.show()
