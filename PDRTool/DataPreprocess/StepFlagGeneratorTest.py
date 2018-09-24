@@ -130,7 +130,11 @@ if __name__ == '__main__':
 
     for i in range(full_flag_array.shape[0]):
         full_flag_array[i,1] = (np.min(np.abs(full_flag_array[i,0]-change_flag_array[:,0])))
-        full_flag_array[i,1] = 1.0/(1.0+np.exp(-1.0*full_flag_array[i,1]))
+        # full_flag_array[i,1] = 1.0/(1.0+np.exp(-1.0*full_flag_array[i,1]))
+    sigma = 0.01
+    full_flag_array[:,1] = 1.0/sigma / np.sqrt(2.0 * np.pi) * \
+                           np.exp(-1.0*(full_flag_array[:,1]*full_flag_array[:,1])/2.0/sigma/sigma)
+
 
 
 

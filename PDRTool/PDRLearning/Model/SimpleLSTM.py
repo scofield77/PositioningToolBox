@@ -22,3 +22,10 @@
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 
          佛祖保佑       永无BUG 
 '''
+
+
+import json
+import torch
+import torch.utils.data as data
+
+class Simple
