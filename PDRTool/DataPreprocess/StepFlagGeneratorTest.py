@@ -46,7 +46,7 @@ def imu_data_preprocess(imu_data):
 
 
 if __name__ == '__main__':
-    dir_name = '/home/steve/Data/PDR/0002/'
+    dir_name = '/home/steve/Data/PDR/0003/'
 
     left_imu = imu_data_preprocess(np.loadtxt(dir_name + 'LEFT_FOOT.data', delimiter=','))
     right_imu = imu_data_preprocess(np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=','))
