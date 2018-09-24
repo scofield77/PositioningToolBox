@@ -26,6 +26,7 @@
 import numpy as np
 import scipy as sp
 import matplotlib.pyplot as plt
+from scipy.interpolate import interp1d
 
 from AlgorithmTool.ImuTools import *
 from PositioningAlgorithm.BayesStateEstimation.ImuEKF import ImuEKFComplex
@@ -57,16 +58,16 @@ if __name__ == '__main__':
         phone_imu[i, 0] = phone_imu[i - 1, 0] + phone_imu_average_time_interval
 
     left_zv_state = GLRT_Detector_prob(left_imu[:, 1:7], sigma_a=1.,
-                                  sigma_g=1. * np.pi / 180.0,
-                                  gamma=300,
-                                  gravity=9.8,
-                                  time_Window_size=15)
+                                       sigma_g=1. * np.pi / 180.0,
+                                       gamma=300,
+                                       gravity=9.8,
+                                       time_Window_size=15)
 
     right_zv_state = GLRT_Detector_prob(right_imu[:, 1:7], sigma_a=1.,
-                                   sigma_g=1. * np.pi / 180.0,
-                                   gamma=300,
-                                   gravity=9.8,
-                                   time_Window_size=15)
+                                        sigma_g=1. * np.pi / 180.0,
+                                        gamma=300,
+                                        gravity=9.8,
+                                        time_Window_size=15)
     # plt.figure()
     # plt.plot(left_imu[:,0])
     # plt.plot(right_imu[:,0])
@@ -81,21 +82,19 @@ if __name__ == '__main__':
 
     while li < left_imu.shape[0] and ri < right_imu.shape[0]:
         # if left_zv_state[li]-right_zv_state[ri]>0 and
-        pre_diff = left_zv_state[li-1]-right_zv_state[ri-1]
-        diff = left_zv_state[li]-right_zv_state[ri]
+        pre_diff = left_zv_state[li - 1] - right_zv_state[ri - 1]
+        diff = left_zv_state[li] - right_zv_state[ri]
 
-        if pre_diff*diff <0.0:
-            flag_array.append(left_imu[li,0])
+        if pre_diff * diff < 0.0:
+            flag_array.append(left_imu[li, 0])
             flag_array.append(15.0)
 
-
-
-        if left_imu[li,0] < right_imu[ri,0]:
-            li+=1
+        if left_imu[li, 0] < right_imu[ri, 0]:
+            li += 1
         else:
-            ri+=1
+            ri += 1
 
-    change_flag_array = np.frombuffer(flag_array,dtype=np.float).reshape([-1,2])
+    change_flag_array = np.frombuffer(flag_array, dtype=np.float).reshape([-1, 2])
 
     plt.figure()
     plt.plot(left_imu[:, 0], left_zv_state, label='left')
@@ -103,24 +102,42 @@ if __name__ == '__main__':
 
     plt.legend()
 
-
     plt.figure()
     plt.title('foot imu AND step flag')
-    plt.plot(left_imu[:,0],np.linalg.norm(left_imu[:,1:4],axis=1),label='left')
-    plt.plot(right_imu[:,0],np.linalg.norm(right_imu[:,1:4],axis=1),label='right')
-    plt.plot(change_flag_array[:,0],change_flag_array[:,1],'*',label='change')
+    plt.plot(left_imu[:, 0], np.linalg.norm(left_imu[:, 1:4], axis=1), label='left')
+    plt.plot(right_imu[:, 0], np.linalg.norm(right_imu[:, 1:4], axis=1), label='right')
+    plt.plot(change_flag_array[:, 0], change_flag_array[:, 1], '*', label='change')
 
     plt.grid()
     plt.legend()
 
     plt.figure()
     plt.title('phone imu AND step flag')
-    plt.plot(phone_imu[:,0],np.linalg.norm(phone_imu[:,1:4],axis=1),label='phone')
-    plt.plot(change_flag_array[:,0],change_flag_array[:,1],'*',label='change')
+    plt.plot(phone_imu[:, 0], np.linalg.norm(phone_imu[:, 1:4], axis=1), label='phone')
+    plt.plot(change_flag_array[:, 0], change_flag_array[:, 1], '*', label='change')
 
     plt.grid()
     plt.legend()
 
+    flag_phone_array = np.zeros(phone_imu.shape[0])
+    # t_index = 0
+    # for i in range(flag_phone_array.shape[0]):
+    # if change_flag_array[t_index]
+    # if change_flag_array[t_index]<phone_imu[i,0]-0.02:
+    #     t_index+=1
+    full_flag_array = np.zeros([phone_imu.shape[0],2])
+    full_flag_array[:,0] = phone_imu[:,0]*1.0
 
+    for i in range(full_flag_array.shape[0]):
+        full_flag_array[i,1] = (np.min(np.abs(full_flag_array[i,0]-change_flag_array[:,0])))
+        full_flag_array[i,1] = np.exp(full_flag_array[i,1])
+
+
+    # f_change = interp1d(change_flag_array[:, 0], change_flag_array[:, 1])
+
+    plt.figure()
+    plt.plot(full_flag_array[:,0],full_flag_array[:,1])
+    plt.grid()
+    np.savetxt(dir_name+'flag_array.csv', full_flag_array[:,1],delimiter=',')
 
     plt.show()
