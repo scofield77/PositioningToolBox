@@ -45,10 +45,30 @@ class SimpleDataSet(data.Dataset):
         self.x_std = np.std(data_x, axis=1)
         data_x = data_x / self.x_std
 
+        # data_y =
+        min_y = np.min(data_y)
+        max_y = np.max(data_y)
+        data_y = (data_y - min_y) / (max_y - min_y)
+
         from array import array
 
         x_array = array('d')
         y_array = array('d')
+
+        i = 0
+        while i < data_x.shape[0] - cut_length:
+            for j in range(i, i + cut_length):
+                # x_array.append()
+                y_array.append(data_y[j])
+                for k in range(data_x.shape[1]):
+                    x_array.append(data_x[j, k])
+            i = i + cut_length - overlap_length
+
+        self.x_dataset = np.frombuffer(x_array, dtype=np.float).reshape([-1, data_x.shape[1]])
+        self.y_dataset = np.frombuffer(y_array, dtype=np.float).reshape([1, -1])
+
+    def __getitem__(self, idx):
+
 
     def preprocess_other(self, other_x):
         '''

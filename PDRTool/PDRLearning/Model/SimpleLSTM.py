@@ -28,4 +28,4 @@ import json
 import torch
 import torch.utils.data as data
 
-class Simple
+# class SimpleLSTM()
