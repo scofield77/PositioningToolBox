@@ -29,6 +29,9 @@ import torch.nn as nn
 import torchvision
 import torchvision.transforms as transforms
 
+
+import tensorboardX
+
 import matplotlib.pyplot as plt
 import scipy   as sp
 import numpy as np
@@ -57,13 +60,13 @@ if __name__ == '__main__':
     ymin = np.min(full_flag_array2)
     ymax = np.max(full_flag_array2)
 
-    valid_y = (full_flag_array2 - ymin) / (ymax - ymin)
+    valid_y = (full_flag_array2 - ymin) / (ymax - ymin) - 0.5
 
     from PDRTool.PDRLearning.Model import SimpleLSTM
 
     model = SimpleLSTM.SimpleLSTM(6,
                                   1,
-                                  20,
+                                  30,
                                   2).to(device)
 
     # model = nn.Sequential(
@@ -83,9 +86,9 @@ if __name__ == '__main__':
 
     cost_array = array('d')
 
-    for epoch in range(500):
+    for epoch in range(5000):
         for i, (dx, dy) in enumerate(train_loader):
-            print(i, dx.shape, dy.shape)
+            # print(i, dx.shape, dy.shape)
             dx = np.transpose(dx, (2, 0, 1))
             dy = np.transpose(dy, (2, 0, 1))
             # dx = dx.reshape([10,-1]).to(device).float()
@@ -106,12 +109,12 @@ if __name__ == '__main__':
             optimizer.step()
             cost_array.append(loss.item())
 
-            if (i) % 1 == 0:
+            if epoch % 100 == 0:
                 print('epos:', epoch, 'step:', i, 'loss: {:.4f}'.format(loss.item()))
 
     with torch.no_grad():
         # y = model(torch.tensor())
-        print('data set x shape', data_set.whole_x.reshape((-1, 1, 6)).shape)
+        # print('data set x shape', data_set.whole_x.reshape((-1, 1, 6)).shape)
         x_tensor = torch.from_numpy(data_set.whole_x.reshape((-1, 1, 6))).float().to(device)
         # x = model(data_set.whole_x.reshape((-1,1,6)).to(device).float())
         y = model(x_tensor).to(torch.device('cpu'))

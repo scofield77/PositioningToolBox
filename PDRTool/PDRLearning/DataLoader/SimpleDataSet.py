@@ -48,7 +48,7 @@ class SimpleDataSet(data.Dataset):
         # data_y =
         min_y = np.min(data_y)
         max_y = np.max(data_y)
-        data_y = (data_y - min_y) / (max_y - min_y)
+        data_y = (data_y - min_y) / (max_y - min_y)-0.5
 
         self.whole_x = data_x * 1.0
         self.whole_y = data_y * 1.0
