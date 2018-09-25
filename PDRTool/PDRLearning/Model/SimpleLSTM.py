@@ -37,14 +37,12 @@ class SimpleLSTM(nn.Module):
                                   hidden_size=hidden_size,
                                   num_layers=num_layers,
                                   batch_first=True)
-                                  # bidirectional=True)
-
+        # bidirectional=True)
 
         self.fc1 = nn.Linear(hidden_size, 20)
         self.dp = nn.Dropout()
         self.ac1 = nn.Tanh()
         self.fc2 = nn.Linear(20, output_size)
-
 
         # self.softmax = nn.Softmax(output_size)
         self.softmax = nn.Sigmoid()
