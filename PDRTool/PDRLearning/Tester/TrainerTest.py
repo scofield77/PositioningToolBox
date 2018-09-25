@@ -84,6 +84,7 @@ if __name__ == '__main__':
     from array import array
 
     cost_array = array('d')
+    model.train()
 
     for epoch in range(2000):
         for i, (dx, dy) in enumerate(train_loader):
@@ -112,6 +113,7 @@ if __name__ == '__main__':
                 print('epos:', epoch, 'step:', i, 'loss: {:.4f}'.format(loss.item()))
 
     with torch.no_grad():
+        model.eval()
         # y = model(torch.tensor())
         # print('data set x shape', data_set.whole_x.reshape((-1, 1, 6)).shape)
         x_tensor = torch.from_numpy(data_set.whole_x.reshape((-1, 1, data_set.input_size))).float().to(device)

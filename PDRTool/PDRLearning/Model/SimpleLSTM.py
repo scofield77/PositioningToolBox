@@ -41,8 +41,10 @@ class SimpleLSTM(nn.Module):
 
 
         self.fc1 = nn.Linear(hidden_size, 20)
+        self.dp = nn.Dropout()
         self.ac1 = nn.Tanh()
         self.fc2 = nn.Linear(20, output_size)
+
 
         # self.softmax = nn.Softmax(output_size)
         self.softmax = nn.Sigmoid()
@@ -66,8 +68,8 @@ class SimpleLSTM(nn.Module):
         for i in range(out.size(1)):
             # real_out[:, i, :] = self.softmax(self.fc(out[:, i, :]))
             # real_out[:, i, :] = self.fc(out[:, i, :])
-            # real_out[:, i, :] = self.fc2(self.ac1(self.fc1(out[:, i, :])))
-            real_out[:, i, :] = self.softmax(self.fc2(self.ac1(self.fc1(out[:, i, :]))))
+            real_out[:, i, :] = self.fc2(self.ac1(self.dp(self.fc1(out[:, i, :]))))
+            # real_out[:, i, :] = self.softmax(self.fc2(self.ac1(self.fc1(out[:, i, :]))))
         # for batch_i in range(out.size(1)):
         #     for time_i in range(out.size(0)):
         #         print(self.softmax(self.fc(out[time_i, batch_i, :].reshape([-1]))))
