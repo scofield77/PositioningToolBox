@@ -50,6 +50,9 @@ class SimpleDataSet(data.Dataset):
         max_y = np.max(data_y)
         data_y = (data_y - min_y) / (max_y - min_y)
 
+        self.whole_x = data_x * 1.0
+        self.whole_y = data_y * 1.0
+
         from array import array
 
         x_array = array('d')
@@ -67,8 +70,14 @@ class SimpleDataSet(data.Dataset):
         self.x_dataset = np.frombuffer(x_array, dtype=np.float).reshape([-1, data_x.shape[1]])
         self.y_dataset = np.frombuffer(y_array, dtype=np.float).reshape([1, -1])
 
-    def __getitem__(self, idx):
+        assert self.x_dataset.shape[0] == self.y_dataset.shape[0]
+        self.dataset_length = self.x_dataset.shape[0]
 
+    def __getitem__(self, idx):
+        return self.x_dataset[idx, :], self.y_dataset[idx, :]
+
+    def __len__(self):
+        return self.dataset_length
 
     def preprocess_other(self, other_x):
         '''
