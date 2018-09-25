@@ -40,6 +40,10 @@ class SimpleDataSet(data.Dataset):
         :param cut_length: cut time sequaence to sub-sequence
         :param overlap_length: overlap length between adjacent sequence.
         '''
+
+        # if len(data_y.shape) < 2:
+        #     data_y = data_y.reshape([-1, 1])
+
         self.x_mean = np.mean(data_x, axis=0)
         data_x = data_x - self.x_mean
         self.x_std = np.std(data_x, axis=0)
@@ -48,7 +52,7 @@ class SimpleDataSet(data.Dataset):
         # data_y =
         min_y = np.min(data_y)
         max_y = np.max(data_y)
-        data_y = (data_y - min_y) / (max_y - min_y)-0.5
+        data_y = (data_y - min_y) / (max_y - min_y) - 0.5
 
         self.whole_x = data_x * 1.0
         self.whole_y = data_y * 1.0
@@ -74,8 +78,8 @@ class SimpleDataSet(data.Dataset):
         # print(self.x_dataset.shape, self.y_dataset.shape)
         self.dataset_length = self.x_dataset.shape[0]
 
-        self.input_size = self.x_dataset.shape[1]
-        self.output_size = self.y_dataset.shape[1]
+        self.input_size = self.x_dataset.shape[2]
+        self.output_size = self.y_dataset.shape[2]
 
         self.cut_size = cut_length
 

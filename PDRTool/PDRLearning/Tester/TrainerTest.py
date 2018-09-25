@@ -29,7 +29,6 @@ import torch.nn as nn
 import torchvision
 import torchvision.transforms as transforms
 
-
 import tensorboardX
 
 import matplotlib.pyplot as plt
@@ -46,17 +45,17 @@ if __name__ == '__main__':
     phone_imu_average_time_interval = (phone_imu[-1, 0] - phone_imu[0, 0]) / float(phone_imu.shape[0])
     full_flag_array = np.loadtxt(dir_name + 'flag_array.csv', delimiter=',')
 
-    data_set = SimpleDataSet.SimpleDataSet(phone_imu[:, 1:7], full_flag_array, 4000, 3000)
+    data_set = SimpleDataSet.SimpleDataSet(phone_imu[:, 1:10], full_flag_array, 400, 300)
 
     train_loader = torch.utils.data.DataLoader(dataset=data_set,
-                                               batch_size=10,
+                                               batch_size=100,
                                                shuffle=True)
 
     dir_name = '/home/steve/Data/PDR/0002/'
     phone_imu2 = np.loadtxt(dir_name + 'SMARTPHONE2_IMU.data', delimiter=',')[:, 1:]
     full_flag_array2 = np.loadtxt(dir_name + 'flag_array.csv', delimiter=',')
 
-    valid_x = data_set.preprocess_other(phone_imu2[:, 1:7])
+    valid_x = data_set.preprocess_other(phone_imu2[:, 1:10])
     ymin = np.min(full_flag_array2)
     ymax = np.max(full_flag_array2)
 
@@ -64,10 +63,10 @@ if __name__ == '__main__':
 
     from PDRTool.PDRLearning.Model import SimpleLSTM
 
-    model = SimpleLSTM.SimpleLSTM(6,
-                                  1,
+    model = SimpleLSTM.SimpleLSTM(data_set.input_size,
+                                  data_set.output_size,
                                   30,
-                                  2).to(device)
+                                  6).to(device)
 
     # model = nn.Sequential(
     #     nn.Linear(10*data_set.cut_size,40),
@@ -86,7 +85,7 @@ if __name__ == '__main__':
 
     cost_array = array('d')
 
-    for epoch in range(5000):
+    for epoch in range(2000):
         for i, (dx, dy) in enumerate(train_loader):
             # print(i, dx.shape, dy.shape)
             dx = np.transpose(dx, (2, 0, 1))
@@ -115,7 +114,7 @@ if __name__ == '__main__':
     with torch.no_grad():
         # y = model(torch.tensor())
         # print('data set x shape', data_set.whole_x.reshape((-1, 1, 6)).shape)
-        x_tensor = torch.from_numpy(data_set.whole_x.reshape((-1, 1, 6))).float().to(device)
+        x_tensor = torch.from_numpy(data_set.whole_x.reshape((-1, 1, data_set.input_size))).float().to(device)
         # x = model(data_set.whole_x.reshape((-1,1,6)).to(device).float())
         y = model(x_tensor).to(torch.device('cpu'))
 
@@ -130,7 +129,7 @@ if __name__ == '__main__':
 
         plt.plot(np.frombuffer(cost_array, dtype=np.float).reshape([-1]))
 
-        x_t = torch.from_numpy(valid_x.reshape((-1, 1, 6))).float().to(device)
+        x_t = torch.from_numpy(valid_x.reshape((-1, 1, data_set.input_size))).float().to(device)
         yt = model(x_t).to(torch.device('cpu'))
 
         plt.figure()
