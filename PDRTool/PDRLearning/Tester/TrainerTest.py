@@ -45,7 +45,7 @@ if __name__ == '__main__':
     phone_imu_average_time_interval = (phone_imu[-1, 0] - phone_imu[0, 0]) / float(phone_imu.shape[0])
     full_flag_array = np.loadtxt(dir_name + 'flag_array.csv', delimiter=',')
 
-    data_set = SimpleDataSet.SimpleDataSet(phone_imu[:, 1:10], full_flag_array, 400, 300)
+    data_set = SimpleDataSet.SimpleDataSet(phone_imu[:, 1:10], full_flag_array, 600, 300)
 
     train_loader = torch.utils.data.DataLoader(dataset=data_set,
                                                batch_size=100,
