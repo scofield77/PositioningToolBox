@@ -46,9 +46,57 @@ if __name__ == '__main__':
     data_set = SimpleDataSet.SimpleDataSet(phone_imu[:, 1:7], full_flag_array, 2000, 300)
 
     train_loader = torch.utils.data.DataLoader(dataset=data_set,
-                                               batch_size=200,
+                                               batch_size=1,
                                                shuffle=True)
 
-    for epoch in range(10):
+    from PDRTool.PDRLearning.Model import SimpleLSTM
+
+    model = SimpleLSTM.SimpleLSTM(6,
+                                  1,
+                                  40,
+                                  2).to(device)
+
+    # model = nn.Sequential(
+    #     nn.Linear(10*data_set.cut_size,40),
+    #     nn.PReLU(),
+    #     nn.Linear(40,40),
+    #     nn.PReLU(),
+    #     nn.Linear(40,1),
+    #     nn.Softmax()
+    # ).to(device)
+
+    # criterion = nn.CrossEntropyLoss()
+    criterion = nn.MSELoss()
+    # optimizer = torch.optim.rmsprop(model.parameters(), lr=0.01)
+    optimizer = torch.optim.Adam(model.parameters())
+
+    for epoch in range(100):
         for i, (dx, dy) in enumerate(train_loader):
             print(i, dx.shape, dy.shape)
+            dx = np.transpose(dx, (2, 0, 1))
+            dy = np.transpose(dy, (2, 0, 1))
+            # dx = dx.reshape([10,-1]).to(device).float()
+            # dy = dy.reshape([10,-1]).to(device).float()
+            dx = dx.to(device).float()
+            dy = dy.to(device).float()
+            # print('dx:', dx.size())
+            # print('dy:', dy.size())
+
+            output = model(dx)
+            # print(output.size())
+            # for i in range(1):
+            #     loss = criterion(output[:, i, :], dy[:, i, :])
+
+            loss = criterion(output,dy)
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+
+            if (i ) % 1 == 0:
+                print('epos:', epoch, 'step:', i, 'loss: {:.4f}'.format(loss.item()))
+
+    with torch.no_grad():
+        y = model(torch.tensor())
+
+        plt.figure()
+        plt.plot(data_set.whole_y)

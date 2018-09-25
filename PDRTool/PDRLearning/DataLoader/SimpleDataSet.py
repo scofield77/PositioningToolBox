@@ -67,15 +67,22 @@ class SimpleDataSet(data.Dataset):
                     x_array.append(data_x[j, k])
             i = i + cut_length - overlap_length
 
-        self.x_dataset = np.frombuffer(x_array, dtype=np.float).reshape([-1, data_x.shape[1]])
-        self.y_dataset = np.frombuffer(y_array, dtype=np.float).reshape([-1, 1])
+        self.x_dataset = np.frombuffer(x_array, dtype=np.float).reshape([-1, cut_length, data_x.shape[1]])
+        self.y_dataset = np.frombuffer(y_array, dtype=np.float).reshape([-1, cut_length, 1])
 
         # assert self.x_dataset.shape[0] == self.y_dataset.shape[0]
-        print(self.x_dataset.shape,self.y_dataset.shape)
+        # print(self.x_dataset.shape, self.y_dataset.shape)
         self.dataset_length = self.x_dataset.shape[0]
 
+        self.input_size = self.x_dataset.shape[1]
+        self.output_size = self.y_dataset.shape[1]
+
+        self.cut_size = cut_length
+
     def __getitem__(self, idx):
-        return self.x_dataset[idx, :], self.y_dataset[idx, :]
+        # print('size:', self.x_dataset[idx, :, :].shape[0])
+        return self.x_dataset[idx, :, :].reshape([-1, self.whole_x.shape[1]]).transpose(), \
+               self.y_dataset[idx, :, :].reshape([-1, 1]).transpose()
 
     def __len__(self):
         return self.dataset_length
