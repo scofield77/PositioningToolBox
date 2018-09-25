@@ -43,10 +43,10 @@ if __name__ == '__main__':
     phone_imu_average_time_interval = (phone_imu[-1, 0] - phone_imu[0, 0]) / float(phone_imu.shape[0])
     full_flag_array = np.loadtxt(dir_name + 'flag_array.csv', delimiter=',')
 
-    data_set = SimpleDataSet.SimpleDataSet(phone_imu[:, 1:7], full_flag_array, 2000, 300)
+    data_set = SimpleDataSet.SimpleDataSet(phone_imu[:, 1:7], full_flag_array, 4000, 3000)
 
     train_loader = torch.utils.data.DataLoader(dataset=data_set,
-                                               batch_size=1,
+                                               batch_size=10,
                                                shuffle=True)
 
     from PDRTool.PDRLearning.Model import SimpleLSTM
@@ -70,7 +70,7 @@ if __name__ == '__main__':
     # optimizer = torch.optim.rmsprop(model.parameters(), lr=0.01)
     optimizer = torch.optim.Adam(model.parameters())
 
-    for epoch in range(100):
+    for epoch in range(10000):
         for i, (dx, dy) in enumerate(train_loader):
             print(i, dx.shape, dy.shape)
             dx = np.transpose(dx, (2, 0, 1))
@@ -87,16 +87,25 @@ if __name__ == '__main__':
             # for i in range(1):
             #     loss = criterion(output[:, i, :], dy[:, i, :])
 
-            loss = criterion(output,dy)
+            loss = criterion(output, dy)
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
 
-            if (i ) % 1 == 0:
+            if (i) % 1 == 0:
                 print('epos:', epoch, 'step:', i, 'loss: {:.4f}'.format(loss.item()))
 
     with torch.no_grad():
-        y = model(torch.tensor())
+        # y = model(torch.tensor())
+        print('data set x shape', data_set.whole_x.reshape((-1, 1, 6)).shape)
+        x_tensor = torch.from_numpy(data_set.whole_x.reshape((-1, 1, 6))).float().to(device)
+        # x = model(data_set.whole_x.reshape((-1,1,6)).to(device).float())
+        y = model(x_tensor).to(torch.device('cpu'))
 
         plt.figure()
-        plt.plot(data_set.whole_y)
+        plt.plot(data_set.whole_y, label='ref')
+        plt.plot(y.numpy().reshape([-1]), label='result')
+
+        plt.legend()
+
+        plt.show()

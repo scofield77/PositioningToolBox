@@ -58,7 +58,8 @@ class SimpleLSTM(nn.Module):
         real_out = torch.zeros([out.size(0), out.size(1), 1]).to(torch.device('cuda'))
         # print('out size:', out.size(), 'real out size:',real_out.size())
         for i in range(out.size(1)):
-            real_out[:, i, :] = self.softmax(self.fc(out[:, i, :]))
+            # real_out[:, i, :] = self.softmax(self.fc(out[:, i, :]))
+            real_out[:, i, :] = self.fc(out[:, i, :])
         # for batch_i in range(out.size(1)):
         #     for time_i in range(out.size(0)):
         #         print(self.softmax(self.fc(out[time_i, batch_i, :].reshape([-1]))))
