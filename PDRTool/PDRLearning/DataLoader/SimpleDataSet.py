@@ -42,7 +42,7 @@ class SimpleDataSet(data.Dataset):
         '''
         self.x_mean = np.mean(data_x, axis=0)
         data_x = data_x - self.x_mean
-        self.x_std = np.std(data_x, axis=1)
+        self.x_std = np.std(data_x, axis=0)
         data_x = data_x / self.x_std
 
         # data_y =
@@ -68,9 +68,10 @@ class SimpleDataSet(data.Dataset):
             i = i + cut_length - overlap_length
 
         self.x_dataset = np.frombuffer(x_array, dtype=np.float).reshape([-1, data_x.shape[1]])
-        self.y_dataset = np.frombuffer(y_array, dtype=np.float).reshape([1, -1])
+        self.y_dataset = np.frombuffer(y_array, dtype=np.float).reshape([-1, 1])
 
-        assert self.x_dataset.shape[0] == self.y_dataset.shape[0]
+        # assert self.x_dataset.shape[0] == self.y_dataset.shape[0]
+        print(self.x_dataset.shape,self.y_dataset.shape)
         self.dataset_length = self.x_dataset.shape[0]
 
     def __getitem__(self, idx):

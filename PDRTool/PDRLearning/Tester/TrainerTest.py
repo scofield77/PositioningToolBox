@@ -46,7 +46,7 @@ if __name__ == '__main__':
     data_set = SimpleDataSet.SimpleDataSet(phone_imu[:, 1:7], full_flag_array, 2000, 300)
 
     train_loader = torch.utils.data.DataLoader(dataset=data_set,
-                                               batch_size=20,
+                                               batch_size=200,
                                                shuffle=True)
 
     for epoch in range(10):
