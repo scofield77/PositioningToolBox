@@ -49,11 +49,21 @@ if __name__ == '__main__':
                                                batch_size=10,
                                                shuffle=True)
 
+    dir_name = '/home/steve/Data/PDR/0002/'
+    phone_imu2 = np.loadtxt(dir_name + 'SMARTPHONE2_IMU.data', delimiter=',')[:, 1:]
+    full_flag_array2 = np.loadtxt(dir_name + 'flag_array.csv', delimiter=',')
+
+    valid_x = data_set.preprocess_other(phone_imu2[:, 1:7])
+    ymin = np.min(full_flag_array2)
+    ymax = np.max(full_flag_array2)
+
+    valid_y = (full_flag_array2 - ymin) / (ymax - ymin)
+
     from PDRTool.PDRLearning.Model import SimpleLSTM
 
     model = SimpleLSTM.SimpleLSTM(6,
                                   1,
-                                  40,
+                                  20,
                                   2).to(device)
 
     # model = nn.Sequential(
@@ -67,10 +77,13 @@ if __name__ == '__main__':
 
     # criterion = nn.CrossEntropyLoss()
     criterion = nn.MSELoss()
-    # optimizer = torch.optim.rmsprop(model.parameters(), lr=0.01)
-    optimizer = torch.optim.Adam(model.parameters())
+    optimizer = torch.optim.RMSprop(model.parameters(), lr=0.01)
+    # optimizer = torch.optim.Adam(model.parameters())
+    from array import array
 
-    for epoch in range(10000):
+    cost_array = array('d')
+
+    for epoch in range(500):
         for i, (dx, dy) in enumerate(train_loader):
             print(i, dx.shape, dy.shape)
             dx = np.transpose(dx, (2, 0, 1))
@@ -91,6 +104,7 @@ if __name__ == '__main__':
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
+            cost_array.append(loss.item())
 
             if (i) % 1 == 0:
                 print('epos:', epoch, 'step:', i, 'loss: {:.4f}'.format(loss.item()))
@@ -103,9 +117,23 @@ if __name__ == '__main__':
         y = model(x_tensor).to(torch.device('cpu'))
 
         plt.figure()
+        plt.title('train data')
         plt.plot(data_set.whole_y, label='ref')
         plt.plot(y.numpy().reshape([-1]), label='result')
+        plt.legend()
 
+        plt.figure()
+        plt.title('cost')
+
+        plt.plot(np.frombuffer(cost_array, dtype=np.float).reshape([-1]))
+
+        x_t = torch.from_numpy(valid_x.reshape((-1, 1, 6))).float().to(device)
+        yt = model(x_t).to(torch.device('cpu'))
+
+        plt.figure()
+        plt.title('valid data')
+        plt.plot(valid_y, label='ref')
+        plt.plot(yt.numpy().reshape([-1]), label='result')
         plt.legend()
 
         plt.show()
