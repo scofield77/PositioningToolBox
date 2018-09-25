@@ -23,7 +23,6 @@
          佛祖保佑       永无BUG 
 '''
 
-
 import numpy as np
 import scipy as sp
 import matplotlib.pyplot as plt
@@ -71,6 +70,13 @@ if __name__ == '__main__':
                                         time_Window_size=15)
 
 
+
     plt.figure()
-    plt.plot(np.linalg.norm(head_imu[:,1:4],axis=1))
+    plt.plot(np.linalg.norm(head_imu[:, 1:4], axis=1))
+
+
+    # plt.figure()
+    # plt.plot(left_imu[:,0],'')
+
+
     plt.show()

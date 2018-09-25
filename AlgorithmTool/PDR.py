@@ -416,8 +416,8 @@ def try_Phonemini_data():
 
 if __name__ == '__main__':
     # try_simple_data()
-    # try_ipin_data()
-    try_Phonemini_data()
+    try_ipin_data()
+    # try_Phonemini_data()
 
     # value_list = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.3, 1.6, 1.8, 2.1, 2.5, 2.8, 3.2, 3.8]
     # for alpha in value_list:
