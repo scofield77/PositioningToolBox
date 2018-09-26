@@ -48,7 +48,7 @@ def imu_data_preprocess(imu_data):
 
 
 if __name__ == '__main__':
-    dir_name = '/home/steve/Data/PDR/0003/'
+    dir_name = '/home/steve/Data/PDR/0009/'
 
     left_imu = imu_data_preprocess(np.loadtxt(dir_name + 'LEFT_FOOT.data', delimiter=','))
     right_imu = imu_data_preprocess(np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=','))
@@ -58,6 +58,7 @@ if __name__ == '__main__':
     phone_imu_average_time_interval = (phone_imu[-1, 0] - phone_imu[0, 0]) / float(phone_imu.shape[0])
     for i in range(1, phone_imu.shape[0]):
         phone_imu[i, 0] = phone_imu[i - 1, 0] + phone_imu_average_time_interval
+    # phone_imu = head_imu * 1.0
 
     left_zv_state = GLRT_Detector_prob(left_imu[:, 1:7], sigma_a=1.,
                                        sigma_g=1. * np.pi / 180.0,

@@ -23,18 +23,17 @@
          佛祖保佑       永无BUG 
 '''
 
-
 import numpy as np
 import scipy as sp
 import matplotlib.pyplot as plt
-
 
 from numba import jit
 
 from AlgorithmTool.ImuTools import *
 
+
 class DualImuEKFComplex:
-    def __init__(self, initial_prob, local_g = -9.8, time_interval = 0.01):
+    def __init__(self, initial_prob, local_g=-9.8, time_interval=0.01):
         '''
 
         :param initial_prob:
@@ -47,24 +46,17 @@ class DualImuEKFComplex:
         self.local_g = local_g
         self.time_interval = time_interval
 
-        self.F = np.zeros([30,30])
-        self.G_left = np.zeros([30,6])
-        self.G_right = np.zeros([30,6])
+        self.F = np.zeros([30, 30])
+        self.G_left = np.zeros([30, 6])
+        self.G_right = np.zeros([30, 6])
 
+    def initial_state(self, left_imu_data: np.ndarray,
+                      right_imu_data: np.ndarray,
+                      left_pos=np.asarray((0.0, 0.0, 0.0)),
+                      right_pos=np.asarray((0.0, 0.0, 0.0)),
+                      ori: float = 0.0,
+                      mag=np.asarray9(1.0, 0.0, 0.0)):
+        assert left_imu_data.shape[0] > 10 and left_imu_data.shape[1] > 6
+        assert right_imu_data.shape[0] > 10 and right_imu_data.shape[1] > 6
 
-    def initial_state(self, imu_data:np.ndarray,
-                      left_pos = np.asarray((0.0,0.0,0.0)),
-                      right_pos = np.asarray((0.0,0.0,0.0)),
-                      ori:float=0.0,
-                      mag = np.asarray9(1.0,0.0,0.0)):
-        '''
-
-        :param imu_data:
-        :param left_pos:
-        :param right_pos:
-        :param ori:
-        :param mag:
-        :return:
-        '''
-        assert imu_data.shape[1] >= 12
 
