@@ -518,6 +518,7 @@ def get_initial_rotation(imu_data,
     q = dcm2q(euler2R(euler))
 
     print('acc:', acc, 'rotated acc:', euler2R(euler).dot(acc))
+
     return euler, q
 
 
