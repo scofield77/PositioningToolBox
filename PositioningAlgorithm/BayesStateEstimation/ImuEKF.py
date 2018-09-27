@@ -102,7 +102,8 @@ class ImuEKFComplex:
                                                   self.time_interval)
 
         Rb2t = q2dcm(self.rotation_q)
-        acc = Rb2t.dot(imu_data[0:3] + self.state[9:12]) + np.asarray((0.0, 0.0, self.local_g))  # + self.state[9:12])
+        acc = Rb2t.dot(imu_data[0:3] + self.state[9:12]) +\
+              np.asarray((0.0, 0.0, self.local_g))  # + self.state[9:12])
         # print('acc:',acc)
         self.acc = acc
 

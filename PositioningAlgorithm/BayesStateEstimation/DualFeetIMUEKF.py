@@ -60,6 +60,11 @@ class DualImuEKFComplex:
         assert right_imu_data.shape[0] > 10 and right_imu_data.shape[1] > 6
 
 
+        # if np.linalg.norm(self.state)
+        self.state[6:9], self.l_q = get_initial_rotation(left_imu_data[:,0:3],ori)
+
+
+
 
 
 
