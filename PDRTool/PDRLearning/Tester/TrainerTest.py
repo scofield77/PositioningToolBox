@@ -48,7 +48,7 @@ if __name__ == '__main__':
     data_set = SimpleDataSet.SimpleDataSet(phone_imu[:, 1:10], full_flag_array, 600, 300)
 
     train_loader = torch.utils.data.DataLoader(dataset=data_set,
-                                               batch_size=100,
+                                               batch_size=1000,
                                                shuffle=True)
 
     dir_name = '/home/steve/Data/PDR/0002/'
@@ -65,7 +65,7 @@ if __name__ == '__main__':
 
     model = SimpleLSTM.SimpleLSTM(data_set.input_size,
                                   data_set.output_size,
-                                  30,
+                                  50,
                                   6).to(device)
 
     # model = nn.Sequential(
@@ -86,7 +86,7 @@ if __name__ == '__main__':
     cost_array = array('d')
     model.train()
 
-    for epoch in range(2000):
+    for epoch in range(5000):
         for i, (dx, dy) in enumerate(train_loader):
             # print(i, dx.shape, dy.shape)
             dx = np.transpose(dx, (2, 0, 1))
