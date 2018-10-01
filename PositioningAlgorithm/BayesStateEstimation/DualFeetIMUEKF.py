@@ -48,7 +48,10 @@ class DualImuEKFComplex:
         self.whole_P = np.zeros([self.l_ekf.prob_state.shape[0]+self.r_ekf.prob_state.shape[0],
                                  self.l_ekf.prob_state.shape[1]+self.r_ekf.prob_state.shape[1]])
 
-        self.
+        first_index = self.l_ekf.state.shape[0]
+
+        self.whole_P[0:first_index,0:first_index] = 1.0 * self.l_ekf.prob_state
+        self.whole_P[first_index:,first_index:] = 1.0 * self.r_ekf.prob_state
 
 
     def initial_state(self, left_imu_data: np.ndarray,
@@ -62,9 +65,8 @@ class DualImuEKFComplex:
 
 
         # if np.linalg.norm(self.state)
-        self.state[6:9], self.l_q = get_initial_rotation(left_imu_data[:,0:3],ori)
 
-        self.state[]
+
 
 
 
