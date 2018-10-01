@@ -30,6 +30,7 @@ import matplotlib.pyplot as plt
 from numba import jit
 
 from AlgorithmTool.ImuTools import *
+from PositioningAlgorithm.BayesStateEstimation.ImuEKF import *
 
 
 class DualImuEKFComplex:
@@ -40,15 +41,15 @@ class DualImuEKFComplex:
         :param local_g:
         :param time_interval:
         '''
-        self.l_q = np.zeros([4])
-        self.state = np.zeros([30])
-        self.prob_state = initial_prob
-        self.local_g = local_g
-        self.time_interval = time_interval
+        self.l_ekf = ImuEKFComplex(initial_prob,local_g,time_interval)
+        self.r_ekf = ImuEKFComplex(initial_prob,local_g,time_interval)
 
-        self.F = np.zeros([30, 30])
-        self.G_left = np.zeros([30, 6])
-        self.G_right = np.zeros([30, 6])
+
+        self.whole_P = np.zeros([self.l_ekf.prob_state.shape[0]+self.r_ekf.prob_state.shape[0],
+                                 self.l_ekf.prob_state.shape[1]+self.r_ekf.prob_state.shape[1]])
+
+        self.
+
 
     def initial_state(self, left_imu_data: np.ndarray,
                       right_imu_data: np.ndarray,
@@ -62,6 +63,8 @@ class DualImuEKFComplex:
 
         # if np.linalg.norm(self.state)
         self.state[6:9], self.l_q = get_initial_rotation(left_imu_data[:,0:3],ori)
+
+        self.state[]
 
 
 
