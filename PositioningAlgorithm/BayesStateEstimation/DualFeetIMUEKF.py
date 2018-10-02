@@ -60,6 +60,16 @@ class DualImuEKFComplex:
                       right_pos=np.asarray((0.0, 0.0, 0.0)),
                       ori: float = 0.0,
                       mag=np.asarray9(1.0, 0.0, 0.0)):
+        '''
+
+        :param left_imu_data:
+        :param right_imu_data:
+        :param left_pos:
+        :param right_pos:
+        :param ori:
+        :param mag:
+        :return:
+        '''
         assert left_imu_data.shape[0] > 10 and left_imu_data.shape[1] > 6
         assert right_imu_data.shape[0] > 10 and right_imu_data.shape[1] > 6
 
