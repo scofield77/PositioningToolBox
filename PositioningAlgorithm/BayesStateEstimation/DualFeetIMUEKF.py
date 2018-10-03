@@ -76,6 +76,10 @@ class DualImuEKFComplex:
 
         # if np.linalg.norm(self.state)
 
+        self.l_ekf.initial_state(left_imu_data,left_pos,ori)
+        self.r_ekf.initial_state(right_imu_data,right_pos,ori)
+
+
 
 
 
