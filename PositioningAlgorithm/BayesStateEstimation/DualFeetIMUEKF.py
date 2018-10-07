@@ -75,3 +75,6 @@ class DualImuEKFComplex:
 
         self.l_ekf.initial_state(left_imu_data, left_pos, ori)
         self.r_ekf.initial_state(right_imu_data, right_pos, ori)
+
+        print(dcm2euler(q2dcm(self.l_ekf.l_ekf.rotation_q)))
+        print(dcm2euler(q2dcm(self.r_ekf.l_ekf.rotation_q)))

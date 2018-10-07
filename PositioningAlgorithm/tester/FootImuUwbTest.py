@@ -65,7 +65,7 @@ if __name__ == '__main__':
     # dir_name = 'D:/Data/NewFusingLocationData/0040/'
     # dir_name = 'D:/Data/NewFusingLocationData/0039/'
     # dir_name = '/home/steve/Data/NewFusingLocationData/0033/'
-    dir_name = 'C:/Data/NewFusingLocationData/0039/'
+    dir_name = 'C:/Data/NewFusingLocationData/0040/'
 
     ref_score = Refscor(dir_name)
     # imu_data = np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=',')
