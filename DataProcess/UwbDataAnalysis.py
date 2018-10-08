@@ -9,7 +9,8 @@ from PositioningAlgorithm.OptimizationAlgorithm import UwbStaticLocation
 
 if __name__ == '__main__':
     # dir_name = '/home/steve/Data/NewFusingLocationData/0044/'
-    base_dir_name = 'D:/Data/NewFusingLocationData/'
+    # base_dir_name = 'D:/Data/NewFusingLocationData/'
+    base_dir_name = 'C:/Data/NewFusingLocationData/'
 
     test_dir_name = base_dir_name + "0058/"
 
