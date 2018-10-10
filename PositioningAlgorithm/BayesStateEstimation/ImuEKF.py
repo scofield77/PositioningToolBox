@@ -369,7 +369,12 @@ class ImuEKFComplex:
         kh = self.K.dot(self.H)
         self.prob_state = (np.identity(kh.shape[0]) - kh).dot(self.prob_state)
 
-    def measurement_uwb_iterate_standard(self, measurement, cov_m, beacon_set, ref_trace, once_flag=False):
+    def measurement_uwb_iterate_standard(self,
+                                         measurement,
+                                         cov_m,
+                                         beacon_set,
+                                         ref_trace,
+                                         once_flag=False):
         '''
         Standard IEKF measurement function.
         :param measurement:
