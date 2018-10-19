@@ -101,7 +101,8 @@ class Refscor:
 
 if __name__ == '__main__':
     # dir_name = '/home/steve/Data/NewFusingLocationData/0039/'
-    dir_name = 'D:/Data/NewFusingLocationData/0039/'
+    # dir_name = 'D:/Data/NewFusingLocationData/0039/'
+    dir_name = 'C:/Data/NewFusingLocationData/0039/'
     ref_trace = np.loadtxt(dir_name + 'ref_trace.csv', delimiter=',')
 
     # print(ref_trace)

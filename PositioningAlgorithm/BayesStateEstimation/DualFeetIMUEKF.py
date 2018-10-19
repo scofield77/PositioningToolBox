@@ -41,15 +41,16 @@ class DualImuEKFComplex:
         :param local_g:
         :param time_interval:
         '''
-        self.l_ekf = ImuEKFComplex(initial_prob,local_g,time_interval)
-        self.r_ekf = ImuEKFComplex(initial_prob,local_g,time_interval)
+        self.l_ekf = ImuEKFComplex(initial_prob, local_g, time_interval)
+        self.r_ekf = ImuEKFComplex(initial_prob, local_g, time_interval)
 
+        self.whole_P = np.zeros([self.l_ekf.prob_state.shape[0] + self.r_ekf.prob_state.shape[0],
+                                 self.l_ekf.prob_state.shape[1] + self.r_ekf.prob_state.shape[1]])
 
-        self.whole_P = np.zeros([self.l_ekf.prob_state.shape[0]+self.r_ekf.prob_state.shape[0],
-                                 self.l_ekf.prob_state.shape[1]+self.r_ekf.prob_state.shape[1]])
+        first_index = self.l_ekf.state.shape[0]
 
-        self.
-
+        self.whole_P[0:first_index, 0:first_index] = 1.0 * self.l_ekf.prob_state
+        self.whole_P[first_index:, first_index:] = 1.0 * self.r_ekf.prob_state
 
     def initial_state(self, left_imu_data: np.ndarray,
                       right_imu_data: np.ndarray,
@@ -57,18 +58,23 @@ class DualImuEKFComplex:
                       right_pos=np.asarray((0.0, 0.0, 0.0)),
                       ori: float = 0.0,
                       mag=np.asarray9(1.0, 0.0, 0.0)):
+        '''
+
+        :param left_imu_data:
+        :param right_imu_data:
+        :param left_pos:
+        :param right_pos:
+        :param ori:
+        :param mag:
+        :return:
+        '''
         assert left_imu_data.shape[0] > 10 and left_imu_data.shape[1] > 6
         assert right_imu_data.shape[0] > 10 and right_imu_data.shape[1] > 6
 
-
         # if np.linalg.norm(self.state)
-        self.state[6:9], self.l_q = get_initial_rotation(left_imu_data[:,0:3],ori)
 
-        self.state[]
+        self.l_ekf.initial_state(left_imu_data, left_pos, ori)
+        self.r_ekf.initial_state(right_imu_data, right_pos, ori)
 
-
-
-
-
-
-
+        print(dcm2euler(q2dcm(self.l_ekf.l_ekf.rotation_q)))
+        print(dcm2euler(q2dcm(self.r_ekf.l_ekf.rotation_q)))

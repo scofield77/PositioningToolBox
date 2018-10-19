@@ -67,7 +67,7 @@ class ImuEKFComplex:
 
     def initial_state(self, imu_data: np.ndarray,
                       pos=np.asarray((0.0, 0.0, 0.0)),
-                      ori: float = 0.0, mag = np.asarray((1.0,0.0,0.0))):
+                      ori: float = 0.0, mag=np.asarray((1.0, 0.0, 0.0))):
         '''
         Initial state based on given position and orientation(angle of z-axis)
         :param imu_data:
@@ -85,7 +85,7 @@ class ImuEKFComplex:
 
         self.I = np.identity(3)
         self.ref_mag = q2dcm(self.rotation_q).dot(mag)
-        self.ref_mag  = self.ref_mag/np.linalg.norm(self.ref_mag)
+        self.ref_mag = self.ref_mag / np.linalg.norm(self.ref_mag)
 
     # @jit(nopython=True)
     def state_transaction_function(self,
@@ -102,7 +102,7 @@ class ImuEKFComplex:
                                                   self.time_interval)
 
         Rb2t = q2dcm(self.rotation_q)
-        acc = Rb2t.dot(imu_data[0:3] + self.state[9:12]) +\
+        acc = Rb2t.dot(imu_data[0:3] + self.state[9:12]) + \
               np.asarray((0.0, 0.0, self.local_g))  # + self.state[9:12])
         # print('acc:',acc)
         self.acc = acc
@@ -163,9 +163,9 @@ class ImuEKFComplex:
 
         self.state[9:] = self.state[9:] + dx[9:]
 
-    def measurement_function_mag(self,m,cov_matrix):
-        H = np.zeros([3,self.state.shape[0]])
-        m = m/np.linalg.norm(m)
+    def measurement_function_mag(self, m, cov_matrix):
+        H = np.zeros([3, self.state.shape[0]])
+        m = m / np.linalg.norm(m)
 
         tm = np.linalg.inv(q2dcm(self.rotation_q)).dot(self.ref_mag)
         # H = np.zeros([3,3])
@@ -175,8 +175,7 @@ class ImuEKFComplex:
             [-tm[1], tm[0], 0.0]
         ])
 
-
-        H[0:3,6:9] = Ht * 1.0
+        H[0:3, 6:9] = Ht * 1.0
 
         K = (self.prob_state.dot(np.transpose(H))).dot(
             np.linalg.inv((H.dot(self.prob_state)).dot(np.transpose(H)) + cov_matrix)
@@ -197,7 +196,6 @@ class ImuEKFComplex:
         self.state[6:9] = dcm2euler(q2dcm(self.rotation_q))
 
         self.state[9:] = self.state[9:] + dx[9:]
-
 
     def measurement_function_z_axis(self, m, cov_matrix):
         '''
@@ -369,7 +367,12 @@ class ImuEKFComplex:
         kh = self.K.dot(self.H)
         self.prob_state = (np.identity(kh.shape[0]) - kh).dot(self.prob_state)
 
-    def measurement_uwb_iterate_standard(self, measurement, cov_m, beacon_set, ref_trace, once_flag=False):
+    def measurement_uwb_iterate_standard(self,
+                                         measurement,
+                                         cov_m,
+                                         beacon_set,
+                                         ref_trace,
+                                         once_flag=False):
         '''
         Standard IEKF measurement function.
         :param measurement:
@@ -433,7 +436,11 @@ class ImuEKFComplex:
 
         self.prob_state = pplus
 
-    def measurement_uwb_iterate(self, measurement, cov_m, beacon_set, ref_trace, chi_squard=10.0):
+    def measurement_uwb_iterate(self, measurement,
+                                cov_m,
+                                beacon_set,
+                                ref_trace,
+                                chi_squard=10.0):
         '''
         Robust iekf based uwb measurement
         :param measurement:
