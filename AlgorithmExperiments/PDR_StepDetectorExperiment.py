@@ -57,7 +57,8 @@ if __name__ == '__main__':
     ori[:, 1:] = data[:, 11:14]
 
     # imu_plot_aux()
-    imu_plot_aux(acc, 'acc')
+    # imu_plot_aux(acc, 'acc')
+    imu_plot_aux(acc[:,1:],acc[:,1],'acc')
 
     # def peak_and_valley_detector(acc,rotation):
     flag_array = np.zeros(acc.shape[0])
