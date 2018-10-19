@@ -525,8 +525,9 @@ def get_initial_rotation(imu_data,
 # return state
 def imu_plot_aux(data, time=None, title_name='default'):
     '''
-
+    plot data at each col.
     :param data:
+    :param time: time stamp of each row.
     :param title_name:
     :return:
     '''
