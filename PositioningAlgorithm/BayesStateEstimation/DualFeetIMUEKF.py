@@ -110,7 +110,7 @@ class DualImuEKFComplex:
             print(np.linalg.norm(self.l_ekf.state[0:3] - self.r_ekf.state[0:3]), 'of', max_distance)
             print('before left state:',self.l_ekf.state)
             print('before left state:', self.r_ekf.state)
-            self.distance_constrain(max_distance)
+            # self.distance_constrain(max_distance)
 
     def distance_constrain(self, eta):
         '''
@@ -241,7 +241,7 @@ if __name__ == '__main__':
     # dir_name = '/home/steve/Data/FusingLocationData/0017/'
     # dir_name = '/home/steve/Data/NewFusingLocationData/0039/'
     # dir_name = 'C:/Data/NewFusingLocationData/0039/'
-    dir_name = '/home/steve/Data/PDR/0012/'
+    dir_name = '/home/steve/Data/PDR/0010/'
     # dir_name = 'D:\\NewFusingLocationData\\0035\\'
 
     left_imu_data = np.loadtxt(dir_name + 'LEFT_FOOT.data', delimiter=',')
