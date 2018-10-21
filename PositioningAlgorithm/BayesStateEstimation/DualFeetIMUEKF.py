@@ -78,9 +78,104 @@ class DualImuEKFComplex:
         print(dcm2euler(q2dcm(self.l_ekf.l_ekf.rotation_q)))
         print(dcm2euler(q2dcm(self.r_ekf.l_ekf.rotation_q)))
 
+    def state_transaction_function(self,
+                                   left_imu_data,
+                                   right_imu_data,
+                                   left_noise_matrix,
+                                   right_noise_matrix):
+        '''
+
+        :param left_imu_data:
+        :param right_imu_data:
+        :param left_noise_matrix:
+        :param right_noise_matrix:
+        :return:
+        '''
+        self.l_ekf.state_transaction_function(left_imu_data, left_noise_matrix)
+        self.r_ekf.state_transaction_function(right_imu_data, right_noise_matrix)
+
+    def zv_update(self, left_flag, right_flag, max_distance=1.5):
+        if left_flag > 0.5:
+            self.l_ekf.measurement_function_zv(np.asarray((0.0, 0.0, 0.0)),
+                                               np.asarray((0.001, 0.001, 0.001)))
+
+        if right_flag > 0.5:
+            self.r_ekf.measurement_function_zv(np.asarray((0.0, 0.0, 0.0)),
+                                               np.asarray((0.001, 0.001, 0.001)))
+
+        if left_flag > 0.5 and right_flag > 0.5 and np.linalg.norm(
+                self.l_ekf.state[0:3] - self.r_ekf.state[0:3]) > max_distance:
+            print(np.linalg.norm(self.l_ekf.state[0:3] - self.r_ekf.state[0:3]), 'of', max_distance)
+            self.distance_constrain(max_distance)
+
+    def distance_constrain(self, eta):
+        '''
+
+        :param eta: range constraint
+        :return:
+        '''
+
+        total_x = np.zeros(self.l_ekf.state.shape[0] + self.r_ekf.state.shape[0])
+        total_P = np.zeros([total_x.shape[0], total_x.shape[0]])
+
+        total_x[:self.l_ekf.state.shape[0]] = self.l_ekf.state
+        total_x[-self.r_ekf.state.shape[0]:] = self.r_ekf.state
+
+        total_P[:self.l_ekf.state.shape[0], :self.l_ekf.state.shape[0]] = self.l_ekf.prob_state * 1.0
+        total_P[-self.r_ekf.state.shape[0], -self.r_ekf.state.shape[0]:] = self.r_ekf.prob_state * 1.0
+
+        W = np.linalg.inv(total_P)
+        W = (W + np.transpose(W)) * 0.5
+
+        L = np.zeros([3, total_x.shape[0]])
+        for i in range(3):
+            L[i, i] = 1.0
+            L[i, i + self.l_ekf.state.shape[0]] = -1.0
+
+        ### Projection
+
+        G = np.linalg.cholesky(W)
+
+        U, S, V = np.linalg.svd(L.dot(np.linalg.inv(G)))
+
+        e = np.transpose(V).dot(G).dot(total_x)
+
+        # Newton search to find lambda
+        lam = 0.0
+        delta = 1e100
+        ctr = 0.0
+
+        while abs(delta) > 1e-4 and ctr < 25:
+            g = e[0] * e[0] * S[0] * S[0] / ((1 + lam * S[0] * S[0]) ** 2) + \
+                e[1] * e[1] * S[1] * S[1] / ((1 + lam * S[1] * S[1]) ** 2) + \
+                e[2] * e[2] * S[2] * S[2] / ((1 + lam * S[2] * S[2]) ** 2) - \
+                eta * eta
+
+            # dg = -2.0 * (e[0] ** 2.0 * S[0, 0] ** 4.0 / ((1 + lam * S[0, 0] ** 2.0) ** 3.0) +
+            #              e[1] ** 2 * S[1, 1] ** 4.0 / ((1 + lam * S[1, 1] ** 2.0) ** 3.0) +
+            #              e[2] ** 2.0 * S[2, 2] ** 4.0 / ((1 + lam * S[2, 2] ** 2.0) ** 3.0)
+            #              )
+
+            dg = -2.0 * (e[0] * e[0] * S[0] ** 4.0 / ((1 + lam * S[0] * S[0]) ** 3.0) +
+                         e[1] * e[1] * S[1] ** 4.0 / ((1 + lam * S[1] * S[1]) ** 3.0) +
+                         e[2] * e[2] * S[2] ** 4.0 / ((1 + lam * S[2] * S[2]) ** 3.0)
+                         )
+            delta = g / dg
+            lam = lam - delta
+            ctr = ctr + 1
+
+        if (lam < 0):
+            print("ERROR : lam must bigger than zero.")
+            z = total_x
+        else:
+            z = np.linalg.inv(W + (np.transpose(lam* L).dot(L))).dot(total_P.dot(total_x))
+
+
 
 
 if __name__ == '__main__':
+
+
     print('dual feet test')
 
     import math
@@ -113,7 +208,7 @@ if __name__ == '__main__':
     # dir_name = '/home/steve/Data/FusingLocationData/0017/'
     # dir_name = '/home/steve/Data/NewFusingLocationData/0039/'
     # dir_name = 'C:/Data/NewFusingLocationData/0039/'
-    dir_name = '/home/steve/Data/PDR/0011/'
+    dir_name = '/home/steve/Data/PDR/0012/'
     # dir_name = 'D:\\NewFusingLocationData\\0035\\'
 
     left_imu_data = np.loadtxt(dir_name + 'LEFT_FOOT.data', delimiter=',')
@@ -122,10 +217,10 @@ if __name__ == '__main__':
     left_imu_data[:, 1:4] = left_imu_data[:, 1:4] * 9.81
     left_imu_data[:, 4:7] = left_imu_data[:, 4:7] * (np.pi / 180.0)
 
-    right_imu_data = np.loadtxt(dir_name+'RIGHT_FOOT.data',delimiter=',')
-    right_imu_data = right_imu_data[:,1:]
-    right_imu_data[:,1:4] = right_imu_data[:,1:4] * 9.81
-    right_imu_data[:,4:7] = right_imu_data[:,4:7] * (np.pi / 180.0)
+    right_imu_data = np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=',')
+    right_imu_data = right_imu_data[:, 1:]
+    right_imu_data[:, 1:4] = right_imu_data[:, 1:4] * 9.81
+    right_imu_data[:, 4:7] = right_imu_data[:, 4:7] * (np.pi / 180.0)
 
     # initial_state = get_initial_state(imu_data[:40, 1:4], np.asarray((0, 0, 0)), 0.0, 9)
 
@@ -135,8 +230,7 @@ if __name__ == '__main__':
     ba = np.zeros([left_imu_data.shape[0], 3])
     bg = np.zeros([left_imu_data.shape[0], 3])
 
-
-    right_trace = np.zeros([right_imu_data.shape[0],3])
+    right_trace = np.zeros([right_imu_data.shape[0], 3])
 
     iner_acc = np.zeros([left_imu_data.shape[0], 3])
 
@@ -186,29 +280,27 @@ if __name__ == '__main__':
     rkf.initial_state(left_imu_data[:50, 1:7], mag=left_imu_data[0, 7:10])
 
     right_zv_state = GLRT_Detector(right_imu_data[:, 1:7], sigma_a=1.0,
-                                  sigma_g=1.0 * np.pi / 180.0,
-                                  gamma=200,
-                                  gravity=9.8,
-                                  time_Window_size=5)
-
+                                   sigma_g=1.0 * np.pi / 180.0,
+                                   gamma=200,
+                                   gravity=9.8,
+                                   time_Window_size=5)
 
     for i in range(left_imu_data.shape[0]):
-        # print('i:',i)
+    # print('i:',i)
 
         lkf.state_transaction_function(left_imu_data[i, 1:7],
                                        np.diag((0.01, 0.01, 0.01,
-                                               0.01 * np.pi / 180.0,
-                                               0.01 * np.pi / 180.0,
-                                               0.01 * np.pi / 180.0))
+                                                0.01 * np.pi / 180.0,
+                                                0.01 * np.pi / 180.0,
+                                                0.01 * np.pi / 180.0))
                                        )
         if (i > 5) and (i < left_imu_data.shape[0] - 5):
-            # print('i:',i)
-            # zv_state[i] = z_tester.GLRT_Detector(imu_data[i - 4:i + 4, 1:8])
-            if left_zv_state[i] > 0.5:
+        # print('i:',i)
+        # zv_state[i] = z_tester.GLRT_Detector(imu_data[i - 4:i + 4, 1:8])
+            if  left_zv_state[i] > 0.5:
                 lkf.measurement_function_zv(np.asarray((0, 0, 0)),
                                             np.diag((0.0001, 0.0001, 0.0001)))
-                # kf.measurement_function_mag(imu_data[i,7:10],np.identity(3)*0.05)
-
+        # kf.measurement_function_mag(imu_data[i,7:10],np.identity(3)*0.05)
 
         # print(kf.state_x)
         # print( i /)
@@ -223,22 +315,21 @@ if __name__ == '__main__':
         # print('finished:', rate * 100.0, "% ", i, imu_data.shape[0])
 
         if i < right_imu_data.shape[0]:
-            rkf.state_transaction_function(right_imu_data[i,1:7],
-                                           np.diag((0.01,0.01,0.01,
-                                                    0.01 * np.pi /180.0,
+            rkf.state_transaction_function(right_imu_data[i, 1:7],
+                                           np.diag((0.01, 0.01, 0.01,
+                                                    0.01 * np.pi / 180.0,
                                                     0.01 * np.pi / 180.0,
                                                     0.01 * np.pi / 180.0)))
 
-            if i>5 and i < right_imu_data.shape[0] - 5:
+            if i > 5 and i < right_imu_data.shape[0] - 5:
                 if right_zv_state[i] > 0.5:
-                    rkf.measurement_function_zv(np.asarray((0.0,0.0,0.0)),
-                                                np.diag((0.0001,0.0001,0.0001)))
+                    rkf.measurement_function_zv(np.asarray((0.0, 0.0, 0.0)),
+                                                np.diag((0.0001, 0.0001, 0.0001)))
 
-            right_trace[i,:] = rkf.state[0:3]
+        right_trace[i, :] = rkf.state[0:3]
 
     end_time = time.time()
     print('totally time:', end_time - start_time, 'data time:', left_imu_data[-1, 0] - left_imu_data[0, 0])
-
 
     def aux_plot(data: np.ndarray, name: str):
         plt.figure()
@@ -249,29 +340,27 @@ if __name__ == '__main__':
         plt.grid()
         plt.legend()
 
-
     # #
-    aux_plot(left_imu_data[:, 1:4], 'acc')
-    aux_plot(left_imu_data[:, 4:7], 'gyr')
-    aux_plot(left_imu_data[:, 7:10], 'mag')
-    aux_plot(left_trace, 'trace')
-    aux_plot(vel, 'vel')
-    aux_plot(ang, 'ang')
-    aux_plot(ba, 'ba')
-    aux_plot(bg, 'bg')
+    # aux_plot(left_imu_data[:, 1:4], 'acc')
+    # aux_plot(left_imu_data[:, 4:7], 'gyr')
+    # aux_plot(left_imu_data[:, 7:10], 'mag')
+    # aux_plot(left_trace, 'trace')
+    # aux_plot(vel, 'vel')
+    # aux_plot(ang, 'ang')
+    # aux_plot(ba, 'ba')
+    # aux_plot(bg, 'bg')
 
-    aux_plot(iner_acc, 'inner acc')
-
-    plt.figure()
-    plt.plot(left_trace[:, 0], left_trace[:, 1], '-+')
-    plt.grid()
+    # aux_plot(iner_acc, 'inner acc')
+    #
+    # plt.figure()
+    # plt.plot(left_trace[:, 0], left_trace[:, 1], '-+')
+    # plt.grid()
 
     # plt.figure()
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
     ax.plot(left_trace[:, 0], left_trace[:, 1], left_trace[:, 2], '-+', label='left trace')
-    ax.plot(right_trace[:,0],right_trace[:,1],right_trace[:,2],'-+',label='right trace')
+    ax.plot(right_trace[:, 0], right_trace[:, 1], right_trace[:, 2], '-+', label='right trace')
     ax.grid()
     ax.legend()
     plt.show()
-
