@@ -67,16 +67,16 @@ class DualImuEKFComplex:
         :param mag:
         :return:
         '''
-        assert left_imu_data.shape[0] > 10 and left_imu_data.shape[1] > 6
-        assert right_imu_data.shape[0] > 10 and right_imu_data.shape[1] > 6
+        # assert left_imu_data.shape[0] > 10 and left_imu_data.shape[1] > 6
+        # assert right_imu_data.shape[0] > 10 and right_imu_data.shape[1] > 6
 
         # if np.linalg.norm(self.state)
 
         self.l_ekf.initial_state(left_imu_data, left_pos, ori)
         self.r_ekf.initial_state(right_imu_data, right_pos, ori)
 
-        print(dcm2euler(q2dcm(self.l_ekf.l_ekf.rotation_q)))
-        print(dcm2euler(q2dcm(self.r_ekf.l_ekf.rotation_q)))
+        print(dcm2euler(q2dcm(self.l_ekf.rotation_q)))
+        print(dcm2euler(q2dcm(self.r_ekf.rotation_q)))
 
     def state_transaction_function(self,
                                    left_imu_data,
@@ -94,7 +94,7 @@ class DualImuEKFComplex:
         self.l_ekf.state_transaction_function(left_imu_data, left_noise_matrix)
         self.r_ekf.state_transaction_function(right_imu_data, right_noise_matrix)
 
-    def zv_update(self, left_flag, right_flag, max_distance=1.5):
+    def zv_update(self, left_flag, right_flag, max_distance=2.5):
         if left_flag > 0.5:
             self.l_ekf.measurement_function_zv(np.asarray((0.0, 0.0, 0.0)),
                                                np.asarray((0.001, 0.001, 0.001)))
@@ -103,10 +103,13 @@ class DualImuEKFComplex:
             self.r_ekf.measurement_function_zv(np.asarray((0.0, 0.0, 0.0)),
                                                np.asarray((0.001, 0.001, 0.001)))
 
-        if left_flag > 0.5 and right_flag > 0.5 and np.linalg.norm(
-                self.l_ekf.state[0:3] - self.r_ekf.state[0:3]) > max_distance:
-            print(np.linalg.norm(self.l_ekf.state[0:3] - self.r_ekf.state[0:3]), 'of', max_distance)
-            self.distance_constrain(max_distance)
+        # if (left_flag > 0.5 and right_flag > 0.5) and\
+        # if        np.linalg.norm(
+        #         self.l_ekf.state[0:3] - self.r_ekf.state[0:3]) > max_distance:
+        #     print(np.linalg.norm(self.l_ekf.state[0:3] - self.r_ekf.state[0:3]), 'of', max_distance)
+        #     print(self.l_ekf.state)
+        #     print(self.r_ekf.state)
+        #     self.distance_constrain(max_distance)
 
     def distance_constrain(self, eta):
         '''
@@ -122,10 +125,10 @@ class DualImuEKFComplex:
         total_x[-self.r_ekf.state.shape[0]:] = self.r_ekf.state
 
         total_P[:self.l_ekf.state.shape[0], :self.l_ekf.state.shape[0]] = self.l_ekf.prob_state * 1.0
-        total_P[-self.r_ekf.state.shape[0], -self.r_ekf.state.shape[0]:] = self.r_ekf.prob_state * 1.0
+        total_P[-self.r_ekf.state.shape[0]:, -self.r_ekf.state.shape[0]:] = self.r_ekf.prob_state * 1.0
 
         W = np.linalg.inv(total_P)
-        W = (W + np.transpose(W)) * 0.5
+        W = (np.transpose(W )+(W)) * 0.5
 
         L = np.zeros([3, total_x.shape[0]])
         for i in range(3):
@@ -134,7 +137,8 @@ class DualImuEKFComplex:
 
         ### Projection
 
-        G = np.linalg.cholesky(W)
+        # G = np.linalg.cholesky(W)
+        G = sp.linalg.cholesky(W, lower=True)
 
         U, S, V = np.linalg.svd(L.dot(np.linalg.inv(G)))
 
@@ -168,13 +172,34 @@ class DualImuEKFComplex:
             print("ERROR : lam must bigger than zero.")
             z = total_x
         else:
-            z = np.linalg.inv(W + (np.transpose(lam* L).dot(L))).dot(total_P.dot(total_x))
+            z = np.linalg.inv(W + (np.transpose(lam * L).dot(L))).dot(total_P.dot(total_x))
 
+        # Correct data
+        print('Angle corrected')
+        # self.l_ekf.rotation_q = quaternion_left_update(self.l_ekf.rotation_q, z[6:9], -1.0)
+        self.l_ekf.state = z[:self.l_ekf.state.shape[0]]
+        self.l_ekf.state[6:9] = dcm2euler(q2dcm(self.l_ekf.rotation_q))
 
+        # self.r_ekf.rotation_q = quaternion_left_update(self.r_ekf.rotation_q,
+        #                                                 z[self.l_ekf.state.shape[0] + 6:self.l_ekf.state.shape[0] + 9],
+        #                                                 -1.0)
+        self.r_ekf.state = z[-self.r_ekf.state.shape[0]:]
+        self.r_ekf.state[6:9] = dcm2euler(q2dcm(self.l_ekf.rotation_q))
+        print('optimized distance:',np.linalg.norm(self.l_ekf.state[0:3]-self.r_ekf.state[0:3]))
+
+        z = (np.transpose(L).dot(L)).dot(z)
+
+        A = np.linalg.inv(W + lam * (np.transpose(L).dot(L)))
+
+        alpha = (np.transpose(z).dot(A)).dot(z)
+        Jp = (np.identity(total_P.shape[0]) - np.linalg.inv(alpha * (A).dot(z.dot(np.transpose(z))))).dot(A).dot(W)
+        total_P = (Jp.dot(total_P)).dot(np.transpose(Jp))
+
+        self.l_ekf.prob_state = total_P[:self.l_ekf.state.shape[0], :self.l_ekf.state.shape[0]]
+        self.r_ekf.prob_state = total_P[-self.r_ekf.state.shape[0]:, -self.r_ekf.state.shape[0]:]
 
 
 if __name__ == '__main__':
-
 
     print('dual feet test')
 
@@ -232,6 +257,9 @@ if __name__ == '__main__':
 
     right_trace = np.zeros([right_imu_data.shape[0], 3])
 
+    dual_left_trace = np.zeros([right_imu_data.shape[0], 3])
+    dual_right_trace = np.zeros([right_imu_data.shape[0], 3])
+
     iner_acc = np.zeros([left_imu_data.shape[0], 3])
 
     left_zv_state = np.zeros([left_imu_data.shape[0]])
@@ -260,7 +288,7 @@ if __name__ == '__main__':
 
     left_zv_state = GLRT_Detector(left_imu_data[:, 1:7], sigma_a=1.0,
                                   sigma_g=1.0 * np.pi / 180.0,
-                                  gamma=200,
+                                  gamma=250,
                                   gravity=9.8,
                                   time_Window_size=5)
 
@@ -281,12 +309,27 @@ if __name__ == '__main__':
 
     right_zv_state = GLRT_Detector(right_imu_data[:, 1:7], sigma_a=1.0,
                                    sigma_g=1.0 * np.pi / 180.0,
-                                   gamma=200,
+                                   gamma=250,
                                    gravity=9.8,
                                    time_Window_size=5)
 
+    dkf = DualImuEKFComplex(np.diag((
+        0.001, 0.001, 0.001,
+        0.001, 0.001, 0.001,
+        0.001 * np.pi / 180.0, 0.001 * np.pi / 180.0, 0.0001 * np.pi / 180.0,
+        0.0001,
+        0.0001,
+        0.0001,
+        0.0001 * np.pi / 180.0,
+        0.0001 * np.pi / 180.0,
+        0.0001 * np.pi / 180.0
+    )),
+        local_g=-9.81, time_interval=average_time_interval)
+
+    dkf.initial_state(left_imu_data[:50, 1:7], right_imu_data[:50, 1:7])
+
     for i in range(left_imu_data.shape[0]):
-    # print('i:',i)
+        # print('i:',i)
 
         lkf.state_transaction_function(left_imu_data[i, 1:7],
                                        np.diag((0.01, 0.01, 0.01,
@@ -295,9 +338,9 @@ if __name__ == '__main__':
                                                 0.01 * np.pi / 180.0))
                                        )
         if (i > 5) and (i < left_imu_data.shape[0] - 5):
-        # print('i:',i)
-        # zv_state[i] = z_tester.GLRT_Detector(imu_data[i - 4:i + 4, 1:8])
-            if  left_zv_state[i] > 0.5:
+            # print('i:',i)
+            # zv_state[i] = z_tester.GLRT_Detector(imu_data[i - 4:i + 4, 1:8])
+            if left_zv_state[i] > 0.5:
                 lkf.measurement_function_zv(np.asarray((0, 0, 0)),
                                             np.diag((0.0001, 0.0001, 0.0001)))
         # kf.measurement_function_mag(imu_data[i,7:10],np.identity(3)*0.05)
@@ -321,15 +364,31 @@ if __name__ == '__main__':
                                                     0.01 * np.pi / 180.0,
                                                     0.01 * np.pi / 180.0)))
 
+            dkf.state_transaction_function(left_imu_data[i, 1:7],
+                                           right_imu_data[i, 1:7],
+                                           np.diag((0.01, 0.01, 0.01,
+                                                    0.01 * np.pi / 180.0,
+                                                    0.01 * np.pi / 180.0,
+                                                    0.01 * np.pi / 180.0)),
+                                           np.diag((0.01, 0.01, 0.01,
+                                                    0.01 * np.pi / 180.0,
+                                                    0.01 * np.pi / 180.0,
+                                                    0.01 * np.pi / 180.0)))
+
             if i > 5 and i < right_imu_data.shape[0] - 5:
                 if right_zv_state[i] > 0.5:
                     rkf.measurement_function_zv(np.asarray((0.0, 0.0, 0.0)),
                                                 np.diag((0.0001, 0.0001, 0.0001)))
+                dkf.zv_update(left_zv_state[i], right_zv_state[i])
 
         right_trace[i, :] = rkf.state[0:3]
 
+        dual_left_trace[i, :] = dkf.l_ekf.state[0:3]
+        dual_right_trace[i, :] = dkf.r_ekf.state[0:3]
+
     end_time = time.time()
     print('totally time:', end_time - start_time, 'data time:', left_imu_data[-1, 0] - left_imu_data[0, 0])
+
 
     def aux_plot(data: np.ndarray, name: str):
         plt.figure()
@@ -339,6 +398,7 @@ if __name__ == '__main__':
             plt.plot(data[:, i], label=str(i))
         plt.grid()
         plt.legend()
+
 
     # #
     # aux_plot(left_imu_data[:, 1:4], 'acc')
@@ -361,6 +421,8 @@ if __name__ == '__main__':
     ax = fig.add_subplot(111, projection='3d')
     ax.plot(left_trace[:, 0], left_trace[:, 1], left_trace[:, 2], '-+', label='left trace')
     ax.plot(right_trace[:, 0], right_trace[:, 1], right_trace[:, 2], '-+', label='right trace')
+    ax.plot(dual_left_trace[:, 0], dual_left_trace[:, 1], dual_left_trace[:, 2], '-+', label='dual left trace')
+    ax.plot(dual_right_trace[:, 0], dual_right_trace[:, 1], dual_right_trace[:, 2], '-+', label='dual right trace')
     ax.grid()
     ax.legend()
     plt.show()
