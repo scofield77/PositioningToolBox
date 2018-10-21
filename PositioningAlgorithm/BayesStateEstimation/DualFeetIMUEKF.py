@@ -103,13 +103,14 @@ class DualImuEKFComplex:
             self.r_ekf.measurement_function_zv(np.asarray((0.0, 0.0, 0.0)),
                                                np.asarray((0.001, 0.001, 0.001)))
 
-        # if (left_flag > 0.5 and right_flag > 0.5) and\
-        # if        np.linalg.norm(
-        #         self.l_ekf.state[0:3] - self.r_ekf.state[0:3]) > max_distance:
-        #     print(np.linalg.norm(self.l_ekf.state[0:3] - self.r_ekf.state[0:3]), 'of', max_distance)
-        #     print(self.l_ekf.state)
-        #     print(self.r_ekf.state)
-        #     self.distance_constrain(max_distance)
+        print('----',np.linalg.norm(self.l_ekf.state[0:3] - self.r_ekf.state[0:3]), 'of', max_distance)
+        if (left_flag > 0.5 and right_flag > 0.5) and\
+        np.linalg.norm(
+                self.l_ekf.state[0:3] - self.r_ekf.state[0:3]) > max_distance:
+            print(np.linalg.norm(self.l_ekf.state[0:3] - self.r_ekf.state[0:3]), 'of', max_distance)
+            print('before left state:',self.l_ekf.state)
+            print('before left state:', self.r_ekf.state)
+            self.distance_constrain(max_distance)
 
     def distance_constrain(self, eta):
         '''
@@ -137,8 +138,9 @@ class DualImuEKFComplex:
 
         ### Projection
 
-        # G = np.linalg.cholesky(W)
-        G = sp.linalg.cholesky(W, lower=True)
+        G = np.linalg.cholesky(W)
+        # G = np.linalg.pinv(sp.linalg.cholesky(total_P, lower=True))
+        # L, U = sp.linalg.
 
         U, S, V = np.linalg.svd(L.dot(np.linalg.inv(G)))
 
@@ -147,7 +149,7 @@ class DualImuEKFComplex:
         # Newton search to find lambda
         lam = 0.0
         delta = 1e100
-        ctr = 0.0
+        ctr = 0
 
         while abs(delta) > 1e-4 and ctr < 25:
             g = e[0] * e[0] * S[0] * S[0] / ((1 + lam * S[0] * S[0]) ** 2) + \
@@ -167,36 +169,42 @@ class DualImuEKFComplex:
             delta = g / dg
             lam = lam - delta
             ctr = ctr + 1
+        print('ctr',ctr)
 
         if (lam < 0):
             print("ERROR : lam must bigger than zero.")
             z = total_x
         else:
-            z = np.linalg.inv(W + (np.transpose(lam * L).dot(L))).dot(total_P.dot(total_x))
+            z = np.linalg.inv(W + (np.transpose(lam * L).dot(L))).dot(W.dot(total_x))
 
         # Correct data
         print('Angle corrected')
-        # self.l_ekf.rotation_q = quaternion_left_update(self.l_ekf.rotation_q, z[6:9], -1.0)
-        self.l_ekf.state = z[:self.l_ekf.state.shape[0]]
+        self.l_ekf.rotation_q = quaternion_left_update(self.l_ekf.rotation_q, z[6:9], 1.0)
+        # self.l_ekf.state = z[:self.l_ekf.state.shape[0]]
+        self.l_ekf.state[0:3] = z[0:3]
         self.l_ekf.state[6:9] = dcm2euler(q2dcm(self.l_ekf.rotation_q))
 
-        # self.r_ekf.rotation_q = quaternion_left_update(self.r_ekf.rotation_q,
-        #                                                 z[self.l_ekf.state.shape[0] + 6:self.l_ekf.state.shape[0] + 9],
-        #                                                 -1.0)
-        self.r_ekf.state = z[-self.r_ekf.state.shape[0]:]
+        self.r_ekf.rotation_q = quaternion_left_update(self.r_ekf.rotation_q,
+                                                        z[self.l_ekf.state.shape[0] + 6:self.l_ekf.state.shape[0] + 9],
+                                                        1.0)
+        # self.r_ekf.state = z[-self.r_ekf.state.shape[0]:]
+        self.r_ekf.state[0:3] = z[self.l_ekf.state.shape[0]:self.l_ekf.state.shape[0]+3]
         self.r_ekf.state[6:9] = dcm2euler(q2dcm(self.l_ekf.rotation_q))
         print('optimized distance:',np.linalg.norm(self.l_ekf.state[0:3]-self.r_ekf.state[0:3]))
 
         z = (np.transpose(L).dot(L)).dot(z)
 
-        A = np.linalg.inv(W + lam * (np.transpose(L).dot(L)))
+        A = np.linalg.inv(np.linalg.inv(total_P) + lam * (np.transpose(L).dot(L)))
 
         alpha = (np.transpose(z).dot(A)).dot(z)
-        Jp = (np.identity(total_P.shape[0]) - np.linalg.inv(alpha * (A).dot(z.dot(np.transpose(z))))).dot(A).dot(W)
+        # Jp = (np.identity(total_P.shape[0]) - np.linalg.inv(alpha * (A).dot(z.dot(np.transpose(z))))).dot(A).dot(W)
+        Jp = ((np.identity(total_P.shape[0]) - (1.0 / alpha * (A).dot(z.dot(np.transpose(z))))).dot(A)).dot(W)
         total_P = (Jp.dot(total_P)).dot(np.transpose(Jp))
 
         self.l_ekf.prob_state = total_P[:self.l_ekf.state.shape[0], :self.l_ekf.state.shape[0]]
         self.r_ekf.prob_state = total_P[-self.r_ekf.state.shape[0]:, -self.r_ekf.state.shape[0]:]
+        print('total x:',total_x)
+        print('after z:',z)
 
 
 if __name__ == '__main__':
