@@ -97,11 +97,11 @@ class DualImuEKFComplex:
     def zv_update(self, left_flag, right_flag, max_distance=2.5):
         if left_flag > 0.5:
             self.l_ekf.measurement_function_zv(np.asarray((0.0, 0.0, 0.0)),
-                                               np.asarray((0.001, 0.001, 0.001)))
+                                               np.asarray((0.0001, 0.0001, 0.0001)))
 
         if right_flag > 0.5:
             self.r_ekf.measurement_function_zv(np.asarray((0.0, 0.0, 0.0)),
-                                               np.asarray((0.001, 0.001, 0.001)))
+                                               np.asarray((0.0001, 0.0001, 0.0001)))
 
         print('----',np.linalg.norm(self.l_ekf.state[0:3] - self.r_ekf.state[0:3]), 'of', max_distance)
         if (left_flag > 0.5 and right_flag > 0.5) and\
@@ -110,7 +110,7 @@ class DualImuEKFComplex:
             print(np.linalg.norm(self.l_ekf.state[0:3] - self.r_ekf.state[0:3]), 'of', max_distance)
             print('before left state:',self.l_ekf.state)
             print('before left state:', self.r_ekf.state)
-            # self.distance_constrain(max_distance)
+            self.distance_constrain(max_distance)
 
     def distance_constrain(self, eta):
         '''
@@ -138,7 +138,8 @@ class DualImuEKFComplex:
 
         ### Projection
 
-        G = np.linalg.cholesky(W)
+        # G = np.linalg.cholesky(W)
+        q, G = np.linalg.qr(W)
         # G = np.linalg.pinv(sp.linalg.cholesky(total_P, lower=True))
         # L, U = sp.linalg.
 
@@ -420,9 +421,20 @@ if __name__ == '__main__':
 
     # aux_plot(iner_acc, 'inner acc')
     #
-    # plt.figure()
-    # plt.plot(left_trace[:, 0], left_trace[:, 1], '-+')
-    # plt.grid()
+    plt.figure()
+    plt.plot(left_trace[:, 0], left_trace[:, 1], '-+',label = 'left')
+    plt.plot(dual_left_trace[:,0],dual_left_trace[:,1],'-+',label='dual left')
+    plt.plot(dual_right_trace[:,0],dual_right_trace[:,1],'-+',label= 'dual right')
+    plt.grid()
+    plt.legend()
+    # plt.axes([np.min(left_trace[:,0])-5.0,
+    #           np.min(left_trace[:,1])-5.0,
+    #           np.max(left_trace[:,0])-np.min(left_trace[:,0])+10.0,
+    #           np.max(left_trace[:,1])-np.min(left_trace[:,1])+10.0
+    #           ])
+    plt.xlim(np.min(left_trace[:,0]),np.max(left_trace[:,0]))
+    plt.ylim(np.min(left_trace[:,1]),np.max(left_trace[:,1]))
+    plt.grid()
 
     # plt.figure()
     fig = plt.figure()
