@@ -94,7 +94,7 @@ class DualImuEKFComplex:
         self.l_ekf.state_transaction_function(left_imu_data, left_noise_matrix)
         self.r_ekf.state_transaction_function(right_imu_data, right_noise_matrix)
 
-    def zv_update(self, left_flag, right_flag, max_distance=2.5):
+    def zv_update(self, left_flag, right_flag, max_distance=2.0):
         if left_flag > 0.5:
             self.l_ekf.measurement_function_zv(np.asarray((0.0, 0.0, 0.0)),
                                                np.asarray((0.0001, 0.0001, 0.0001)))
@@ -103,12 +103,12 @@ class DualImuEKFComplex:
             self.r_ekf.measurement_function_zv(np.asarray((0.0, 0.0, 0.0)),
                                                np.asarray((0.0001, 0.0001, 0.0001)))
 
-        print('----',np.linalg.norm(self.l_ekf.state[0:3] - self.r_ekf.state[0:3]), 'of', max_distance)
-        if (left_flag > 0.5 and right_flag > 0.5) and\
-        np.linalg.norm(
-                self.l_ekf.state[0:3] - self.r_ekf.state[0:3]) > max_distance:
+        # print('----', np.linalg.norm(self.l_ekf.state[0:3] - self.r_ekf.state[0:3]), 'of', max_distance)
+        # if (left_flag > 0.5 and right_flag > 0.5) and \
+        if        np.linalg.norm(
+                    self.l_ekf.state[0:3] - self.r_ekf.state[0:3]) > max_distance:
             print(np.linalg.norm(self.l_ekf.state[0:3] - self.r_ekf.state[0:3]), 'of', max_distance)
-            print('before left state:',self.l_ekf.state)
+            print('before left state:', self.l_ekf.state)
             print('before left state:', self.r_ekf.state)
             self.distance_constrain(max_distance)
 
@@ -129,7 +129,7 @@ class DualImuEKFComplex:
         total_P[-self.r_ekf.state.shape[0]:, -self.r_ekf.state.shape[0]:] = self.r_ekf.prob_state * 1.0
 
         W = np.linalg.inv(total_P)
-        W = (np.transpose(W )+(W)) * 0.5
+        W = (np.transpose(W) + (W)) * 0.5
 
         L = np.zeros([3, total_x.shape[0]])
         for i in range(3):
@@ -140,6 +140,8 @@ class DualImuEKFComplex:
 
         # G = np.linalg.cholesky(W)
         q, G = np.linalg.qr(W)
+        # G = np.linalg.cholesky(G)
+
         # G = np.linalg.pinv(sp.linalg.cholesky(total_P, lower=True))
         # L, U = sp.linalg.
 
@@ -170,7 +172,7 @@ class DualImuEKFComplex:
             delta = g / dg
             lam = lam - delta
             ctr = ctr + 1
-        print('ctr',ctr)
+        print('ctr', ctr)
 
         if (lam < 0):
             print("ERROR : lam must bigger than zero.")
@@ -181,17 +183,17 @@ class DualImuEKFComplex:
         # Correct data
         print('Angle corrected')
         self.l_ekf.rotation_q = quaternion_left_update(self.l_ekf.rotation_q, z[6:9], 1.0)
-        # self.l_ekf.state = z[:self.l_ekf.state.shape[0]]
-        self.l_ekf.state[0:3] = z[0:3]
+        self.l_ekf.state = z[:self.l_ekf.state.shape[0]]
+        # self.l_ekf.state[0:3] = z[0:3]
         self.l_ekf.state[6:9] = dcm2euler(q2dcm(self.l_ekf.rotation_q))
 
         self.r_ekf.rotation_q = quaternion_left_update(self.r_ekf.rotation_q,
-                                                        z[self.l_ekf.state.shape[0] + 6:self.l_ekf.state.shape[0] + 9],
-                                                        1.0)
-        # self.r_ekf.state = z[-self.r_ekf.state.shape[0]:]
-        self.r_ekf.state[0:3] = z[self.l_ekf.state.shape[0]:self.l_ekf.state.shape[0]+3]
+                                                       z[self.l_ekf.state.shape[0] + 6:self.l_ekf.state.shape[0] + 9],
+                                                       1.0)
+        self.r_ekf.state = z[-self.r_ekf.state.shape[0]:]
+        # self.r_ekf.state[0:3] = z[self.l_ekf.state.shape[0]:self.l_ekf.state.shape[0] + 3]
         self.r_ekf.state[6:9] = dcm2euler(q2dcm(self.l_ekf.rotation_q))
-        print('optimized distance:',np.linalg.norm(self.l_ekf.state[0:3]-self.r_ekf.state[0:3]))
+        print('optimized distance:', np.linalg.norm(self.l_ekf.state[0:3] - self.r_ekf.state[0:3]))
 
         z = (np.transpose(L).dot(L)).dot(z)
 
@@ -204,8 +206,8 @@ class DualImuEKFComplex:
 
         self.l_ekf.prob_state = total_P[:self.l_ekf.state.shape[0], :self.l_ekf.state.shape[0]]
         self.r_ekf.prob_state = total_P[-self.r_ekf.state.shape[0]:, -self.r_ekf.state.shape[0]:]
-        print('total x:',total_x)
-        print('after z:',z)
+        print('total x:', total_x)
+        print('after z:', z)
 
 
 if __name__ == '__main__':
@@ -422,9 +424,9 @@ if __name__ == '__main__':
     # aux_plot(iner_acc, 'inner acc')
     #
     plt.figure()
-    plt.plot(left_trace[:, 0], left_trace[:, 1], '-+',label = 'left')
-    plt.plot(dual_left_trace[:,0],dual_left_trace[:,1],'-+',label='dual left')
-    plt.plot(dual_right_trace[:,0],dual_right_trace[:,1],'-+',label= 'dual right')
+    plt.plot(left_trace[:, 0], left_trace[:, 1], '-+', label='left')
+    plt.plot(dual_left_trace[:, 0], dual_left_trace[:, 1], '-+', label='dual left')
+    plt.plot(dual_right_trace[:, 0], dual_right_trace[:, 1], '-+', label='dual right')
     plt.grid()
     plt.legend()
     # plt.axes([np.min(left_trace[:,0])-5.0,
@@ -432,8 +434,8 @@ if __name__ == '__main__':
     #           np.max(left_trace[:,0])-np.min(left_trace[:,0])+10.0,
     #           np.max(left_trace[:,1])-np.min(left_trace[:,1])+10.0
     #           ])
-    plt.xlim(np.min(left_trace[:,0]),np.max(left_trace[:,0]))
-    plt.ylim(np.min(left_trace[:,1]),np.max(left_trace[:,1]))
+    plt.xlim(np.min(left_trace[:, 0]) - 5.0, np.max(left_trace[:, 0]) + 5.0)
+    plt.ylim(np.min(left_trace[:, 1]) - 5.0, np.max(left_trace[:, 1]) + 5.0)
     plt.grid()
 
     # plt.figure()
