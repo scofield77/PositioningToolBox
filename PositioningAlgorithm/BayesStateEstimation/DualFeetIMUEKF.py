@@ -183,15 +183,15 @@ class DualImuEKFComplex:
         # Correct data
         print('Angle corrected')
         self.l_ekf.rotation_q = quaternion_left_update(self.l_ekf.rotation_q, z[6:9], 1.0)
-        self.l_ekf.state = z[:self.l_ekf.state.shape[0]]
-        # self.l_ekf.state[0:3] = z[0:3]
+        # self.l_ekf.state = z[:self.l_ekf.state.shape[0]]
+        self.l_ekf.state[0:3] = z[0:3]
         self.l_ekf.state[6:9] = dcm2euler(q2dcm(self.l_ekf.rotation_q))
 
         self.r_ekf.rotation_q = quaternion_left_update(self.r_ekf.rotation_q,
                                                        z[self.l_ekf.state.shape[0] + 6:self.l_ekf.state.shape[0] + 9],
                                                        1.0)
-        self.r_ekf.state = z[-self.r_ekf.state.shape[0]:]
-        # self.r_ekf.state[0:3] = z[self.l_ekf.state.shape[0]:self.l_ekf.state.shape[0] + 3]
+        # self.r_ekf.state = z[-self.r_ekf.state.shape[0]:]
+        self.r_ekf.state[0:3] = z[self.l_ekf.state.shape[0]:self.l_ekf.state.shape[0] + 3]
         self.r_ekf.state[6:9] = dcm2euler(q2dcm(self.l_ekf.rotation_q))
         print('optimized distance:', np.linalg.norm(self.l_ekf.state[0:3] - self.r_ekf.state[0:3]))
 
