@@ -386,7 +386,7 @@ if __name__ == '__main__':
                                                     0.01 * np.pi / 180.0,
                                                     0.01 * np.pi / 180.0)))
 
-            if i > 5 and i < right_imu_data.shape[0] - 5:
+            if i > 5 and i < (right_imu_data.shape[0] - 5):
                 if right_zv_state[i] > 0.5:
                     rkf.measurement_function_zv(np.asarray((0.0, 0.0, 0.0)),
                                                 np.diag((0.0001, 0.0001, 0.0001)))
