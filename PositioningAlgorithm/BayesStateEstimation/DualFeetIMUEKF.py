@@ -33,7 +33,7 @@ from AlgorithmTool.ImuTools import *
 from PositioningAlgorithm.BayesStateEstimation.ImuEKF import *
 
 
-class DualImuEKFComplex:
+class DualImuEKFComplexCombine:
     def __init__(self, initial_prob, local_g=-9.8, time_interval=0.01):
         '''
 
@@ -108,9 +108,15 @@ class DualImuEKFComplex:
         if        np.linalg.norm(
                     self.l_ekf.state[0:3] - self.r_ekf.state[0:3]) > max_distance:
             print(np.linalg.norm(self.l_ekf.state[0:3] - self.r_ekf.state[0:3]), 'of', max_distance)
-            print('before left state:', self.l_ekf.state)
-            print('before left state:', self.r_ekf.state)
-            self.distance_constrain(max_distance)
+            # print('before left state:', self.l_ekf.state)
+            # print('before left state:', self.r_ekf.state)
+            try:
+                self.distance_constrain(max_distance)
+            except np.linalg.LinAlgError:
+                return
+            else:
+                return
+
 
     def distance_constrain(self, eta):
         '''
@@ -137,15 +143,23 @@ class DualImuEKFComplex:
             L[i, i + self.l_ekf.state.shape[0]] = -1.0
 
         ### Projection
+        try:
 
-        # G = np.linalg.cholesky(W)
-        q, G = np.linalg.qr(W)
+            G = np.linalg.cholesky(W)
+        # q, G = np.linalg.qr(W)
         # G = np.linalg.cholesky(G)
 
         # G = np.linalg.pinv(sp.linalg.cholesky(total_P, lower=True))
         # L, U = sp.linalg.
 
-        U, S, V = np.linalg.svd(L.dot(np.linalg.inv(G)))
+            U, S, V = np.linalg.svd(L.dot(np.linalg.inv(G)))
+        except np.linalg.LinAlgError :
+            print('lina')
+            return
+        else:
+            print('unknown error')
+            return
+
 
         e = np.transpose(V).dot(G).dot(total_x)
 
@@ -182,16 +196,16 @@ class DualImuEKFComplex:
 
         # Correct data
         print('Angle corrected')
-        self.l_ekf.rotation_q = quaternion_left_update(self.l_ekf.rotation_q, z[6:9], 1.0)
-        # self.l_ekf.state = z[:self.l_ekf.state.shape[0]]
-        self.l_ekf.state[0:3] = z[0:3]
+        self.l_ekf.rotation_q = quaternion_left_update(self.l_ekf.rotation_q, z[6:9], -1.0)
+        self.l_ekf.state = z[:self.l_ekf.state.shape[0]]
+        # self.l_ekf.state[0:3] = z[0:3]
         self.l_ekf.state[6:9] = dcm2euler(q2dcm(self.l_ekf.rotation_q))
 
         self.r_ekf.rotation_q = quaternion_left_update(self.r_ekf.rotation_q,
                                                        z[self.l_ekf.state.shape[0] + 6:self.l_ekf.state.shape[0] + 9],
-                                                       1.0)
-        # self.r_ekf.state = z[-self.r_ekf.state.shape[0]:]
-        self.r_ekf.state[0:3] = z[self.l_ekf.state.shape[0]:self.l_ekf.state.shape[0] + 3]
+                                                       -1.0)
+        self.r_ekf.state = z[-self.r_ekf.state.shape[0]:]
+        # self.r_ekf.state[0:3] = z[self.l_ekf.state.shape[0]:self.l_ekf.state.shape[0] + 3]
         self.r_ekf.state[6:9] = dcm2euler(q2dcm(self.l_ekf.rotation_q))
         print('optimized distance:', np.linalg.norm(self.l_ekf.state[0:3] - self.r_ekf.state[0:3]))
 
@@ -206,8 +220,8 @@ class DualImuEKFComplex:
 
         self.l_ekf.prob_state = total_P[:self.l_ekf.state.shape[0], :self.l_ekf.state.shape[0]]
         self.r_ekf.prob_state = total_P[-self.r_ekf.state.shape[0]:, -self.r_ekf.state.shape[0]:]
-        print('total x:', total_x)
-        print('after z:', z)
+        # print('total x:', total_x)
+        # print('after z:', z)
 
 
 if __name__ == '__main__':
@@ -324,7 +338,7 @@ if __name__ == '__main__':
                                    gravity=9.8,
                                    time_Window_size=5)
 
-    dkf = DualImuEKFComplex(np.diag((
+    dkf = DualImuEKFComplexCombine(np.diag((
         0.001, 0.001, 0.001,
         0.001, 0.001, 0.001,
         0.001 * np.pi / 180.0, 0.001 * np.pi / 180.0, 0.0001 * np.pi / 180.0,
@@ -425,6 +439,7 @@ if __name__ == '__main__':
     #
     plt.figure()
     plt.plot(left_trace[:, 0], left_trace[:, 1], '-+', label='left')
+    plt.plot(right_trace[:,0],right_trace[:,1],'-+',label='right')
     plt.plot(dual_left_trace[:, 0], dual_left_trace[:, 1], '-+', label='dual left')
     plt.plot(dual_right_trace[:, 0], dual_right_trace[:, 1], '-+', label='dual right')
     plt.grid()
