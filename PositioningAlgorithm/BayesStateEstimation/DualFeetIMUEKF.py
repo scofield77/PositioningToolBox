@@ -31,7 +31,7 @@ from numba import jit
 
 from AlgorithmTool.ImuTools import *
 from PositioningAlgorithm.BayesStateEstimation.ImuEKF import *
-
+from PositioningAlgorithm.BayesStateEstimation.DualFeetImu import *
 
 class DualImuEKFComplexCombine:
     def __init__(self, initial_prob, local_g=-9.8, time_interval=0.01):
@@ -73,10 +73,11 @@ class DualImuEKFComplexCombine:
         # if np.linalg.norm(self.state)
 
         self.l_ekf.initial_state(left_imu_data, left_pos, ori)
-        self.r_ekf.initial_state(right_imu_data, right_pos, ori)
+        self.r_ekf.initial_state(right_imu_data, right_pos, ori)  # +25.0/180.0*np.pi)
 
         print(dcm2euler(q2dcm(self.l_ekf.rotation_q)))
         print(dcm2euler(q2dcm(self.r_ekf.rotation_q)))
+        self.distance_counter = 0
 
     def state_transaction_function(self,
                                    left_imu_data,
@@ -94,7 +95,8 @@ class DualImuEKFComplexCombine:
         self.l_ekf.state_transaction_function(left_imu_data, left_noise_matrix)
         self.r_ekf.state_transaction_function(right_imu_data, right_noise_matrix)
 
-    def zv_update(self, left_flag, right_flag, max_distance=2.0):
+    def zv_update(self, left_flag, right_flag, max_distance=2.5):
+
         if left_flag > 0.5:
             self.l_ekf.measurement_function_zv(np.asarray((0.0, 0.0, 0.0)),
                                                np.asarray((0.0001, 0.0001, 0.0001)))
@@ -105,21 +107,24 @@ class DualImuEKFComplexCombine:
 
         # print('----', np.linalg.norm(self.l_ekf.state[0:3] - self.r_ekf.state[0:3]), 'of', max_distance)
         # if (left_flag > 0.5 and right_flag > 0.5) and \
-        if        np.linalg.norm(
-                    self.l_ekf.state[0:3] - self.r_ekf.state[0:3]) > max_distance:
+        self.distance_counter = self.distance_counter - 1
+        if np.linalg.norm(
+                self.l_ekf.state[0:3] - self.r_ekf.state[0:3]) > max_distance and self.distance_counter < 1:
+
             print(np.linalg.norm(self.l_ekf.state[0:3] - self.r_ekf.state[0:3]), 'of', max_distance)
             # print('before left state:', self.l_ekf.state)
             # print('before left state:', self.r_ekf.state)
             try:
                 self.distance_constrain(max_distance)
+                self.distance_counter = 5
             except np.linalg.LinAlgError:
                 return
-            else:
-                return
-
+            # else:
+            #     return
 
     def distance_constrain(self, eta):
         '''
+        distance constrained function.
 
         :param eta: range constraint
         :return:
@@ -146,20 +151,16 @@ class DualImuEKFComplexCombine:
         try:
 
             G = np.linalg.cholesky(W)
-        # q, G = np.linalg.qr(W)
-        # G = np.linalg.cholesky(G)
-
-        # G = np.linalg.pinv(sp.linalg.cholesky(total_P, lower=True))
-        # L, U = sp.linalg.
 
             U, S, V = np.linalg.svd(L.dot(np.linalg.inv(G)))
-        except np.linalg.LinAlgError :
+
+
+        except np.linalg.LinAlgError:
             print('lina')
             return
-        else:
-            print('unknown error')
-            return
-
+        # else:
+        #     print('unknown error')
+        #     return
 
         e = np.transpose(V).dot(G).dot(total_x)
 
@@ -169,9 +170,9 @@ class DualImuEKFComplexCombine:
         ctr = 0
 
         while abs(delta) > 1e-4 and ctr < 25:
-            g = e[0] * e[0] * S[0] * S[0] / ((1 + lam * S[0] * S[0]) ** 2) + \
-                e[1] * e[1] * S[1] * S[1] / ((1 + lam * S[1] * S[1]) ** 2) + \
-                e[2] * e[2] * S[2] * S[2] / ((1 + lam * S[2] * S[2]) ** 2) - \
+            g = e[0] * e[0] * S[0] * S[0] / ((1 + lam * S[0] * S[0]) ** 2.0) + \
+                e[1] * e[1] * S[1] * S[1] / ((1 + lam * S[1] * S[1]) ** 2.0) + \
+                e[2] * e[2] * S[2] * S[2] / ((1 + lam * S[2] * S[2]) ** 2.0) - \
                 eta * eta
 
             # dg = -2.0 * (e[0] ** 2.0 * S[0, 0] ** 4.0 / ((1 + lam * S[0, 0] ** 2.0) ** 3.0) +
@@ -192,7 +193,7 @@ class DualImuEKFComplexCombine:
             print("ERROR : lam must bigger than zero.")
             z = total_x
         else:
-            z = np.linalg.inv(W + (np.transpose(lam * L).dot(L))).dot(W.dot(total_x))
+            z = np.linalg.inv(W + (lam * np.transpose(L).dot(L))).dot(W.dot(total_x))
 
         # Correct data
         print('Angle corrected')
@@ -206,7 +207,7 @@ class DualImuEKFComplexCombine:
                                                        -1.0)
         self.r_ekf.state = z[-self.r_ekf.state.shape[0]:]
         # self.r_ekf.state[0:3] = z[self.l_ekf.state.shape[0]:self.l_ekf.state.shape[0] + 3]
-        self.r_ekf.state[6:9] = dcm2euler(q2dcm(self.l_ekf.rotation_q))
+        self.r_ekf.state[6:9] = dcm2euler(q2dcm(self.r_ekf.rotation_q))
         print('optimized distance:', np.linalg.norm(self.l_ekf.state[0:3] - self.r_ekf.state[0:3]))
 
         z = (np.transpose(L).dot(L)).dot(z)
@@ -222,6 +223,9 @@ class DualImuEKFComplexCombine:
         self.r_ekf.prob_state = total_P[-self.r_ekf.state.shape[0]:, -self.r_ekf.state.shape[0]:]
         # print('total x:', total_x)
         # print('after z:', z)
+
+
+
 
 
 if __name__ == '__main__':
@@ -338,20 +342,31 @@ if __name__ == '__main__':
                                    gravity=9.8,
                                    time_Window_size=5)
 
-    dkf = DualImuEKFComplexCombine(np.diag((
+    # dkf = DualImuEKFComplexCombine(np.diag((
+    #     0.001, 0.001, 0.001,
+    #     0.001, 0.001, 0.001,
+    #     0.001 * np.pi / 180.0, 0.001 * np.pi / 180.0, 0.0001 * np.pi / 180.0,
+    #     0.0001,
+    #     0.0001,
+    #     0.0001,
+    #     0.0001 * np.pi / 180.0,
+    #     0.0001 * np.pi / 180.0,
+    #     0.0001 * np.pi / 180.0
+    # )),
+    #     local_g=-9.81, time_interval=average_time_interval)
+    #
+    # dkf.initial_state(left_imu_data[:50, 1:7], right_imu_data[:50, 1:7])
+
+    dkf = DualFeetImu(np.diag((
         0.001, 0.001, 0.001,
         0.001, 0.001, 0.001,
-        0.001 * np.pi / 180.0, 0.001 * np.pi / 180.0, 0.0001 * np.pi / 180.0,
-        0.0001,
-        0.0001,
-        0.0001,
-        0.0001 * np.pi / 180.0,
-        0.0001 * np.pi / 180.0,
-        0.0001 * np.pi / 180.0
+        0.001 * np.pi / 180.0, 0.001 * np.pi / 180.0, 0.0001 * np.pi / 180.0
     )),
         local_g=-9.81, time_interval=average_time_interval)
 
-    dkf.initial_state(left_imu_data[:50, 1:7], right_imu_data[:50, 1:7])
+    dkf.initial_state(left_imu_data[:50, 1:7],
+                      right_imu_data[:50, 1:7],
+                      )
 
     for i in range(left_imu_data.shape[0]):
         # print('i:',i)
@@ -389,6 +404,17 @@ if __name__ == '__main__':
                                                     0.01 * np.pi / 180.0,
                                                     0.01 * np.pi / 180.0)))
 
+            # dkf.state_transaction_function(left_imu_data[i, 1:7],
+            #                                right_imu_data[i, 1:7],
+            #                                np.diag((0.01, 0.01, 0.01,
+            #                                         0.01 * np.pi / 180.0,
+            #                                         0.01 * np.pi / 180.0,
+            #                                         0.01 * np.pi / 180.0)),
+            #                                np.diag((0.01, 0.01, 0.01,
+            #                                         0.01 * np.pi / 180.0,
+            #                                         0.01 * np.pi / 180.0,
+            #                                         0.01 * np.pi / 180.0)))
+
             dkf.state_transaction_function(left_imu_data[i, 1:7],
                                            right_imu_data[i, 1:7],
                                            np.diag((0.01, 0.01, 0.01,
@@ -399,17 +425,19 @@ if __name__ == '__main__':
                                                     0.01 * np.pi / 180.0,
                                                     0.01 * np.pi / 180.0,
                                                     0.01 * np.pi / 180.0)))
-
             if i > 5 and i < (right_imu_data.shape[0] - 5):
                 if right_zv_state[i] > 0.5:
                     rkf.measurement_function_zv(np.asarray((0.0, 0.0, 0.0)),
                                                 np.diag((0.0001, 0.0001, 0.0001)))
-                dkf.zv_update(left_zv_state[i], right_zv_state[i])
+                # dkf.zv_update(left_zv_state[i], right_zv_state[i])
+                dkf.measurement_zv(left_zv_state[i], right_zv_state[i])
 
         right_trace[i, :] = rkf.state[0:3]
 
-        dual_left_trace[i, :] = dkf.l_ekf.state[0:3]
-        dual_right_trace[i, :] = dkf.r_ekf.state[0:3]
+        # dual_left_trace[i, :] = dkf.l_ekf.state[0:3]
+        # dual_right_trace[i, :] = dkf.r_ekf.state[0:3]
+        dual_left_trace[i,:] = dkf.state[0:3]
+        dual_right_trace[i,:] = dkf.state[9:12]
 
     end_time = time.time()
     print('totally time:', end_time - start_time, 'data time:', left_imu_data[-1, 0] - left_imu_data[0, 0])
@@ -439,7 +467,7 @@ if __name__ == '__main__':
     #
     plt.figure()
     plt.plot(left_trace[:, 0], left_trace[:, 1], '-+', label='left')
-    plt.plot(right_trace[:,0],right_trace[:,1],'-+',label='right')
+    plt.plot(right_trace[:, 0], right_trace[:, 1], '-+', label='right')
     plt.plot(dual_left_trace[:, 0], dual_left_trace[:, 1], '-+', label='dual left')
     plt.plot(dual_right_trace[:, 0], dual_right_trace[:, 1], '-+', label='dual right')
     plt.grid()
