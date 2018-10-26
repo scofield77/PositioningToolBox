@@ -118,8 +118,8 @@ class DualFeetImu:
         noise_matrix[0:6, 0:6] = l_noise_matrix * 1.0
         noise_matrix[6:12, 6:12] = r_noise_matrix * 1.0
 
-        self.prob_state = (self.F.dot(self.prob_state)).dot(np.transpose(self.F)) + (self.G.dot(noise_matrix)).dot(
-            np.transpose(self.G))
+        self.prob_state = (self.F.dot(self.prob_state)).dot(np.transpose(self.F)) + \
+                          (self.G.dot(noise_matrix)).dot(np.transpose(self.G))
 
         self.prob_state = 0.5 * self.prob_state + 0.5 * (self.prob_state.transpose())
 
@@ -143,7 +143,7 @@ class DualFeetImu:
             #     cov_matrix = np.identity(6) * 0.0001
 
             if left_zv_flag > 0.5:# and right_zv_flag < 0.5:
-
+                before_p = self.prob_state * 1.0
                 # return
                 H = np.zeros([3, 18])
                 H[0:3, 3:6] = np.identity(3)
@@ -161,7 +161,10 @@ class DualFeetImu:
 
                 # self.prob_state[9:18,0:9] = np.zeros([9,9])
                 # self.prob_state[0:9,9:18] = np.zeros([9,9])
-                self.prob_state = 0.5 * self.prob_state + 0.5 * np.transpose(self.prob_state)
+                # self.prob_state = 0.5 * self.prob_state + 0.5 * np.transpose(self.prob_state)
+                # self.prob_state[9:18,9:18] = before_p[9:18,9:18] * 1.0
+                # self.prob_state[0:9,9:18] = before_p[0:9,9:18] * 1.0
+                # self.prob_state[9:18,0:9] = before_p[9:18,0:9] * 1.0
 
                 dx = K.dot(m - H.dot(self.state))
 
@@ -177,6 +180,9 @@ class DualFeetImu:
 
 
             if right_zv_flag> 0.5 :#and right_zv_flag > 0.5:
+                # return
+
+                before_p = self.prob_state * 1.0
                 H = np.zeros([3, 18])
                 H[0:3, 3 + self.r_offset:6 + self.r_offset] = np.identity(3)
 
@@ -192,7 +198,11 @@ class DualFeetImu:
 
                 # self.prob_state[9:18,0:9] = np.zeros([9,9])
                 # self.prob_state[0:9,9:18] = np.zeros([9,9])
-                self.prob_state = 0.5 * self.prob_state + 0.5 * np.transpose(self.prob_state)
+                # self.prob_state = 0.5 * self.prob_state + 0.5 * np.transpose(self.prob_state)
+
+                # self.prob_state[0:9,0:9] = before_p[0:9,0:9] * 1.0
+                # self.prob_state[0:9,9:18] = before_p[0:9,9:18] * 1.0
+                # self.prob_state[9:18,0:9] = before_p[9:18,0:9] * 1.0
 
                 dx = K.dot(m - H.dot(self.state))
 
