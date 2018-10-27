@@ -88,7 +88,8 @@ class DualFeetImu:
         self.state[3:6] = self.state[3:6] + l_acc * self.time_interval
 
         self.state[self.r_offset + 0:self.r_offset + 3] = self.state[self.r_offset + 0:self.r_offset + 3] + \
-                                                          self.state[self.r_offset + 3:self.r_offset + 6] * self.time_interval
+                                                          self.state[
+                                                          self.r_offset + 3:self.r_offset + 6] * self.time_interval
         self.state[self.r_offset + 3:self.r_offset + 6] = self.state[self.r_offset + 3:self.r_offset + 6] + \
                                                           r_acc * self.time_interval
 
@@ -128,97 +129,70 @@ class DualFeetImu:
                        right_zv_flag,
                        max_distance=2.5):
 
-        if left_zv_flag < 0.5 and right_zv_flag < 0.5:
-            return
-        else:
 
-            # if left_zv_flag > 0.5 and right_zv_flag > 0.5 :
-            #     return
-            #     # return
-            #     H = np.zeros([6, 18])
-            #     H[0:3, 3:6] = np.identity(3)
-            #     H[3:6, 3 + self.r_offset:6 + self.r_offset] = np.identity(3)
-            #
-            #     m = np.zeros(6)
-            #     cov_matrix = np.identity(6) * 0.0001
+        # correct velocity of dual feet speratelly.
+        if left_zv_flag > 0.5:
+            before_p = self.prob_state * 1.0
+            # return
+            H = np.zeros([3, 18])
+            H[0:3, 3:6] = np.identity(3)
 
-            if left_zv_flag > 0.5:# and right_zv_flag < 0.5:
-                before_p = self.prob_state * 1.0
-                # return
-                H = np.zeros([3, 18])
-                H[0:3, 3:6] = np.identity(3)
+            m = np.zeros(3)
+            cov_matrix = np.identity(3) * 0.0001
 
-                m = np.zeros(3)
-                cov_matrix = np.identity(3) * 0.0001
+            K = (self.prob_state.dot(np.transpose(H))).dot(
+                np.linalg.inv((H.dot(self.prob_state)).dot(np.transpose(H)) + cov_matrix)
+            )
+
+            before_p_norm = np.linalg.norm(self.prob_state)
+            self.prob_state = (np.identity(self.prob_state.shape[0]) - K.dot(H)).dot(self.prob_state)
 
 
-                K = (self.prob_state.dot(np.transpose(H))).dot(
-                    np.linalg.inv((H.dot(self.prob_state)).dot(np.transpose(H)) + cov_matrix)
-                )
+            self.prob_state[9:18, 9:18] = before_p[9:18, 9:18] * 1.0
 
-                before_p_norm = np.linalg.norm(self.prob_state)
-                self.prob_state = (np.identity(self.prob_state.shape[0]) - K.dot(H)).dot(self.prob_state)
+            dx = K.dot(m - H.dot(self.state))
 
-                # self.prob_state[9:18,0:9] = np.zeros([9,9])
-                # self.prob_state[0:9,9:18] = np.zeros([9,9])
-                # self.prob_state = 0.5 * self.prob_state + 0.5 * np.transpose(self.prob_state)
-                # self.prob_state[9:18,9:18] = before_p[9:18,9:18] * 1.0
-                # self.prob_state[0:9,9:18] = before_p[0:9,9:18] * 1.0
-                # self.prob_state[9:18,0:9] = before_p[9:18,0:9] * 1.0
+            print('before:', self.state[3:6], self.state[12:15])
+            self.state[0:9] = self.state[0:9] + dx[0:9]
 
-                dx = K.dot(m - H.dot(self.state))
+            self.l_q = quaternion_left_update(self.l_q, dx[6:9], -1.0)
+            # self.r_q = quaternion_left_update(self.r_q, dx[self.r_offset + 6:self.r_offset + 9], -1.0)
 
-                print('before:', self.state[3:6], self.state[12:15])
-                self.state = self.state + dx
+            self.state[6:9] = dcm2euler(q2dcm(self.l_q))
+            self.state[6 + self.r_offset:9 + self.r_offset] = dcm2euler(q2dcm(self.r_q))
+            print('after:', self.state[3:6], self.state[12:15])
 
-                self.l_q = quaternion_left_update(self.l_q, dx[6:9], -1.0)
-                self.r_q = quaternion_left_update(self.r_q, dx[self.r_offset + 6:self.r_offset + 9], -1.0)
+        if right_zv_flag > 0.5:
 
-                self.state[6:9] = dcm2euler(q2dcm(self.l_q))
-                self.state[6 + self.r_offset:9 + self.r_offset] = dcm2euler(q2dcm(self.r_q))
-                print('after:', self.state[3:6], self.state[12:15])
+            before_p = self.prob_state * 1.0
+            H = np.zeros([3, 18])
+            H[0:3, 3 + self.r_offset:6 + self.r_offset] = np.identity(3)
 
+            m = np.zeros(3)
+            cov_matrix = np.identity(3) * 0.0001
 
-            if right_zv_flag> 0.5 :#and right_zv_flag > 0.5:
-                # return
+            K = (self.prob_state.dot(np.transpose(H))).dot(
+                np.linalg.inv((H.dot(self.prob_state)).dot(np.transpose(H)) + cov_matrix)
+            )
 
-                before_p = self.prob_state * 1.0
-                H = np.zeros([3, 18])
-                H[0:3, 3 + self.r_offset:6 + self.r_offset] = np.identity(3)
+            before_p_norm = np.linalg.norm(self.prob_state)
+            self.prob_state = (np.identity(self.prob_state.shape[0]) - K.dot(H)).dot(self.prob_state)
 
-                m = np.zeros(3)
-                cov_matrix = np.identity(3) * 0.0001
+            self.prob_state = 0.5 * self.prob_state + 0.5 * np.transpose(self.prob_state)
 
-                K = (self.prob_state.dot(np.transpose(H))).dot(
-                    np.linalg.inv((H.dot(self.prob_state)).dot(np.transpose(H)) + cov_matrix)
-                )
+            self.prob_state[0:9, 0:9] = before_p[0:9, 0:9] * 1.0
 
-                before_p_norm = np.linalg.norm(self.prob_state)
-                self.prob_state = (np.identity(self.prob_state.shape[0]) - K.dot(H)).dot(self.prob_state)
+            dx = K.dot(m - H.dot(self.state))
 
-                # self.prob_state[9:18,0:9] = np.zeros([9,9])
-                # self.prob_state[0:9,9:18] = np.zeros([9,9])
-                # self.prob_state = 0.5 * self.prob_state + 0.5 * np.transpose(self.prob_state)
+            print('before:', self.state[3:6], self.state[12:15])
+            self.state[9:18] = self.state[9:18] + dx[9:18]
 
-                # self.prob_state[0:9,0:9] = before_p[0:9,0:9] * 1.0
-                # self.prob_state[0:9,9:18] = before_p[0:9,9:18] * 1.0
-                # self.prob_state[9:18,0:9] = before_p[9:18,0:9] * 1.0
+            # self.l_q = quaternion_left_update(self.l_q, dx[6:9], -1.0)
+            self.r_q = quaternion_left_update(self.r_q, dx[self.r_offset + 6:self.r_offset + 9], -1.0)
 
-                dx = K.dot(m - H.dot(self.state))
-
-                print('before:', self.state[3:6], self.state[12:15])
-                self.state = self.state + dx
-
-                self.l_q = quaternion_left_update(self.l_q, dx[6:9], -1.0)
-                self.r_q = quaternion_left_update(self.r_q, dx[self.r_offset + 6:self.r_offset + 9], -1.0)
-
-                self.state[6:9] = dcm2euler(q2dcm(self.l_q))
-                self.state[6 + self.r_offset:9 + self.r_offset] = dcm2euler(q2dcm(self.r_q))
-                print('after:', self.state[3:6], self.state[12:15])
-
-
-
-
+            self.state[6:9] = dcm2euler(q2dcm(self.l_q))
+            self.state[6 + self.r_offset:9 + self.r_offset] = dcm2euler(q2dcm(self.r_q))
+            print('after:', self.state[3:6], self.state[12:15])
 
             # K = (self.prob_state.dot(np.transpose(H))).dot(
             #     np.linalg.inv((H.dot(self.prob_state)).dot(np.transpose(H)) + cov_matrix)
@@ -242,7 +216,6 @@ class DualFeetImu:
             # self.state[6:9] = dcm2euler(q2dcm(self.l_q))
             # self.state[6 + self.r_offset:9 + self.r_offset] = dcm2euler(q2dcm(self.r_q))
             # print('after:', self.state[3:6], self.state[12:15])
-
 
 
 @jit((float64[:, :], float64[:, :], float64[:, :], float64[:, :], float64[:, :], float64[:, :], float64), nopython=True,
