@@ -195,7 +195,7 @@ class DualFeetImu:
 
         if np.linalg.norm(self.state[0:3] - self.state[9:12]) > max_distance and \
                 (left_zv_flag > 0.5 or \
-                right_zv_flag > 0.5):
+                 right_zv_flag > 0.5):
             self.distance_constrain(max_distance)
 
     def distance_constrain(self, eta):
@@ -214,8 +214,8 @@ class DualFeetImu:
         print(self.right_counter, self.error_counter)
         try:
             # G = np.linalg.cholesky(W)
-            G,r = np.linalg.qr(W)
-
+            G, r = np.linalg.qr(W)
+            # q, G = np.linalg.qr(W)
 
             U, S, V = np.linalg.svd(L.dot(np.linalg.inv(G)))
 

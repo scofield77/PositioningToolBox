@@ -271,6 +271,7 @@ if __name__ == '__main__':
     plt.figure()
     plt.plot(dual_left_trace[:,1])
     plt.plot(dual_right_trace[:,1])
+    plt.ylim([-20.0,20.0])
 
     plt.grid()
 
