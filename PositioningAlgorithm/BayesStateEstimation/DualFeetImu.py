@@ -206,7 +206,7 @@ class DualFeetImu:
         '''
 
         W = np.linalg.inv(self.prob_state)
-        W = (W + np.transpose(W)) * 0.5
+        # W = (W + np.transpose(W)) * 0.5
 
         L = np.zeros([3, 18])
         L[0:3, 0:3] = np.identity(3)
