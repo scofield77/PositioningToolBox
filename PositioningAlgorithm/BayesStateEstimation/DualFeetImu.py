@@ -213,9 +213,13 @@ class DualFeetImu:
         L[0:3, 9:12] = np.identity(3) * -1.0
         print(self.right_counter, self.error_counter)
         try:
-            # G = np.linalg.cholesky(W)
-            G, r = np.linalg.qr(W)
+            G = np.linalg.cholesky(W)
+            # q, r = np.linalg.qr(W)
             # q, G = np.linalg.qr(W)
+            # G = ((sp.linalg.cholesky(q)).dot(sp.linalg.cholesky(r))
+            # dq = sp.linalg.cholesky(q)
+            # dr = sp.linalg.cholesky(r)
+            # G = dq.dot(dr)
 
             U, S, V = np.linalg.svd(L.dot(np.linalg.inv(G)))
 
@@ -257,7 +261,7 @@ class DualFeetImu:
             print("ERROR : lam must bigger than zero.")
             z = self.state * 1.0
         else:
-            z = np.linalg.inv(W + (lam * np.transpose(L).dot(L))).dot(W.dot(self.state))
+            z = np.linalg.inv(np.linalg.inv(self.prob_state) + (lam * np.transpose(L).dot(L))).dot(W.dot(self.state))
 
         self.state = z * 1.0
 
