@@ -132,7 +132,6 @@ class DualFeetImu:
                        right_zv_flag,
                        max_distance=2.0):
 
-
         # correct velocity of dual feet speratelly.
         if left_zv_flag > 0.5:
             before_p = self.prob_state * 1.0
@@ -150,7 +149,6 @@ class DualFeetImu:
             before_p_norm = np.linalg.norm(self.prob_state)
             self.prob_state = (np.identity(self.prob_state.shape[0]) - K.dot(H)).dot(self.prob_state)
 
-
             self.prob_state[9:18, 9:18] = before_p[9:18, 9:18] * 1.0
 
             dx = K.dot(m - H.dot(self.state))
@@ -166,7 +164,6 @@ class DualFeetImu:
             # print('after:', self.state[3:6], self.state[12:15])
 
         if right_zv_flag > 0.5:
-
             before_p = self.prob_state * 1.0
             H = np.zeros([3, 18])
             H[0:3, 3 + self.r_offset:6 + self.r_offset] = np.identity(3)
@@ -196,26 +193,31 @@ class DualFeetImu:
             self.state[6 + self.r_offset:9 + self.r_offset] = dcm2euler(q2dcm(self.r_q))
             # print('after:', self.state[3:6], self.state[12:15])
 
-
-        # if np.linalg.norm(self.state[0:3]-self.state[9:12]) > max_distance:
-        #         self.distance_constrain(max_distance)
-
-
+        if np.linalg.norm(self.state[0:3] - self.state[9:12]) > max_distance and \
+                (left_zv_flag > 0.5 or \
+                right_zv_flag > 0.5):
+            self.distance_constrain(max_distance)
 
     def distance_constrain(self, eta):
+        '''
 
-        W= np.linalg.inv(self.prob_state)
+        :param eta:
+        :return:
+        '''
+
+        W = np.linalg.inv(self.prob_state)
         W = (W + np.transpose(W)) * 0.5
 
-        L = np.zeros([3,18])
-        L[0:3,0:3] = np.identity(3)
-        L[0:3,9:12] = np.identity(3) * -1.0
+        L = np.zeros([3, 18])
+        L[0:3, 0:3] = np.identity(3)
+        L[0:3, 9:12] = np.identity(3) * -1.0
         print(self.right_counter, self.error_counter)
         try:
             # G = np.linalg.cholesky(W)
             G,r = np.linalg.qr(W)
 
-            U, S ,V = np.linalg.svd(L.dot(np.linalg.inv(G)))
+
+            U, S, V = np.linalg.svd(L.dot(np.linalg.inv(G)))
 
 
         except np.linalg.LinAlgError:
@@ -226,7 +228,6 @@ class DualFeetImu:
         self.right_counter = self.right_counter + 1
 
         e = np.transpose(V).dot(G).dot(self.state)
-
 
         lam = 0.0
         delta = 1e100
@@ -258,15 +259,14 @@ class DualFeetImu:
         else:
             z = np.linalg.inv(W + (lam * np.transpose(L).dot(L))).dot(W.dot(self.state))
 
-
         self.state = z * 1.0
 
         self.l_q = quaternion_left_update(self.l_q, z[6:9], -1.0)
-        self.r_q = quaternion_left_update(self.r_q,z[12:15],-1.0)
+        self.r_q = quaternion_left_update(self.r_q, z[12:15], -1.0)
         self.state[6:9] = dcm2euler(q2dcm(self.l_q))
         self.state[12:15] = dcm2euler(q2dcm(self.r_q))
 
-        z  = (np.transpose(L).dot(L)).dot(z)
+        z = (np.transpose(L).dot(L)).dot(z)
 
         A = np.linalg.inv(W + lam * (np.transpose(L).dot(L)))
 
@@ -274,15 +274,6 @@ class DualFeetImu:
         # Jp = (np.identity(total_P.shape[0]) - np.linalg.inv(alpha * (A).dot(z.dot(np.transpose(z))))).dot(A).dot(W)
         Jp = ((np.identity(self.prob_state.shape[0]) - (1.0 / alpha * (A).dot(z.dot(np.transpose(z))))).dot(A)).dot(W)
         self.prob_state = (Jp.dot(self.prob_state)).dot(np.transpose(Jp))
-
-
-
-
-
-
-
-
-
 
 
 @jit((float64[:, :], float64[:, :], float64[:, :], float64[:, :], float64[:, :], float64[:, :], float64), nopython=True,
