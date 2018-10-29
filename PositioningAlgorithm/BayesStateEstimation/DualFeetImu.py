@@ -177,7 +177,6 @@ class DualFeetImu:
 
             self.prob_state = (np.identity(self.prob_state.shape[0]) - K.dot(H)).dot(self.prob_state)
 
-            # self.prob_state = 0.5 * self.prob_state + 0.5 * np.transpose(self.prob_state)
 
             self.prob_state[0:9, 0:9] = before_p[0:9, 0:9] * 1.0
 
@@ -192,6 +191,9 @@ class DualFeetImu:
             self.state[6:9] = dcm2euler(q2dcm(self.l_q))
             self.state[6 + self.r_offset:9 + self.r_offset] = dcm2euler(q2dcm(self.r_q))
             # print('after:', self.state[3:6], self.state[12:15])
+
+
+        self.prob_state = 0.5 * self.prob_state + 0.5 * np.transpose(self.prob_state)
 
         if np.linalg.norm(self.state[0:3] - self.state[9:12]) > max_distance and \
                 (left_zv_flag > 0.5 or \
@@ -213,13 +215,13 @@ class DualFeetImu:
         L[0:3, 9:12] = np.identity(3) * -1.0
         print(self.right_counter, self.error_counter)
         try:
-            G = np.linalg.cholesky(W)
+            # G = np.linalg.cholesky(self.prob_state)
             # q, r = np.linalg.qr(W)
             # q, G = np.linalg.qr(W)
             # G = ((sp.linalg.cholesky(q)).dot(sp.linalg.cholesky(r))
             # dq = sp.linalg.cholesky(q)
             # dr = sp.linalg.cholesky(r)
-            # G = dq.dot(dr)
+            G = sp.linalg.cholesky(W)
 
             U, S, V = np.linalg.svd(L.dot(np.linalg.inv(G)))
 
