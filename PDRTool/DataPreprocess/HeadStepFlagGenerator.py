@@ -23,8 +23,6 @@
          佛祖保佑       永无BUG 
 '''
 
-
-
 import argparse
 
 import numpy as np
@@ -80,23 +78,109 @@ if __name__ == '__main__':
 
     li = 1
     ri = 1
+    hi = 1
 
     flag_list = list()
+    flag_list.append(0)
 
-    while li < left_imu.shape[0] and ri < right_imu.shape[0]:
-        pre_diff = left_zv_state[li-1] - right_zv_state[ri-1]
-        diff = left_zv_state[li-1] - right_zv_state[ri-1]
+    last_time = -1.0
+
+    # Find stage based on foot imu.
+    while li < left_imu.shape[0] and \
+            ri < right_imu.shape[0] and \
+            hi < head_imu.shape[0]:
+        pre_diff = left_zv_state[li - 1] - right_zv_state[ri - 1]
+        diff = left_zv_state[li] - right_zv_state[ri]
 
         if pre_diff * diff < 0.0:
-            flag_array.append(left_imu[li,0])
-            flag_array.append(15.0)
+            # print('----------',head_imu[hi,0]-last_time)
 
-        if left_imu[li,0] < right_imu[ri,0]:
+            if head_imu[hi, 0] - last_time > 0.2:
+                flag_array.append(head_imu[hi, 0])
+                flag_array.append(15.0)
+                flag_list.append(hi)
+                last_time = head_imu[hi, 0]
+
+        if left_imu[li, 0] < right_imu[ri, 0]:
             li += 1
         else:
             ri += 1
 
+        if head_imu[hi, 0] < right_imu[ri, 0] and \
+                head_imu[hi, 0] < left_imu[li, 0]:
+            hi += 1
+            # print(hi)
+            # if pre_diff * diff < 0.0:
+            #     # print('----------',head_imu[hi,0]-last_time)
+            #
+            #     if head_imu[hi, 0] - last_time > 0.005:
+            #         flag_array.append(head_imu[hi, 0])
+            #         flag_array.append(15.0)
+            #         flag_list.append(hi)
+            #         last_time = head_imu[hi, 0]
+    tmp_flag = np.frombuffer(flag_array, dtype=np.float).reshape([-1, 2])
+
+    print('length of hi flag:', len(flag_list))
+    change_flag_array = np.zeros([head_imu.shape[0], 2])
+    change_flag_array[:, 0] = head_imu[:, 0]
+
+    # # Find peak... and max value (ERROR)
+    for i in range(0, len(flag_list)-1):
+        pre_i = flag_list[i - 1] + 1
+        last_i = flag_list[i] + 1
+
+        max_v = -100000.0
+        max_index = pre_i - 1
+        # print(last_i-pre_i)
+        k = pre_i-30
+        # for k in range(pre_i, last_i):
+        while k < pre_i+30:
+            if k > 0 and k < head_imu.shape[0]:
+                break
+
+            if np.linalg.norm(head_imu[k, 1:4]) > max_v :#and \
+                    # np.linalg.norm(head_imu[k, 1:4]) >= np.linalg.norm(head_imu[k - 1, 1:4]) and \
+                    # np.linalg.norm(head_imu[k, 1:4]) >= np.linalg.norm(head_imu[k + 1, 1:4]):
+                max_v = np.linalg.norm(head_imu[k, 1:4])
+                max_index = k
+            k += 1
+
+            # print(k)
+
+        change_flag_array[max_index, 1] = max_v
+
+    # def is_peak(data, k):
+    #     if data[k] > data[k-1] and data[k] > data[k+1]:
+    #         return True
+    #     else:
+    #         return False
+    #
+    # norm_value = np.linalg.norm(head_imu[:,1:4],axis=1)
+    # for i in range(1, len(flag_list)):
+    #     pre_i = flag_list[i-1]
+    #     last_i = flag_list[i]
+    #
+    #     for k in range(last_i-pre_i):
+    #         if is_peak(norm_value, pre_i+k):
+    #             change_flag_array[pre_i+k,1] = norm_value[k]
+    #             break
+    #         if is_peak(norm_value,pre_i-k):
+    #             change_flag_array[pre_i-k,1] = norm_value[k]
+    #             break
 
 
 
 
+
+    plt.figure()
+    plt.plot(head_imu[:, 0], np.linalg.norm(head_imu[:, 1:4], axis=1), label='head norm')
+    plt.plot(change_flag_array[:, 0], change_flag_array[:, 1], label='change')
+    plt.plot(tmp_flag[:, 0], tmp_flag[:, 1], '*', label='tmp flag')
+
+    plt.legend()
+    plt.grid()
+
+    plt.ylim([np.min(np.linalg.norm(head_imu[:, 1:4], axis=1)) - 10.0,
+              np.max(np.linalg.norm(head_imu[:, 1:4], axis=1)) + 10.0])
+
+    plt.show()
