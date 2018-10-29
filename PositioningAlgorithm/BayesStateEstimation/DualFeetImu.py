@@ -195,10 +195,53 @@ class DualFeetImu:
 
         self.prob_state = 0.5 * self.prob_state + 0.5 * np.transpose(self.prob_state)
 
-        if np.linalg.norm(self.state[0:3] - self.state[9:12]) > max_distance and \
-                (left_zv_flag > 0.5 or \
-                 right_zv_flag > 0.5):
-            self.distance_constrain(max_distance)
+        # if np.linalg.norm(self.state[0:3] - self.state[9:12]) > max_distance and \
+        #         (left_zv_flag > 0.5 or \
+        #          right_zv_flag > 0.5):
+        if np.linalg.norm(self.state[0:3]-self.state[9:12]) > max_distance:
+            # self.distance_constrain(max_distance)
+            self.distance_constrain_update(max_distance)
+
+
+    def distance_constrain_update(self, max_dis):
+
+        m = 0.0
+        cov_matrix = np.ones([1,1]) *0.001
+
+        counter = 0
+
+        while (np.linalg.norm(self.state[0:3]-self.state[9:12])>max_dis) and counter < 40:
+            counter+=1
+            print('counter:',counter)
+            H = np.zeros([1,18])
+            dis = np.linalg.norm(self.state[0:3]-self.state[9:12])
+            # H[]
+            for i in range(3):
+                H[0,i] = (self.state[i]-self.state[i+9])/dis
+                H[0,i+9] = -1.0 * (self.state[i]-self.state[i+9])/dis
+
+            K = (self.prob_state.dot(np.transpose(H))).dot(
+                np.linalg.inv((H.dot(self.prob_state)).dot(np.transpose(H)) + cov_matrix)
+            )
+
+            self.prob_state = (np.identity(self.prob_state.shape[0]) - K.dot(H)).dot(self.prob_state)
+
+
+            dx = K.dot(m - H.dot(self.state))
+
+            # print('before:', self.state[3:6], self.state[12:15])
+            # self.state[9:18] = self.state[9:18] + dx[9:18]
+            self.state = self.state + dx
+
+            self.l_q = quaternion_left_update(self.l_q, dx[6:9], -1.0)
+            self.r_q = quaternion_left_update(self.r_q, dx[self.r_offset + 6:self.r_offset + 9], -1.0)
+
+            self.state[6:9] = dcm2euler(q2dcm(self.l_q))
+            self.state[6 + self.r_offset:9 + self.r_offset] = dcm2euler(q2dcm(self.r_q))
+            # print('before dis:',dis, 'after dis:', np.linalg.norm(self.state[0:3]-self.state[9:12]))
+
+
+
 
     def distance_constrain(self, eta):
         '''
@@ -208,7 +251,7 @@ class DualFeetImu:
         '''
 
         W = np.linalg.inv(self.prob_state)
-        # W = (W + np.transpose(W)) * 0.5
+        W = (W + np.transpose(W)) * 0.5
 
         L = np.zeros([3, 18])
         L[0:3, 0:3] = np.identity(3)
@@ -217,11 +260,30 @@ class DualFeetImu:
         try:
             # G = np.linalg.cholesky(self.prob_state)
             # q, r = np.linalg.qr(W)
-            # q, G = np.linalg.qr(W)
+            # q, G= np.linalg.qr(W)
+
+
+            G  = np.linalg.cholesky(G)
+            # tG = sp.linalg.sqrtm(W)
+            # for i in range(tG.shape[0]):
+            #     for j in range(tG.shape[1]):
+            #         G[i,j] = tG[i,j]
+            # G = np.real(tG)
+            # G = np.zeros_like(self.prob_state)
+            # for i in range(self.prob_state.shape[0]):
+            #     G[i,i] = (W[i,i]**0.5)
+
+
+
             # G = ((sp.linalg.cholesky(q)).dot(sp.linalg.cholesky(r))
             # dq = sp.linalg.cholesky(q)
             # dr = sp.linalg.cholesky(r)
-            G = sp.linalg.cholesky(W)
+            # a,b,c = sp.linalg.svd(W)
+            # print(a.shape,b.shape,c.shape)
+            # W = (a.dot(b)).dot(np.transpose(c))
+            # W = a.dot(np.transpose(c))
+
+            # G = sp.linalg.cholesky(W)
 
             U, S, V = np.linalg.svd(L.dot(np.linalg.inv(G)))
 
