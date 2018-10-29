@@ -58,24 +58,25 @@ if __name__ == '__main__':
 
 
     # plot data
-    # plt.figure()
-    # plt.plot(left_imu[:,1:4],'acc')
-    # imu_plot_aux(left_imu[:, 1:4], time=left_imu[:, 0], title_name='acc')
-    # imu_plot_aux(left_imu[:, 4:7], time=left_imu[:, 0], title_name='gyr')
+    if False:
+        plt.figure()
+        # plt.plot(left_imu[:,1:4],label='acc')
+        imu_plot_aux(left_imu[:, 1:4], time=left_imu[:, 0], title_name='acc')
+        imu_plot_aux(left_imu[:, 4:7], time=left_imu[:, 0], title_name='gyr')
 
-    # imu_plot_aux(phone_imu[:,1:4],phone_imu[:,0],'acc')
-    # imu_plot_aux(phone_imu[:,4:7],phone_imu[:,0],'gyr')
+        imu_plot_aux(phone_imu[:,1:4],phone_imu[:,0],'acc')
+        imu_plot_aux(phone_imu[:,4:7],phone_imu[:,0],'gyr')
 
-    # plot Time compare
-    # plt.figure()
-    # plt.title('time compare')
-    # plt.plot(left_imu[:, 0], '+-', label='left')
-    # plt.plot(right_imu[:, 0], '+-', label='right')
-    # plt.plot(head_imu[:, 0], '+-', label='head')
-    # plt.plot(phone_imu[:, 0], '+-', label='phone')
-    #
-    # plt.grid()
-    # plt.legend()
+        # plot Time compare
+        plt.figure()
+        plt.title('time compare')
+        plt.plot(left_imu[:, 0], '+-', label='left')
+        plt.plot(right_imu[:, 0], '+-', label='right')
+        plt.plot(head_imu[:, 0], '+-', label='head')
+        plt.plot(phone_imu[:, 0], '+-', label='phone')
+
+        plt.grid()
+        plt.legend()
 
 
 
