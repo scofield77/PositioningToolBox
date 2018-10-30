@@ -33,7 +33,19 @@ from PositioningAlgorithm.BayesStateEstimation.ImuEKF import *
 
 
 class DualFeetImu:
-    def __init__(self, initial_prob, local_g=-9.8, time_interval=0.01):
+    '''
+    Dual feet EKF with distance constraint.
+    '''
+    def __init__(self,
+                 initial_prob,
+                 local_g=-9.8,
+                 time_interval=0.01):
+        '''
+        initial Kalman filter
+        :param initial_prob:
+        :param local_g:
+        :param time_interval:
+        '''
         self.state = np.zeros([18])
         self.l_q = np.zeros([4])
         self.r_q = np.zeros([4])
@@ -60,6 +72,16 @@ class DualFeetImu:
                       r_pos=np.asarray((0.0, 0.0, 0.0)),
                       l_ori=0.0,
                       r_ori=0.0):
+        '''
+        initial state
+        :param l_imu_data:
+        :param r_imu_data:
+        :param l_pos:
+        :param r_pos:
+        :param l_ori:
+        :param r_ori:
+        :return:
+        '''
         self.state[0:3] = l_pos * 1.0
         self.state[self.r_offset + 0:self.r_offset + 3] = r_pos * 1.0
 
@@ -72,6 +94,14 @@ class DualFeetImu:
                                    r_imu_data,
                                    l_noise_matrix,
                                    r_noise_matrix):
+        '''
+        state update function.
+        :param l_imu_data:
+        :param r_imu_data:
+        :param l_noise_matrix:
+        :param r_noise_matrix:
+        :return:
+        '''
 
         self.l_q = quaternion_right_update(self.l_q,
                                            l_imu_data[3:6],
@@ -130,7 +160,16 @@ class DualFeetImu:
     def measurement_zv(self,
                        left_zv_flag,
                        right_zv_flag,
-                       max_distance=1.5):
+                       max_distance=1.0,
+                       pos_cov=0.1):
+        '''
+        measuremen zero velocity and distance inequality constraint.
+        :param left_zv_flag:
+        :param right_zv_flag:
+        :param max_distance:
+        :param pos_cov:
+        :return:
+        '''
 
         # correct velocity of dual feet speratelly.
         if left_zv_flag > 0.5:
@@ -197,8 +236,62 @@ class DualFeetImu:
         #         (left_zv_flag > 0.5 or \
         #          right_zv_flag > 0.5):
         if np.linalg.norm(self.state[0:3] - self.state[9:12]) > max_distance:
-            self.distance_constrain(max_distance)
+            '''
+            Update and distance correct.
+            If distance bigger than threshold and zero state is detected.
+            '''
+            # if left_zv_flag>0.5:
+
+            # self.distance_constrain(max_distance)
             # self.distance_constrain_update(max_distance)
+
+            p_cov = np.identity(3) * pos_cov
+            pre_p = self.prob_state * 1.0
+            if right_zv_flag > 0.5:
+                d = np.linalg.norm(self.state[0:3] - self.state[9:12])
+                p = 1.0 / d * ((max_distance) * self.state[0:3] + (d - max_distance) * self.state[9:12])
+                H = np.zeros([3, self.state.shape[0]])
+                H[0:3, 0:3] = np.identity(3)
+                K = (self.prob_state.dot(np.transpose(H))).dot(
+                    np.linalg.inv((H.dot(self.prob_state)).dot(np.transpose(H)) + p_cov)
+                )
+                self.prob_state = (np.identity(self.prob_state.shape[0]) - K.dot(H)).dot(self.prob_state)
+                self.prob_state[9:18, 9:18] = pre_p[9:18, 9:18] * 1.0
+
+                dx = K.dot(p - H.dot(self.state))
+
+                # self.state = self.state+ dx
+                self.state[:9] = self.state[:9] + dx[:9]
+
+                self.l_q = quaternion_left_update(self.l_q, dx[6:9], -1.0)
+                # self.r_q = quaternion_left_update(self.r_q, dx[self.r_offset + 6:self.r_offset + 9], -1.0)
+
+                self.state[6:9] = dcm2euler(q2dcm(self.l_q))
+                self.state[6 + self.r_offset:9 + self.r_offset] = dcm2euler(q2dcm(self.r_q))
+
+            if left_zv_flag > 0.5:
+                d = np.linalg.norm(self.state[0:3] - self.state[9:12])
+                p = 1.0 / d * ((d - max_distance) * self.state[0:3] + (max_distance) * self.state[9:12])
+                H = np.zeros([3, self.state.shape[0]])
+                H[0:3, 9:12] = np.identity(3)
+                K = (self.prob_state.dot(np.transpose(H))).dot(
+                    np.linalg.inv((H.dot(self.prob_state)).dot(np.transpose(H)) + p_cov)
+                )
+                self.prob_state = (np.identity(self.prob_state.shape[0]) - K.dot(H)).dot(self.prob_state)
+                self.prob_state[0:9, 0:9] = pre_p[0:9, 0:9] * 1.0
+
+                dx = K.dot(p - H.dot(self.state))
+
+                # self.state = self.state + dx
+                self.state[9:] = self.state[9:] + dx[9:]
+
+                # self.l_q = quaternion_left_update(self.l_q, dx[6:9], -1.0)
+                self.r_q = quaternion_left_update(self.r_q, dx[self.r_offset + 6:self.r_offset + 9], -1.0)
+
+                self.state[6:9] = dcm2euler(q2dcm(self.l_q))
+                self.state[6 + self.r_offset:9 + self.r_offset] = dcm2euler(q2dcm(self.r_q))
+
+        self.prob_state = 0.5 * self.prob_state + 0.5 * np.transpose(self.prob_state)
 
     def distance_constrain_update(self, max_dis):
 
