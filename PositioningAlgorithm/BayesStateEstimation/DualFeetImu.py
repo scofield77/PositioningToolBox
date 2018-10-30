@@ -36,6 +36,7 @@ class DualFeetImu:
     '''
     Dual feet EKF with distance constraint.
     '''
+
     def __init__(self,
                  initial_prob,
                  local_g=-9.8,
@@ -296,6 +297,11 @@ class DualFeetImu:
         self.prob_state = 0.5 * self.prob_state + 0.5 * np.transpose(self.prob_state)
 
     def distance_constrain_update(self, max_dis):
+        '''
+        Distance constrain ... not very good...
+        :param max_dis:
+        :return:
+        '''
 
         m = 0.0
         cov_matrix = np.ones([1, 1]) * max_dis ** 0.05

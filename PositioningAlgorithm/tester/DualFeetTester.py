@@ -66,9 +66,9 @@ if __name__ == '__main__':
     # matplotlib.rcParams['toolbar'] = 'toolmanager'
     start_time = time.time()
     # dir_name = '/home/steve/Data/FusingLocationData/0017/'
-    dir_name = '/home/steve/Data/NewFusingLocationData/0039/'
+    # dir_name = '/home/steve/Data/NewFusingLocationData/0036/'
     # dir_name = 'C:/Data/NewFusingLocationData/0039/'
-    # dir_name = '/home/steve/Data/PDR/0013/'
+    dir_name = '/home/steve/Data/PDR/0010/'
     # dir_name = 'D:\\NewFusingLocationData\\0035\\'
 
     left_imu_data = np.loadtxt(dir_name + 'LEFT_FOOT.data', delimiter=',')
@@ -269,12 +269,12 @@ if __name__ == '__main__':
     # aux_plot(ang, 'ang')
     # aux_plot(ba, 'ba')
     # aux_plot(bg, 'bg')
-    plt.figure()
-    plt.plot(dual_left_trace[:,1])
-    plt.plot(dual_right_trace[:,1])
-    plt.ylim([-20.0,20.0])
-
-    plt.grid()
+    # plt.figure()
+    # plt.plot(dual_left_trace[:,1])
+    # plt.plot(dual_right_trace[:,1])
+    # plt.ylim([-20.0,20.0])
+    #
+    # plt.grid()
 
     # aux_plot(iner_acc, 'inner acc')
     #
