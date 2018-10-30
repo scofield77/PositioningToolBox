@@ -40,15 +40,24 @@ def imu_data_preprocess(imu_data):
     :param imu_data:
     :return: time(s),acc x-y-z(m/s/s), gyr x-y-z (rad/s), mag(?)
     '''
+
     imu_data = imu_data[:, 1:]
+    time_interval_average = (imu_data[-1, 0] - imu_data[0, 0]) / float(imu_data.shape[0])
+    for i in range(1, imu_data.shape[0]):
+        imu_data[i, 0] = imu_data[i - 1, 0] + time_interval_average
+    # imu_data[:,0] = imu_data[0,0]+
+
     imu_data[:, 1:4] = imu_data[:, 1:4] * 9.81
+    for i in range(imu_data.shape[0]):
+        if np.linalg.norm(imu_data[i, 1:4]) > 50.0:
+            imu_data[i, 1:4] = imu_data[i, 1:4] * 0.0
     imu_data[:, 4:7] = imu_data[:, 4:7] * (np.pi / 180.0)
 
     return imu_data * 1.0  #
 
 
 if __name__ == '__main__':
-    dir_name = '/home/steve/Data/PDR/0013/'
+    dir_name = '/home/steve/Data/PDR/0015/'
 
     left_imu = imu_data_preprocess(np.loadtxt(dir_name + 'LEFT_FOOT.data', delimiter=','))
     right_imu = imu_data_preprocess(np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=','))
@@ -125,22 +134,22 @@ if __name__ == '__main__':
     change_flag_array[:, 0] = head_imu[:, 0]
 
     # # Find peak... and max value (ERROR)
-    for i in range(0, len(flag_list)-1):
+    for i in range(0, len(flag_list) - 1):
         pre_i = flag_list[i - 1] + 1
         last_i = flag_list[i] + 1
 
         max_v = -100000.0
         max_index = pre_i - 1
         # print(last_i-pre_i)
-        k = pre_i-30
+        k = pre_i - 30
         # for k in range(pre_i, last_i):
-        while k < pre_i+30:
+        while k < pre_i + 30:
             if k > 0 and k < head_imu.shape[0]:
                 break
 
-            if np.linalg.norm(head_imu[k, 1:4]) > max_v :#and \
-                    # np.linalg.norm(head_imu[k, 1:4]) >= np.linalg.norm(head_imu[k - 1, 1:4]) and \
-                    # np.linalg.norm(head_imu[k, 1:4]) >= np.linalg.norm(head_imu[k + 1, 1:4]):
+            if np.linalg.norm(head_imu[k, 1:4]) > max_v:  # and \
+                # np.linalg.norm(head_imu[k, 1:4]) >= np.linalg.norm(head_imu[k - 1, 1:4]) and \
+                # np.linalg.norm(head_imu[k, 1:4]) >= np.linalg.norm(head_imu[k + 1, 1:4]):
                 max_v = np.linalg.norm(head_imu[k, 1:4])
                 max_index = k
             k += 1
@@ -148,6 +157,19 @@ if __name__ == '__main__':
             # print(k)
 
         change_flag_array[max_index, 1] = max_v
+
+    import peakutils
+    from peakutils.plot import plot as pplot
+
+    indexs = peakutils.indexes(np.linalg.norm(head_imu[:, 1:4], axis=1),min_dist=50)
+    plt.figure()
+
+    plt.subplot(211)
+    pplot(head_imu[:, 0], np.linalg.norm(head_imu[:, 1:4], axis=1), indexs)
+    plt.subplot(212)
+    plt.plot(change_flag_array[:, 0], change_flag_array[:, 1], '+',label='change')
+    plt.legend()
+    plt.grid()
 
     # def is_peak(data, k):
     #     if data[k] > data[k-1] and data[k] > data[k+1]:
@@ -168,12 +190,10 @@ if __name__ == '__main__':
     #             change_flag_array[pre_i-k,1] = norm_value[k]
     #             break
 
-
-
-
-
     plt.figure()
-    plt.plot(head_imu[:, 0], np.linalg.norm(head_imu[:, 1:4], axis=1), label='head norm')
+    plt.plot(head_imu[:, 0], np.linalg.norm(head_imu[:, 1:4], axis=1), '-+', label='head norm')
+    # plt.plot(phone_imu[:,0],np.linalg.norm(phone_imu[:,1:4],axis=1),'-+',label='phone norm')
+    plt.plot(head_imu[:, 0], np.linalg.norm(head_imu[:, 4:7], axis=1), '-+', label='head w norm')
     plt.plot(change_flag_array[:, 0], change_flag_array[:, 1], label='change')
     plt.plot(tmp_flag[:, 0], tmp_flag[:, 1], '*', label='tmp flag')
 
@@ -182,5 +202,14 @@ if __name__ == '__main__':
 
     plt.ylim([np.min(np.linalg.norm(head_imu[:, 1:4], axis=1)) - 10.0,
               np.max(np.linalg.norm(head_imu[:, 1:4], axis=1)) + 10.0])
+
+    #
+    # plt.figure()
+    # plt.title('time interval ')
+    # plt.plot(head_imu[1:,0]-head_imu[:-1,0],label='head')
+    # plt.plot(left_imu[1:,0]-left_imu[:-1,0],label='left')
+    # plt.plot(right_imu[1:,0]-right_imu[:-1,0],label='righ')
+    # plt.legend()
+    # plt.grid()
 
     plt.show()
