@@ -239,6 +239,8 @@ class DualFeetImu:
             '''
             Update and distance correct.
             If distance bigger than threshold and zero state is detected.
+            According to paper:
+            Data Fusion of Dual Foot-Mounted INS to Reduce the Systematic Heading Drift
             '''
             # if left_zv_flag>0.5:
 

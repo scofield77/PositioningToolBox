@@ -66,9 +66,9 @@ if __name__ == '__main__':
     # matplotlib.rcParams['toolbar'] = 'toolmanager'
     start_time = time.time()
     # dir_name = '/home/steve/Data/FusingLocationData/0017/'
-    # dir_name = '/home/steve/Data/NewFusingLocationData/0039/'
+    dir_name = '/home/steve/Data/NewFusingLocationData/0039/'
     # dir_name = 'C:/Data/NewFusingLocationData/0039/'
-    dir_name = '/home/steve/Data/PDR/0013/'
+    # dir_name = '/home/steve/Data/PDR/0013/'
     # dir_name = 'D:\\NewFusingLocationData\\0035\\'
 
     left_imu_data = np.loadtxt(dir_name + 'LEFT_FOOT.data', delimiter=',')
@@ -236,6 +236,7 @@ if __name__ == '__main__':
                     rkf.measurement_function_zv(np.asarray((0.0, 0.0, 0.0)),
                                                 np.diag((0.0001, 0.0001, 0.0001)))
                 # dkf.zv_update(left_zv_state[i], right_zv_state[i])
+            if i < right_imu_data.shape[0]:
                 dkf.measurement_zv(left_zv_state[i], right_zv_state[i])
 
         right_trace[i, :] = rkf.state[0:3]
