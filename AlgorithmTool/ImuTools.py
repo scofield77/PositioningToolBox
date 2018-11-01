@@ -314,10 +314,20 @@ def quaternion_left_update(q, euler, rate):
     return tmp_q
 
 
+@jit(float64[:](float64[:],float64[:]),nopython=True, cache=True)
+def quaternion_product(ql,qr):
+    '''
+    q = ql * qr (quaternion product)
+    :param ql:
+    :param qr:
+    :return:
+    '''
+
+
 # @jit
 def euler2R(ang):
     '''
-    :
+    euler to rotation matrix.
     :param ang:
     :return:
     '''
