@@ -327,7 +327,7 @@ def quaternion_product(ql,qr):
 # @jit
 def euler2R(ang):
     '''
-    euler to rotation matrix.
+    euler to rotation matrix.ta
     :param ang:
     :return:
     '''
