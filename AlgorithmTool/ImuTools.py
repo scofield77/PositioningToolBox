@@ -234,7 +234,7 @@ def GLRT_Detector_prob(u,
         # if T[k, 0] < gamma:
         # zupt[k:k + W] = np.ones([W, 1])
         for j in range(k, k + W):
-            zupt[j] = np.log(1.0+gamma/T[k,0])
+            zupt[j] = np.log(1.0 + gamma / T[k, 0])
         # zupt[j] = T[k, 0] / gamma
 
     return zupt
@@ -314,8 +314,8 @@ def quaternion_left_update(q, euler, rate):
     return tmp_q
 
 
-@jit(float64[:](float64[:],float64[:]),nopython=True, cache=True)
-def quaternion_product(ql,qr):
+@jit(float64[:](float64[:], float64[:]), nopython=True, cache=True)
+def quaternion_product(ql, qr):
     '''
     q = ql * qr (quaternion product)
     :param ql:
