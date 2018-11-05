@@ -32,20 +32,14 @@ import matplotlib.pyplot as plt
 def show_vi_trace(data):
     plt.figure()
     for i in range(3):
-        plt.plot(data[:,i+2],'-+',label=str(i))
+        plt.plot(data[:, i + 2], '-+', label=str(i))
     plt.legend()
     plt.grid()
-
-
-
 
 
 if __name__ == '__main__':
     data_dir = "/home/steve/Data/InertialTrackingDataset/handbag/data1/syn/"
 
-
-    vi_data = np.loadtxt(data_dir+'vi1.csv',delimiter=',')
+    vi_data = np.loadtxt(data_dir + 'vi1.csv', delimiter=',')
     show_vi_trace(vi_data)
     plt.show()
-
-
