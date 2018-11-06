@@ -314,19 +314,6 @@ def quaternion_left_update(q, euler, rate):
     return tmp_q
 
 
-@jit(float64[:](float64[:], float64[:]), nopython=True, cache=True)
-def quaternion_product(ql, qr):
-    '''
-    q = ql * qr (quaternion product)
-    :param ql:
-    :param qr:
-    :return:
-    '''
-    ml = q2dcm(ql)
-    mr = q2dcm(qr)
-    m = ml.dot(mr)
-    q = dcm2q(m)
-    return q
 
 
 
@@ -371,6 +358,7 @@ def euler2R(ang):
 
 
 # @jit
+@jit(float64[:](float64[:,:]), nopython=True)
 def dcm2q(R):
     """
     http://www.ee.ucr.edu/~farrell/AidedNavigation/D_App_Quaternions/Rot2Quat.pdf
@@ -410,6 +398,7 @@ def dcm2q(R):
             qz = (R[1, 2] + R[2, 1]) / S
         else:
             S = math.sqrt(1 + R[2, 2] - R[0, 0] - R[1, 1]) * 2.0
+
             qw = (R[1, 0] - R[0, 1]) / S
             qx = (R[0, 2] + R[2, 0]) / S
             qy = (R[1, 2] + R[2, 1]) / S
@@ -508,6 +497,22 @@ def dcm2euler(R):
     euler[1] = math.atan2(R[2, 0], math.sqrt(1.0 - R[2, 0] * R[2, 0]))
     euler[2] = math.atan2(R[1, 0], R[0, 0])
     return euler
+
+
+
+@jit(float64[:](float64[:], float64[:]))#, nopython=True, cache=True)
+def quaternion_product(ql, qr):
+    '''
+    q = ql * qr (quaternion product)
+    :param ql:
+    :param qr:
+    :return:
+    '''
+    ml = q2dcm(ql)
+    mr = q2dcm(qr)
+    m = ml.dot(mr)
+    q = dcm2q(m)
+    return q
 
 
 # @jit
