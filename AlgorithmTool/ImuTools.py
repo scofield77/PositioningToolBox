@@ -508,6 +508,7 @@ def quaternion_product(ql, qr):
     :param qr:
     :return:
     '''
+    print('TODO: quaternion product function should be imporved in performence.')
     ml = q2dcm(ql)
     mr = q2dcm(qr)
     m = ml.dot(mr)
