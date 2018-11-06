@@ -39,6 +39,8 @@ from PositioningAlgorithm.BayesStateEstimation.DualFeetImu import *
 
 class MadgwickFilter():
     def __init__(self, initial_ori, initial_gcc):
+        self.initial_ori = initial_ori
+        self.initial_gcc = initial_gcc
 
 
 

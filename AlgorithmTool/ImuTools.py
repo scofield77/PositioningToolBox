@@ -322,6 +322,13 @@ def quaternion_product(ql, qr):
     :param qr:
     :return:
     '''
+    ml = q2dcm(ql)
+    mr = q2dcm(qr)
+    m = ml.dot(mr)
+    q = dcm2q(m)
+    return q
+
+
 
 
 # @jit
@@ -376,7 +383,7 @@ def dcm2q(R):
     # print (T)
 
     # Really Big Change.
-    # ToDo:Why there are some value is smallter than zero.
+    # ToDo!:Why there are some value is smallter than zero.
     if math.fabs(T) > 1e-3:
         S = 0.5 / math.sqrt(math.fabs(T))
 
