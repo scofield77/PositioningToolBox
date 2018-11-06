@@ -67,8 +67,9 @@ if __name__ == '__main__':
     start_time = time.time()
     # dir_name = '/home/steve/Data/FusingLocationData/0017/'
     # dir_name = '/home/steve/Data/NewFusingLocationData/0036/'
+    dir_name = '/home/steve/Data/NewFusingLocationData/0052/'
     # dir_name = 'C:/Data/NewFusingLocationData/0039/'
-    dir_name = '/home/steve/Data/PDR/0011/'
+    # dir_name = '/home/steve/Data/PDR/0012/'
     # dir_name = 'D:\\NewFusingLocationData\\0035\\'
 
     left_imu_data = np.loadtxt(dir_name + 'LEFT_FOOT.data', delimiter=',')
@@ -85,7 +86,7 @@ if __name__ == '__main__':
     # initial_state = get_initial_state(imu_data[:40, 1:4], np.asarray((0, 0, 0)), 0.0, 9)
 
     left_trace = np.zeros([left_imu_data.shape[0], 3])
-    vel = np.zeros([left_imu_data.shape[0], 3])
+    vel = np.zeros([max(left_imu_data.shape[0],right_imu_data.shape[0]), 3])
     ang = np.zeros([left_imu_data.shape[0], 3])
     ba = np.zeros([left_imu_data.shape[0], 3])
     bg = np.zeros([left_imu_data.shape[0], 3])
@@ -245,6 +246,7 @@ if __name__ == '__main__':
         # dual_right_trace[i, :] = dkf.r_ekf.state[0:3]
         dual_left_trace[i,:] = dkf.state[0:3]
         dual_right_trace[i,:] = dkf.state[9:12]
+        ang[i,:] = dkf.state[6:9]
 
     end_time = time.time()
     print('totally time:', end_time - start_time, 'data time:', left_imu_data[-1, 0] - left_imu_data[0, 0])
@@ -266,7 +268,7 @@ if __name__ == '__main__':
     # aux_plot(left_imu_data[:, 7:10], 'mag')
     # aux_plot(left_trace, 'trace')
     # aux_plot(vel, 'vel')
-    # aux_plot(ang, 'ang')
+    aux_plot(ang, 'ang')
     # aux_plot(ba, 'ba')
     # aux_plot(bg, 'bg')
     # plt.figure()
