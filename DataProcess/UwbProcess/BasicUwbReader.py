@@ -170,7 +170,7 @@ if __name__ == '__main__':
     # udp = UwbDataPre("/home/steve/Data/NewRecord/Record2/")
     # udp = UwbDataPre("/home/steve/tmp/test/44/")
     # udp = UwbDataPre("/home/steve/Code/Mini_IMU/Scripts/IMUWB/92/")
-    udp = UwbDataPre("/home/steve/Code/Mini_IMU/Scripts/IMUWB/92/")
+    # udp = UwbDataPre("/home/steve/Code/Mini_IMU/Scripts/IMUWB/92/")
     # udp.filter()
 
     udp.save()

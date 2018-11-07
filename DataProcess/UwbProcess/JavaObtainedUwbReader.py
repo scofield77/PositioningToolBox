@@ -53,28 +53,43 @@ class UwbProcess:
         # for
         uwb_data = np.zeros([len(lines), len(mac_list) + 1])
         uwb_data = uwb_data - 10.0
+        uwb_signal_data = np.zeros_like(uwb_data)
+        uwb_signal_data = uwb_signal_data - 10.0
         for i in range(len(lines)):
             the_line = lines[i]
             uwb_data[i, 0] = float(the_line.split(',')[1])
+            uwb_signal_data[i, 0] = float(the_line.split(',')[1])
 
             # print(m_re.findall(the_line))
             for m in m_re.findall(the_line):
                 mac = m[1:m.find(':')]
                 dis = m[m.find(':') + 1:m.find(',')]
-                print('mac:', mac, ' dis:', dis, 'index:', mac_list.index(mac))
+                signal_strength = m[m.find(',') + 1:len(m) - 2]
+                print('mac:', mac, ' dis:', dis, 'index:', mac_list.index(mac), 'strength:', signal_strength)
                 uwb_data[i, 1 + mac_list.index(mac)] = dis
+                uwb_signal_data[i, 1 + mac_list.index(mac)] = signal_strength
 
         self.uwb_data = uwb_data
         self.beaconSet = beaconSet
+        self.uwb_signal_data = uwb_signal_data
         # plt.show()
 
     def show(self):
         plt.figure()
+        plt.subplot(211)
         for i in range(1, self.uwb_data.shape[1]):
             if (np.max(self.uwb_data[:, i]) > 0):
                 plt.plot(self.uwb_data[:, 0], self.uwb_data[:, i], '.', label=str(i))
         plt.legend()
         plt.grid()
+
+        plt.subplot(212)
+        for i in range(1, self.uwb_data.shape[1]):
+            if (np.max(self.uwb_data[:, i]) > 0):
+                plt.plot(self.uwb_signal_data[:, 0], self.uwb_signal_data[:, i], '.', label=str(i))
+        plt.legend()
+        plt.grid()
+
         plt.show()
 
         #
@@ -82,6 +97,7 @@ class UwbProcess:
     def save(self, dir_name):
         np.savetxt(dir_name + 'uwb_data.csv', self.uwb_data, delimiter=',')
         np.savetxt(dir_name + 'beaconset_no_mac.csv', self.beaconSet, delimiter=',')
+        np.savetxt(dir_name + 'uwb_signal_data.csv', self.uwb_signal_data, delimiter=',')
 
 
 if __name__ == '__main__':
@@ -91,10 +107,9 @@ if __name__ == '__main__':
     # uwb_file_p = UwbProcess(dir_name + "HEAD_UWB.data",
     #                         dir_name + 'beaconSet.csv')
 
-
-    dir_name = "/home/steve/Data/NewFusingLocationData/0070/"
-    uwb_file_p = UwbProcess(dir_name+"HEAD_UWB.data",
-                            dir_name+'../BeaconSet.csv')
+    dir_name = "/home/steve/Data/NewFusingLocationData/0048/"
+    uwb_file_p = UwbProcess(dir_name + "HEAD_UWB.data",
+                            dir_name + '../BeaconSet.csv')
 
     uwb_file_p.save(dir_name)
     # uwb_file_p.show()
