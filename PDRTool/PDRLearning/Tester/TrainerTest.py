@@ -65,7 +65,7 @@ if __name__ == '__main__':
 
     model = SimpleLSTM.SimpleLSTM(data_set.input_size,
                                   data_set.output_size,
-                                  50,
+                                  128,
                                   6).to(device)
 
     # model = nn.Sequential(

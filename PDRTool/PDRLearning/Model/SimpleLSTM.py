@@ -40,7 +40,7 @@ class SimpleLSTM(nn.Module):
         # bidirectional=True)
 
         self.fc1 = nn.Linear(hidden_size, 20)
-        self.dp = nn.Dropout()
+        self.dp = nn.Dropout(0.25)
         self.ac1 = nn.Tanh()
         self.fc2 = nn.Linear(20, output_size)
 
