@@ -66,10 +66,11 @@ if __name__ == '__main__':
     # dir_name = '/home/steve/Data/NewFusingLocationData/0044/'
     # dir_name = 'D:/Data/NewFusingLocationData/0040/'
     # dir_name = 'D:/Data/NewFusingLocationData/0039/'
-    dir_name = '/home/steve/Data/NewFusingLocationData/0040/'
+    # dir_name = '/home/steve/Data/NewFusingLocationData/0040/'
+    dir_name = '/home/steve/Data/ZUPTPDR/0001/'
     # dir_name = 'C:/Data/NewFusingLocationData/0040/'
 
-    ref_score = Refscor(dir_name)
+    # ref_score = Refscor(dir_name)
     # imu_data = np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=',')
     imu_data = np.loadtxt(dir_name + 'LEFT_FOOT.data', delimiter=',')
     # imu_data = np.loadtxt(dir_name + 'HEAD.data', delimiter=',')
@@ -83,7 +84,6 @@ if __name__ == '__main__':
     beacon_set = np.loadtxt(dir_name + 'beaconset_no_mac.csv', delimiter=',')
     # beacon_set = np.loadtxt(dir_name + 'beaconset_fill.csv', delimiter=',')
 
-    ref_vis = np.loadtxt(dir_name + 'ref_vis.csv', delimiter=',')
 
     initial_pos = np.asarray((48.19834796,
                               44.89176719,
@@ -269,26 +269,26 @@ if __name__ == '__main__':
     orkf.initial_state(imu_data[:50, 1:7],
                        pos=initial_pos,
                        ori=initial_orientation)
-    drkf = ImuEKFComplex(np.diag((
-        0.001,
-        0.001,
-        0.001,
-        0.001,
-        0.001,
-        0.001,
-        0.001 * np.pi / 180.0, 0.001 * np.pi / 180.0, 0.001 * np.pi / 180.0,
-        0.0001,
-        0.0001,
-        0.0001,
-        0.0001 * np.pi / 180.0,
-        0.0001 * np.pi / 180.0,
-        0.0001 * np.pi / 180.0
-    )),
-        local_g=-9.81, time_interval=average_time_interval)
+    # drkf = ImuEKFComplex(np.diag((
+    #     0.001,
+    #     0.001,
+    #     0.001,
+    #     0.001,
+    #     0.001,
+    #     0.001,
+    #     0.001 * np.pi / 180.0, 0.001 * np.pi / 180.0, 0.001 * np.pi / 180.0,
+    #     0.0001,
+    #     0.0001,
+    #     0.0001,
+    #     0.0001 * np.pi / 180.0,
+    #     0.0001 * np.pi / 180.0,
+    #     0.0001 * np.pi / 180.0
+    # )),
+    #     local_g=-9.81, time_interval=average_time_interval)
 
-    drkf.initial_state(imu_data[:50, 1:7],
-                       pos=initial_pos,
-                       ori=initial_orientation)
+    # drkf.initial_state(imu_data[:50, 1:7],
+    #                    pos=initial_pos,
+    #                    ori=initial_orientation)
 
     zv_state = GLRT_Detector(imu_data[:, 1:7],
                              sigma_a=1.0,
@@ -330,12 +330,12 @@ if __name__ == '__main__':
                                                  0.01 * np.pi / 180.0,
                                                  0.01 * np.pi / 180.0))
                                         )
-        drkf.state_transaction_function(imu_data[i, 1:7],
-                                        np.diag((0.01, 0.01, 0.01,
-                                                 0.01 * np.pi / 180.0,
-                                                 0.01 * np.pi / 180.0,
-                                                 0.01 * np.pi / 180.0))
-                                        )
+        # drkf.state_transaction_function(imu_data[i, 1:7],
+        #                                 np.diag((0.01, 0.01, 0.01,
+        #                                          0.01 * np.pi / 180.0,
+        #                                          0.01 * np.pi / 180.0,
+        #                                          0.01 * np.pi / 180.0))
+        #                                 )
 
         if (i > 5) and (i < imu_data.shape[0] - 5):
             # print('i:',i)
@@ -350,11 +350,11 @@ if __name__ == '__main__':
                                             np.diag((0.0001, 0.0001, 0.0001)))
                 orkf.measurement_function_zv(np.asarray((0, 0, 0)),
                                              np.diag((0.0001, 0.0001, 0.0001)))
-                drkf.measurement_function_zv(np.asarray((0, 0, 0)),
-                                             np.diag((0.0001, 0.0001, 0.0001)))
+                # drkf.measurement_function_zv(np.asarray((0, 0, 0)),
+                #                              np.diag((0.0001, 0.0001, 0.0001)))
 
             if uwb_data[uwb_index, 0] < imu_data[i, 0]:
-                drkf.measurement_reftrace(0.0001, ref_score)
+                # drkf.measurement_reftrace(0.0001, ref_score)
                 if uwb_index < uwb_data.shape[0] - 1:
                     # orkf.measurement_uwb_robust_multi(np.asarray(uwb_data[uwb_index, 1:]),
                     #                                   np.ones(1) * 0.1,
@@ -371,7 +371,7 @@ if __name__ == '__main__':
                         # right
 
                         if uwb_filter_list[j - 1].m > -1000.0:
-                            uwb_filter_list[j - 1].state_transmition_2d(drkf.state[0:3], drkf.prob_state[0:3, 0:3])
+                            # uwb_filter_list[j - 1].state_transmition_2d(drkf.state[0:3], drkf.prob_state[0:3, 0:3])
                             # uwb_filter_list[j - 1].state_estimate(rkf.state[0:3], rkf.prob_state[0:3, 0:3])
                             uwb_est_data[uwb_index, j] = uwb_filter_list[j - 1].m
                             uwb_est_prob[uwb_index, j] = uwb_filter_list[j - 1].cov
@@ -403,10 +403,10 @@ if __name__ == '__main__':
                             #     rkf.measurement_uwb(uwb_filter_list[j - 1].m,
                             #                         uwb_filter_list[j - 1].cov,
                             #                         np.transpose(beacon_set[j - 1, :]))
-                    drkf.measurement_uwb_iterate(np.asarray(uwb_data[uwb_index, 1:]),
-                                                 np.ones(1) * 0.1,
-                                                 beacon_set, ref_trace, chi_squard=6.0)
-                    uwb_ref_trace[uwb_index, :] = drkf.state[0:3]
+                    # drkf.measurement_uwb_iterate(np.asarray(uwb_data[uwb_index, 1:]),
+                    #                              np.ones(1) * 0.1,
+                    #                              beacon_set, ref_trace, chi_squard=6.0)
+                    # uwb_ref_trace[uwb_index, :] = drkf.state[0:3]
 
                     # uwb_est_data[uwb_index, 1:] = np.linalg.norm(rkf.state[0:3] - beacon_set)
                     # for j in range(1,uwb_data.shape[1]):
@@ -429,7 +429,7 @@ if __name__ == '__main__':
         ftrace[i, :] = fkf.state[0:3]
         rtrace[i, :] = rkf.state[0:3]
         ortrace[i, :] = orkf.state[0:3]
-        dtrace[i, :] = drkf.state[0:3]
+        # dtrace[i, :] = drkf.state[0:3]
 
         # print('finished:', rate * 100.0, "% ", i, imu_data.shape[0])
 
@@ -502,9 +502,9 @@ if __name__ == '__main__':
 
     plt.figure()
     # plt.title('Trajectory')
-    for i in range(ref_vis.shape[0]):
-        plt.plot([ref_vis[i, 0], ref_vis[i, 2]], [ref_vis[i, 1], ref_vis[i, 3]], '-', color=color_dict['ref'],
-                 alpha=0.5, lw='10')
+    # for i in range(ref_vis.shape[0]):
+    #     plt.plot([ref_vis[i, 0], ref_vis[i, 2]], [ref_vis[i, 1], ref_vis[i, 3]], '-', color=color_dict['ref'],
+    #              alpha=0.5, lw='10')
     plt.plot(trace[:, 0], trace[:, 1], '-', color=color_dict['Standard'], label='Standard EKF')
     # plt.plot(ftrace[:, 0], ftrace[:, 1], '-', color=color_dict['Foot'], label='Foot')
     plt.plot(rtrace[:, 0], rtrace[:, 1], '-', color=color_dict['REKF'], label='Robust EKF')
@@ -595,84 +595,84 @@ if __name__ == '__main__':
     # ax.plot(uwb_trace[:, 0], uwb_trace[:, 1], uwb_trace[:, 2], '+', label='uwb')
     # ax.grid()
     # ax.legend()
+    # #
+    # rs = Refscor(dir_name)
     #
-    rs = Refscor(dir_name)
-
-    # u_error = rs.eval_points(uwb_trace)
-    # f_error = rs.eval_points(ftrace)
-    # t_error = rs.eval_points(trace)
-    # r_error = rs.eval_points(rtrace)
-    # or_error = rs.eval_points(ortrace)
-    u_error = np.linalg.norm(uwb_trace[:, 0:2] - uwb_ref_trace[:, 0:2], axis=1)
-    f_error = np.linalg.norm(ftrace[:, 0:2] - dtrace[:, 0:2], axis=1)
-    t_error = np.linalg.norm(trace[:, 0:2] - dtrace[:, 0:2], axis=1)
-    r_error = np.linalg.norm(rtrace[:, 0:2] - dtrace[:, 0:2], axis=1)
-    or_error = np.linalg.norm(ortrace[:, 0:2] - dtrace[:, 0:2], axis=1)
-
-    plt.figure()
-
-    start_time = time.time()
-
-    # plt.plot(u_error, label='uwb')
-    plt.plot(t_error, '-', color=color_dict['Standard'], label='Standard EKF')
-    plt.plot(r_error, '-', color=color_dict['REKF'], label='Robust EKF')
-    plt.plot(or_error, '-', color=color_dict['RIEKF'], label='Robust IEKF')
-    # plt.plot(rs.eval_points(dtrace), label='dtrace')
-    # plt.plot(rs.eval_points(ref_trace[:,1:]), label='ref')
-    # plt.grid()
-    plt.legend(fontsize=local_fsize)
-    plt.xlabel('Time step', fontsize=local_fsize)
-    plt.ylabel('RMSE/m', fontsize=local_fsize)
-    plt.xticks(fontsize=local_fsize)
-    plt.yticks(fontsize=local_fsize)
-    plt.xlim(0, trace.shape[0])
-    plt.ylim(ymin=0.0)
-    # plt.title('MSE')
-
-    # u_error = rs.eval_points(uwb_trace)
-    # f_error = rs.eval_points(ftrace)
-    # t_error = rs.eval_points(trace)
-    # r_error = rs.eval_points(rtrace)
-    # or_error = rs.eval_points(ortrace)
-    print('dir name:', dir_name)
-    print('uwb:', np.mean(u_error), np.std(u_error))
-    print('foot:', np.mean(f_error), np.std(f_error))
-    print('fusing:', np.mean(t_error), np.std(t_error))
-    print('rtrace:', np.mean(r_error), np.std(r_error))
-    print('ortrace:', np.mean(or_error), np.std(or_error))
-    # print('dtrace:', np.mean(rs.eval_points(dtrace)))
-    # print('ref:', np.mean(rs.eval_points(ref_trace[:, 1:])))
-    print('eval cost time:', time.time() - start_time)
-
-    import statsmodels.api as sm
-
+    # # u_error = rs.eval_points(uwb_trace)
+    # # f_error = rs.eval_points(ftrace)
+    # # t_error = rs.eval_points(trace)
+    # # r_error = rs.eval_points(rtrace)
+    # # or_error = rs.eval_points(ortrace)
+    # u_error = np.linalg.norm(uwb_trace[:, 0:2] - uwb_ref_trace[:, 0:2], axis=1)
+    # f_error = np.linalg.norm(ftrace[:, 0:2] - dtrace[:, 0:2], axis=1)
+    # t_error = np.linalg.norm(trace[:, 0:2] - dtrace[:, 0:2], axis=1)
+    # r_error = np.linalg.norm(rtrace[:, 0:2] - dtrace[:, 0:2], axis=1)
+    # or_error = np.linalg.norm(ortrace[:, 0:2] - dtrace[:, 0:2], axis=1)
     #
-    ecdf_f = sm.distributions.ECDF(f_error)
-    ecdf_t = sm.distributions.ECDF(t_error)
-    ecdf_r = sm.distributions.ECDF(r_error)
-    ecdf_or = sm.distributions.ECDF(or_error)
-    x = np.linspace(0.0, max(np.max(r_error), np.max(or_error)))
-    plt.figure()
-    # plt.title('CDF')
-    # plt.step(x, ecdf_f(x), color=color_dict['Foot'], label='Foot')
-    plt.step(x, ecdf_t(x), color=color_dict['Standard'], label='Standard EKF')
-    plt.step(x, ecdf_r(x), color=color_dict['REKF'], label='Robust EKF')
-    plt.step(x, ecdf_or(x), color=color_dict['RIEKF'], label='Robust IEKF')
-    #
-    plt.legend(fontsize=local_fsize)
-    plt.xlabel('RMSE/m', fontsize=local_fsize)
-    plt.ylabel('cumulative probability', fontsize=local_fsize)
-    plt.xticks(fontsize=local_fsize)
-    plt.yticks(fontsize=local_fsize)
-    plt.xlim(xmin=0.0, xmax=4.0)
-    plt.ylim(0.0, 1.0)
-    # plt.grid()
     # plt.figure()
-    # plt.title('uwb')
-    # for i in range(1, uwb_data.shape[1]):
-    #     plt.plot(uwb_data[:, 0], uwb_data[:, i], '+-', label=str(i))
-    # plt.plot(uwb_data[:, 0], uwb_opt_res, '+-', label='res error')
-    # plt.grid()
-    # plt.legend()
-
+    #
+    # start_time = time.time()
+    #
+    # # plt.plot(u_error, label='uwb')
+    # plt.plot(t_error, '-', color=color_dict['Standard'], label='Standard EKF')
+    # plt.plot(r_error, '-', color=color_dict['REKF'], label='Robust EKF')
+    # plt.plot(or_error, '-', color=color_dict['RIEKF'], label='Robust IEKF')
+    # # plt.plot(rs.eval_points(dtrace), label='dtrace')
+    # # plt.plot(rs.eval_points(ref_trace[:,1:]), label='ref')
+    # # plt.grid()
+    # plt.legend(fontsize=local_fsize)
+    # plt.xlabel('Time step', fontsize=local_fsize)
+    # plt.ylabel('RMSE/m', fontsize=local_fsize)
+    # plt.xticks(fontsize=local_fsize)
+    # plt.yticks(fontsize=local_fsize)
+    # plt.xlim(0, trace.shape[0])
+    # plt.ylim(ymin=0.0)
+    # # plt.title('MSE')
+    #
+    # # u_error = rs.eval_points(uwb_trace)
+    # # f_error = rs.eval_points(ftrace)
+    # # t_error = rs.eval_points(trace)
+    # # r_error = rs.eval_points(rtrace)
+    # # or_error = rs.eval_points(ortrace)
+    # print('dir name:', dir_name)
+    # print('uwb:', np.mean(u_error), np.std(u_error))
+    # print('foot:', np.mean(f_error), np.std(f_error))
+    # print('fusing:', np.mean(t_error), np.std(t_error))
+    # print('rtrace:', np.mean(r_error), np.std(r_error))
+    # print('ortrace:', np.mean(or_error), np.std(or_error))
+    # # print('dtrace:', np.mean(rs.eval_points(dtrace)))
+    # # print('ref:', np.mean(rs.eval_points(ref_trace[:, 1:])))
+    # print('eval cost time:', time.time() - start_time)
+    #
+    # import statsmodels.api as sm
+    #
+    # #
+    # ecdf_f = sm.distributions.ECDF(f_error)
+    # ecdf_t = sm.distributions.ECDF(t_error)
+    # ecdf_r = sm.distributions.ECDF(r_error)
+    # ecdf_or = sm.distributions.ECDF(or_error)
+    # x = np.linspace(0.0, max(np.max(r_error), np.max(or_error)))
+    # plt.figure()
+    # # plt.title('CDF')
+    # # plt.step(x, ecdf_f(x), color=color_dict['Foot'], label='Foot')
+    # plt.step(x, ecdf_t(x), color=color_dict['Standard'], label='Standard EKF')
+    # plt.step(x, ecdf_r(x), color=color_dict['REKF'], label='Robust EKF')
+    # plt.step(x, ecdf_or(x), color=color_dict['RIEKF'], label='Robust IEKF')
+    # #
+    # plt.legend(fontsize=local_fsize)
+    # plt.xlabel('RMSE/m', fontsize=local_fsize)
+    # plt.ylabel('cumulative probability', fontsize=local_fsize)
+    # plt.xticks(fontsize=local_fsize)
+    # plt.yticks(fontsize=local_fsize)
+    # plt.xlim(xmin=0.0, xmax=4.0)
+    # plt.ylim(0.0, 1.0)
+    # # plt.grid()
+    # # plt.figure()
+    # # plt.title('uwb')
+    # # for i in range(1, uwb_data.shape[1]):
+    # #     plt.plot(uwb_data[:, 0], uwb_data[:, i], '+-', label=str(i))
+    # # plt.plot(uwb_data[:, 0], uwb_opt_res, '+-', label='res error')
+    # # plt.grid()
+    # # plt.legend()
+    #
     plt.show()
