@@ -23,8 +23,6 @@
          佛祖保佑       永无BUG 
 '''
 
-
-
 import numpy as np
 import scipy as sp
 from numba import jit, njit, prange
@@ -66,8 +64,8 @@ if __name__ == '__main__':
     # dir_name = '/home/steve/Data/NewFusingLocationData/0044/'
     # dir_name = 'D:/Data/NewFusingLocationData/0040/'
     # dir_name = 'D:/Data/NewFusingLocationData/0039/'
-    # dir_name = '/home/steve/Data/NewFusingLocationData/0040/'
-    dir_name = '/home/steve/Data/ZUPTPDR/0001/'
+    dir_name = '/home/steve/Data/NewFusingLocationData/0040/'
+    # dir_name = '/home/steve/Data/ZUPTPDR/0003/'
     # dir_name = 'C:/Data/NewFusingLocationData/0040/'
 
     # ref_score = Refscor(dir_name)
@@ -82,24 +80,17 @@ if __name__ == '__main__':
     # beacon_set = np.loadtxt(dir_name + 'beaconSet.csv', delimiter=',')
     uwb_data = np.loadtxt(dir_name + 'uwb_data.csv', delimiter=',')
     beacon_set = np.loadtxt(dir_name + 'beaconset_no_mac.csv', delimiter=',')
+    uwb_strength_data = np.loadtxt(dir_name + 'uwb_signal_data.csv', delimiter=',')
     # beacon_set = np.loadtxt(dir_name + 'beaconset_fill.csv', delimiter=',')
-
 
     initial_pos = np.asarray((48.19834796,
                               44.89176719,
                               2.0))
-    # initial_pos = np.asarray((62.5,
-    #                           21.0,
-    #                           2.0))  # (32)
 
-    # initial_orientation = 80.0 * np.pi / 180.0  # 38-45
-    # initial_orientation = 50.0 * np.pi / 180.0  # 36
-    # initial_orientation = 80.0 * np.pi / 180.0  # 38
-    # initial_orientation = 80.0 * np.pi / 180.0  # 37
-    # initial_orientation = 80.0 * np.pi / 180.0  # 39
-    initial_orientation = 80.0 * np.pi / 180.0  # 40
-    # initial_orientation = -110.0 * np.pi / 180.0  # 32
-    # initial_orientation = 50.0 * np.pi / 180.0  # 44
+    # for i in range(uwb_data.shape[0]):
+    #     for j in range(1,uwb_data.shape[1]):
+    #         if uwb_data[i,j] > 0.0 and uwb_strength_data[i,j] < 20:
+    #             uwb_data[i,j] = -10.0
 
     '''
     Delete some beacon's data randomly.
@@ -134,6 +125,7 @@ if __name__ == '__main__':
     END
     '''
 
+
     uwb_filter_list = list()
     for i in range(1, uwb_data.shape[1]):
         uwb_filter_list.append(UwbRangeEKF(1.0, beacon_set[i - 1, :].reshape(-1)))
@@ -166,6 +158,20 @@ if __name__ == '__main__':
     uwb_trace = cal(uwb_trace)
     uwb_ref_trace = np.zeros_like(uwb_trace)
     print('uwb cost time:', time.time() - stime)
+
+    initial_pos = np.asarray(uwb_trace[0, :])
+    # initial_pos = np.asarray((62.5,
+    #                           21.0,
+    #                           2.0))  # (32)
+
+    # initial_orientation = 80.0 * np.pi / 180.0  # 38-45
+    # initial_orientation = 50.0 * np.pi / 180.0  # 36
+    # initial_orientation = 80.0 * np.pi / 180.0  # 38
+    # initial_orientation = 80.0 * np.pi / 180.0  # 37
+    # initial_orientation = 80.0 * np.pi / 180.0  # 39
+    initial_orientation = 80.0 * np.pi / 180.0  # 40
+    # initial_orientation = -110.0 * np.pi / 180.0  # 32
+    # initial_orientation = 50.0 * np.pi / 180.0  # 44
 
     # ref_trace = np.loadtxt(dir_name + 'ref_trace.csv', delimiter=',')
 
@@ -391,9 +397,10 @@ if __name__ == '__main__':
                                 if np.linalg.norm(uwb_filter_list[j - 1].beacon_set - beacon_set[j - 1, :]) > 0.1:
                                     print('error', uwb_filter_list[j - 1].beacon_set, beacon_set[j - 1, :])
 
-                            kf.measurement_uwb(np.asarray(uwb_data[uwb_index, j]),
-                                               np.ones(1) * 0.5,
-                                               np.transpose(beacon_set[j - 1, :]))
+                            if uwb_strength_data[uwb_index, j] > 10:
+                                kf.measurement_uwb(np.asarray(uwb_data[uwb_index, j]),
+                                                   np.ones(1) * 0.1,
+                                                   np.transpose(beacon_set[j - 1, :]))
                             rkf.measurement_uwb_robust(uwb_data[uwb_index, j],
                                                        np.ones(1) * 0.1,
                                                        np.transpose(beacon_set[j - 1, :]),
@@ -530,22 +537,32 @@ if __name__ == '__main__':
     plt.legend(fontsize=local_fsize)
     plt.grid()
 
+    from mpl_toolkits.mplot3d import Axes3D
+
+    # 3d plot
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    ax.plot(trace[:, 0], trace[:, 1], trace[:, 2], '-', label='standard EKF')
+    ax.plot(rtrace[:, 0], rtrace[:, 1], rtrace[:, 2], '-', label='Robust EKF')
+    ax.plot(ortrace[:, 0], ortrace[:, 1], ortrace[:, 2], '-', label='or IEKF')
+    ax.plot(uwb_trace[:, 0], uwb_trace[:, 1], uwb_trace[:, 2], '*', label='uwb')
+    plt.legend()
+
     plt.figure()
+    plt.subplot(211)
     # for i in range(beacon_set.shape[0]):
     #     if uwb_data[:,i+1].max() > 0 and beacon_set[i, 0] < 5000.0:
     #         plt.plot(uwb_data[:, 0] - uwb_data[0, 0], uwb_data[:, i+1],'+', label='id:' + str(i-uwb_id_offset))
     for i in range(len(uwb_valid)):
         plt.plot(uwb_data[:, 0] - uwb_data[0, 0], uwb_data[:, uwb_valid[i]], '+', label='id:' + str(i))
-    # plt.grid()
-    plt.legend(fontsize=local_fsize)
-    plt.xlabel('Time/s', fontsize=local_fsize)
-    plt.ylabel('Range/m', fontsize=local_fsize)
-    plt.xticks(fontsize=local_fsize)
-    plt.yticks(fontsize=local_fsize)
-    # plt.title('UWB measurements')
-    plt.tight_layout()
-    plt.xlim(0.0, uwb_data[-1, 0] - uwb_data[0, 0] + 10.0)
-    plt.ylim(0.0, np.max(uwb_data[:, 1:]) + 2.0)
+    plt.grid()
+    plt.legend()
+
+    plt.subplot(212)
+    for i in range(len(uwb_valid)):
+        plt.plot(uwb_data[:, 0] - uwb_data[0, 0], uwb_strength_data[:, uwb_valid[i]], '+', label='id:' + str(i))
+    plt.grid()
+    plt.legend()
 
     # plt.figure()
     # plt.subplot(411)

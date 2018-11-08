@@ -36,11 +36,13 @@ class SimpleLSTM(nn.Module):
         self.lstm_group = nn.LSTM(input_size=input_size,
                                   hidden_size=hidden_size,
                                   num_layers=num_layers,
-                                  batch_first=True)
+                                  batch_first=True,
+                                  bidirectional=True)
         # bidirectional=True)
 
-        self.fc1 = nn.Linear(hidden_size, 20)
-        self.dp = nn.Dropout(0.5)
+        # self.fc1 = nn.Linear(hidden_size, 20) # non-bidirectional
+        self.fc1 = nn.Linear(hidden_size*2, 20)
+        self.dp = nn.Dropout()
         self.ac1 = nn.Tanh()
         self.fc2 = nn.Linear(20, output_size)
 
@@ -51,13 +53,12 @@ class SimpleLSTM(nn.Module):
         self.hidden_size = hidden_size
 
     def forward(self, x):
-        # h0 = Variable(torch.zeros(self.num_layers, x.size(0), self.hidden_size))
-        # c0 = Variable(torch.zeros(self.num_layers, x.size(0), self.hidden_size))
-        h0 = (torch.zeros(self.num_layers, x.size(0), self.hidden_size)).to(torch.device('cuda'))
-        c0 = (torch.zeros(self.num_layers, x.size(0), self.hidden_size)).to(torch.device('cuda'))
-        # h0 = (torch.Variable(torch.zeros(self.num_layers, x.size(0), self.hidden_size)) for _ in range(self.hidden_size))
-        # c0 = (torch.Variable(torch.zeros(self.num_layers, x.size(0), self.hidden_size)) for _ in range(self.hidden_size))
-        out, _ = self.lstm_group(x, (h0, c0))
+        # h0 = (torch.zeros(self.num_layers, x.size(0), self.hidden_size)).to(torch.device('cuda'))
+        # c0 = (torch.zeros(self.num_layers, x.size(0), self.hidden_size)).to(torch.device('cuda'))
+        # h0 = (torch.zeros(self.num_layers*2, x.size(0), self.hidden_size)).to(torch.device('cuda'))
+        # c0 = (torch.zeros(self.num_layers*2, x.size(0), self.hidden_size)).to(torch.device('cuda'))
+
+        out, _ = self.lstm_group(x)#, (h0, c0))
 
         # out = self.softmax(self.fc(out))
         # for
@@ -66,11 +67,12 @@ class SimpleLSTM(nn.Module):
         for i in range(out.size(1)):
             # real_out[:, i, :] = self.softmax(self.fc(out[:, i, :]))
             # real_out[:, i, :] = self.fc(out[:, i, :])
-            real_out[:, i, :] = self.fc2(self.ac1(self.dp(self.fc1(out[:, i, :]))))
+            t = self.ac1(self.dp(self.fc1(out[:,i,:])))
+            real_out[:, i, :] = self.fc2(t)
             # real_out[:, i, :] = self.softmax(self.fc2(self.ac1(self.fc1(out[:, i, :]))))
         # for batch_i in range(out.size(1)):
         #     for time_i in range(out.size(0)):
         #         print(self.softmax(self.fc(out[time_i, batch_i, :].reshape([-1]))))
-        #         real_out[time_i, batch_i, :] = self.softmax(self.fc(out[time_i, batch_i, :].reshape([-1])))
+        #         real_out[time_i, batch_i, :] = self.softmax(self.fc1(out[time_i, batch_i, :].reshape([-1])))
         # real_out = self.softmax(self.fc(out))
         return real_out
