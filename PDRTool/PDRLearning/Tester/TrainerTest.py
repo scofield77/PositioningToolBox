@@ -79,14 +79,14 @@ if __name__ == '__main__':
 
     # criterion = nn.CrossEntropyLoss()
     criterion = nn.MSELoss()
-    optimizer = torch.optim.RMSprop(model.parameters(), lr=0.01)
-    # optimizer = torch.optim.Adam(model.parameters())
+    # optimizer = torch.optim.RMSprop(model.parameters(), lr=0.01)
+    optimizer = torch.optim.Adam(model.parameters())
     from array import array
 
     cost_array = array('d')
     model.train()
 
-    for epoch in range(5000):
+    for epoch in range(50000):
         for i, (dx, dy) in enumerate(train_loader):
             # print(i, dx.shape, dy.shape)
             dx = np.transpose(dx, (2, 0, 1))
