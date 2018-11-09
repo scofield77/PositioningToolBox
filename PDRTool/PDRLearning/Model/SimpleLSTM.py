@@ -41,7 +41,7 @@ class SimpleLSTM(nn.Module):
         # bidirectional=True)
 
         # self.fc1 = nn.Linear(hidden_size, 20) # non-bidirectional
-        self.fc1 = nn.Linear(hidden_size*2, 20)
+        self.fc1 = nn.Linear(hidden_size * 2, 20)
         self.dp = nn.Dropout()
         self.ac1 = nn.Tanh()
         self.fc2 = nn.Linear(20, output_size)
@@ -58,7 +58,7 @@ class SimpleLSTM(nn.Module):
         # h0 = (torch.zeros(self.num_layers*2, x.size(0), self.hidden_size)).to(torch.device('cuda'))
         # c0 = (torch.zeros(self.num_layers*2, x.size(0), self.hidden_size)).to(torch.device('cuda'))
 
-        out, _ = self.lstm_group(x)#, (h0, c0))
+        out, _ = self.lstm_group(x)  # , (h0, c0))
 
         # out = self.softmax(self.fc(out))
         # for
@@ -67,7 +67,7 @@ class SimpleLSTM(nn.Module):
         for i in range(out.size(1)):
             # real_out[:, i, :] = self.softmax(self.fc(out[:, i, :]))
             # real_out[:, i, :] = self.fc(out[:, i, :])
-            t = self.ac1(self.dp(self.fc1(out[:,i,:])))
+            t = self.ac1(self.dp(self.fc1(out[:, i, :])))
             real_out[:, i, :] = self.fc2(t)
             # real_out[:, i, :] = self.softmax(self.fc2(self.ac1(self.fc1(out[:, i, :]))))
         # for batch_i in range(out.size(1)):
