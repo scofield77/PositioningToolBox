@@ -439,6 +439,18 @@ class DualFeetImu:
 @jit((float64[:, :], float64[:, :], float64[:, :], float64[:, :], float64[:, :], float64[:, :], float64), nopython=True,
      parallel=True)
 def aux_build_F_G_dual(F, G, lSt, rSt, lRb2t, rRb2t, time_interval):
+    '''
+    Calculate F and G for dual feet update.
+    using nopython flag to achieve a 2x performance
+    :param F:
+    :param G:
+    :param lSt:
+    :param rSt:
+    :param lRb2t:
+    :param rRb2t:
+    :param time_interval:
+    :return:
+    '''
     for k in range(F.shape[0]):
         F[k, k] = 1.0
 
