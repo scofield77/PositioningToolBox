@@ -166,11 +166,12 @@ class UwbDataPre:
 
 
 if __name__ == '__main__':
-    dir_name = '/home/steve/Data/XsensUwb/0001/'
+    # dir_name = '/home/steve/Data/XsensUwb/0001/'
     # udp = UwbDataPre("/home/steve/Data/NewRecord/Record2/")
     # udp = UwbDataPre("/home/steve/tmp/test/44/")
     # udp = UwbDataPre("/home/steve/Code/Mini_IMU/Scripts/IMUWB/92/")
     # udp = UwbDataPre("/home/steve/Code/Mini_IMU/Scripts/IMUWB/92/")
+    udp = UwbDataPre("/home/steve/Data/VehicleUWBINS/0000/")
     # udp.filter()
 
     udp.save()

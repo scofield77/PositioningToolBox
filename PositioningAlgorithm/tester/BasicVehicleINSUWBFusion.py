@@ -1,5 +1,5 @@
 # -*- coding:utf-8 -*-
-# carete by steve at  2018 / 04 / 30　下午7:31
+# carete by steve at  2019 / 01 / 05　10:32 AM
 '''
                    _ooOoo_ 
                   o8888888o 
@@ -22,6 +22,7 @@
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 
          佛祖保佑       永无BUG 
 '''
+
 import numpy as np
 import scipy as sp
 from numba import jit
@@ -57,8 +58,8 @@ if __name__ == '__main__':
     start_time = time.time()
     # dir_name = '/home/steve/Data/FusingLocationData/0017/'
     # dir_name = '/home/steve/Data/FusingLocationData/0035/'
-    dir_name = '/home/steve/Data/NewFusingLocationData/0034/'
-    # dir_name = '/home/steve/Data/VehicleUWBINS/0000/'
+    # dir_name = '/home/steve/Data/NewFusingLocationData/0034/'
+    dir_name = '/home/steve/Data/VehicleUWBINS/0001/'
 
     # imu_data = np.loadtxt(dir_name + 'RIGHT_FOOT.data', delimiter=',')
     imu_data = np.loadtxt(dir_name + 'HEAD.data', delimiter=',')
@@ -70,7 +71,7 @@ if __name__ == '__main__':
     # beacon_set = np.loadtxt(dir_name + 'beaconSet.csv', delimiter=',')
     uwb_data = np.loadtxt(dir_name + 'uwb_data.csv', delimiter=',')
     beacon_set = np.loadtxt(dir_name + 'beaconset_no_mac.csv', delimiter=',')
-    ref_trace = np.loadtxt(dir_name + 'ref_trace.csv', delimiter=',')
+    # ref_trace = np.loadtxt(dir_name + 'ref_trace.csv', delimiter=',')
 
     uol = UwbOptimizeLocation(beacon_set)
     uwb_trace = np.zeros([uwb_data.shape[0], 3])
@@ -105,13 +106,14 @@ if __name__ == '__main__':
     average_time_interval = (imu_data[-1, 0] - imu_data[0, 0]) / float(imu_data.shape[0])
     print('average time interval ', average_time_interval)
 
-    initial_pos = ref_trace[0, 1:]
+    initial_pos = np.asarray((0.8,0.8,0.0))#ref_trace[0, 1:]
 
     ti = 1
-    while np.linalg.norm(ref_trace[ti, 1:] - ref_trace[0, 1:]) < 5.0:
-        ti += 1
-    initial_orientation = math.atan2(ref_trace[ti, 2] - ref_trace[0, 2],
-                                     ref_trace[ti, 1] - ref_trace[0, 1]) + 230.0 * np.pi / 180.0  # 35
+    # while np.linalg.norm(ref_trace[ti, 1:] - ref_trace[0, 1:]) < 5.0:
+    #     ti += 1
+    # initial_orientation = math.atan2(ref_trace[ti, 2] - ref_trace[0, 2],
+    #                                  ref_trace[ti, 1] - ref_trace[0, 1]) + 230.0 * np.pi / 180.0  # 35
+    initial_orientation = 0.0
 
     kf = ImuEKFComplex(np.diag((
         0.1, 0.1, 0.1,
@@ -129,22 +131,22 @@ if __name__ == '__main__':
     kf.initial_state(imu_data[:50, 1:7],
                      pos=initial_pos,  # .mean(uwb_trace[0:3, :], axis=0),
                      ori=initial_orientation)
-    rkf = ImuEKFComplex(np.diag((
-        0.1, 0.1, 0.1,
-        0.1, 0.1, 0.1,
-        0.1 * np.pi / 180.0, 0.1 * np.pi / 180.0, 0.1 * np.pi / 180.0,
-        0.0001,
-        0.0001,
-        0.0001,
-        0.0001 * np.pi / 180.0,
-        0.0001 * np.pi / 180.0,
-        0.0001 * np.pi / 180.0
-    )),
-        local_g=-9.61, time_interval=average_time_interval)
+    # rkf = ImuEKFComplex(np.diag((
+    #     0.1, 0.1, 0.1,
+    #     0.1, 0.1, 0.1,
+    #     0.1 * np.pi / 180.0, 0.1 * np.pi / 180.0, 0.1 * np.pi / 180.0,
+    #     0.0001,
+    #     0.0001,
+    #     0.0001,
+    #     0.0001 * np.pi / 180.0,
+    #     0.0001 * np.pi / 180.0,
+    #     0.0001 * np.pi / 180.0
+    # )),
+    #     local_g=-9.61, time_interval=average_time_interval)
 
-    rkf.initial_state(imu_data[:50, 1:7],
-                      pos=initial_pos,  # np.mean(uwb_trace[0:3, :], axis=0),
-                      ori=initial_orientation)
+    # rkf.initial_state(imu_data[:50, 1:7],
+    #                   pos=initial_pos,  # np.mean(uwb_trace[0:3, :], axis=0),
+    #                   ori=initial_orientation)
 
     zv_state = GLRT_Detector(imu_data[:, 1:7],
                              sigma_a=1.0,
@@ -159,32 +161,32 @@ if __name__ == '__main__':
         # print('i:',i)
 
         kf.state_transaction_function(imu_data[i, 1:7],
-                                      np.diag((0.01, 0.01, 0.01,
-                                               0.01 * np.pi / 180.0,
-                                               0.01 * np.pi / 180.0,
-                                               0.01 * np.pi / 180.0))
+                                      np.diag((0.1, 0.1, 0.1,
+                                               0.1 * np.pi / 180.0,
+                                               0.1 * np.pi / 180.0,
+                                               0.1 * np.pi / 180.0))
                                       )
-        rkf.state_transaction_function(imu_data[i, 1:7],
-                                       np.diag((0.01, 0.01, 0.01,
-                                                0.01 * np.pi / 180.0,
-                                                0.01 * np.pi / 180.0,
-                                                0.01 * np.pi / 180.0))
-                                       )
+        # rkf.state_transaction_function(imu_data[i, 1:7],
+        #                                np.diag((0.01, 0.01, 0.01,
+        #                                         0.01 * np.pi / 180.0,
+        #                                         0.01 * np.pi / 180.0,
+        #                                         0.01 * np.pi / 180.0))
+        #                                )
         if (i > 5) and (i < imu_data.shape[0] - 5):
             # print('i:',i)
             # zv_state[i] = z_tester.GLRT_Detector(imu_data[i - 4:i + 4, 1:8])
             # if zv_state[i] > 0.5:
-            if np.linalg.norm(kf.state[3:6]) > 2.0:
-                kf.measurement_function_zv(np.asarray((0, 0, 0)),
-                                           np.diag((10, 10, 10)))
-            if np.linalg.norm(rkf.state[3:6]) > 2.0:
-                rkf.measurement_function_zv(np.asarray((0, 0, 0)),
-                                            np.diag((2.0, 2.0, 0.1)))
+            # if np.linalg.norm(kf.state[3:6]) > 2.0:
+            #     kf.measurement_function_zv(np.asarray((0, 0, 0)),
+            #                                np.diag((10, 10, 10)))
+            # if np.linalg.norm(rkf.state[3:6]) > 2.0:
+            #     rkf.measurement_function_zv(np.asarray((0, 0, 0)),
+            #                                 np.diag((2.0, 2.0, 0.1)))
 
             kf.measurement_function_z_axis(np.asarray(initial_pos[2]),
-                                           np.ones(1)*0.5)
-            rkf.measurement_function_z_axis(np.asarray(initial_pos[2]),
-                                           np.ones(1)*0.5)
+                                           np.ones(1)*0.1)
+            # rkf.measurement_function_z_axis(np.asarray(initial_pos[2]),
+            #                                np.ones(1)*0.5)
 
             if uwb_data[uwb_index, 0] < imu_data[i, 0]:
 
@@ -194,20 +196,21 @@ if __name__ == '__main__':
                     #                                  np.ones(1) * 0.01,
                     #                                  beacon_set,
                     #                                  7.0)
-                    # rkf.measurement_uwb_iterate(uwb_data[uwb_index, 1:],
-                    #                             np.ones(1) * 0.5,
-                    #                             beacon_set, ref_trace
+                    # kf.measurement_uwb_iterate(uwb_data[uwb_index, 1:],
+                    #                             np.ones(1) * 0.05,
+                    #                             beacon_set, trace
                     #                             )
+                    # kf.measurement_p
 
-                    rkf.measurement_uwb_mc(np.asarray(uwb_data[uwb_index,1:]),
-                                           np.ones(1)*0.1,
-                                           beacon_set,ref_trace)
+                    # rkf.measurement_uwb_mc(np.asarray(uwb_data[uwb_index,1:]),
+                    #                        np.ones(1)*0.1,
+                    #                        beacon_set,ref_trace)
                     uwb_index += 1
                     for j in range(1, uwb_data.shape[1]):
                         if uwb_data[uwb_index, j] > 0.0 and uwb_data[uwb_index, j] < 1000.0 and beacon_set[
                             j - 1, 0] < 1000.0:
                             kf.measurement_uwb(np.asarray(uwb_data[uwb_index, j]),
-                                               np.ones(1) * 0.1,
+                                               np.ones(1) * 0.01,
                                                np.transpose(beacon_set[j - 1, :]))
                             # rkf.measurement_uwb_robust(np.asarray(uwb_data[uwb_index, j]),
                             #                            np.ones(1) * 0.1,
@@ -225,7 +228,7 @@ if __name__ == '__main__':
         rate = i / imu_data.shape[0]
         iner_acc[i, :] = kf.acc
 
-        rtrace[i, :] = rkf.state[0:3]
+        # rtrace[i, :] = rkf.state[0:3]
 
         # print('finished:', rate * 100.0, "% ", i, imu_data.shape[0])
 
@@ -276,9 +279,9 @@ if __name__ == '__main__':
     plt.plot(trace[:, 0], trace[:, 1], '-+', label='fusing')
     plt.plot(rtrace[:, 0], rtrace[:, 1], '-+', label='robust')
     plt.plot(uwb_trace[:, 0], uwb_trace[:, 1], '+', label='uwb')
-    plt.plot(ref_trace[:, 1], ref_trace[:, 2], '-', label='ref')
-    plt.xlim((ref_trace[:, 1].min() - 5.0, ref_trace[:, 1].max() + 5.0))
-    plt.ylim((ref_trace[:, 2].min() - 5.0, ref_trace[:, 2].max() + 5.0))
+    # plt.plot(ref_trace[:, 1], ref_trace[:, 2], '-', label='ref')
+    # plt.xlim((ref_trace[:, 1].min() - 5.0, ref_trace[:, 1].max() + 5.0))
+    # plt.ylim((ref_trace[:, 2].min() - 5.0, ref_trace[:, 2].max() + 5.0))
     plt.legend()
     plt.grid()
 
@@ -286,13 +289,13 @@ if __name__ == '__main__':
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
     ax.plot(trace[:, 0], trace[:, 1], trace[:, 2], '-+', label='trace')
-    ax.plot(rtrace[:, 0], rtrace[:, 1], rtrace[:, 2], '-+', label='robust')
+    # ax.plot(rtrace[:, 0], rtrace[:, 1], rtrace[:, 2], '-+', label='robust')
     ax.plot(uwb_trace[:, 0], uwb_trace[:, 1], uwb_trace[:, 2], '+', label='uwb')
     ax.grid()
     ax.legend()
-    ax.set_xlim((ref_trace[:, 1].min() - 5.0, ref_trace[:, 1].max() + 5.0))
-    ax.set_ylim((ref_trace[:, 2].min() - 5.0, ref_trace[:, 2].max() + 5.0))
-    ax.set_zlim((ref_trace[:, 3].min() - 5.0, ref_trace[:, 3].max() + 5.0))
+    # ax.set_xlim((ref_trace[:, 1].min() - 5.0, ref_trace[:, 1].max() + 5.0))
+    # ax.set_ylim((ref_trace[:, 2].min() - 5.0, ref_trace[:, 2].max() + 5.0))
+    # ax.set_zlim((ref_trace[:, 3].min() - 5.0, ref_trace[:, 3].max() + 5.0))
 
     # plt.figure()
     # plt.title('uwb')
