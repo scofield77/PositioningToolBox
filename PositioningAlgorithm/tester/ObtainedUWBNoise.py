@@ -80,6 +80,7 @@ if __name__ == '__main__':
     # uwb_data = np.loadtxt(dir_name + 'uwb_result.csv', delimiter=',')
     # beacon_set = np.loadtxt(dir_name + 'beaconSet.csv', delimiter=',')
     uwb_data = np.loadtxt(dir_name + 'uwb_data.csv', delimiter=',')
+    uwb_noise_data = np.zeros_like(uwb_data)
     beacon_set = np.loadtxt(dir_name + 'beaconset_no_mac.csv', delimiter=',')
     uwb_strength_data = np.loadtxt(dir_name + 'uwb_signal_data.csv', delimiter=',')
     # beacon_set = np.loadtxt(dir_name + 'beaconset_fill.csv', delimiter=',')
@@ -253,6 +254,10 @@ if __name__ == '__main__':
                     kf.measurement_uwb_iterate(np.asarray(uwb_data[uwb_index, 1:]),
                                                  np.ones(1) * 0.01,
                                                  beacon_set, ref_trace)
+                    for k in range(1,uwb_data.shape[1]):
+                        if uwb_data[uwb_index,k] > 0.0:
+                            uwb_noise_data[uwb_index,k] = uwb_data[uwb_index,k]- np.linalg.norm(kf.state[0:3]-beacon_set[k-1,:])
+
                     uwb_index += 1
 
         trace[i, :] = kf.state[0:3]
@@ -335,7 +340,8 @@ if __name__ == '__main__':
     plt.legend()
 
     plt.figure()
-    plt.subplot(211)
+    plt.subplot(311)
+    plt.title('uwb data')
     # for i in range(beacon_set.shape[0]):
     #     if uwb_data[:,i+1].max() > 0 and beacon_set[i, 0] < 5000.0:
     #         plt.plot(uwb_data[:, 0] - uwb_data[0, 0], uwb_data[:, i+1],'+', label='id:' + str(i-uwb_id_offset))
@@ -344,9 +350,17 @@ if __name__ == '__main__':
     plt.grid()
     plt.legend()
 
-    plt.subplot(212)
+    plt.subplot(312)
     for i in range(len(uwb_valid)):
         plt.plot(uwb_data[:, 0] - uwb_data[0, 0], uwb_strength_data[:, uwb_valid[i]], '+', label='id:' + str(i))
+    plt.grid()
+    plt.legend()
+
+    plt.subplot(313)
+    for i in range(len(uwb_valid)):
+        plt.plot(uwb_data[:,0]-uwb_data[0,0],uwb_noise_data[:,uwb_valid[i]],'-+',label='id:'+str(i))
+    np.savetxt('/home/steve/temp/uwb_noise_data.csv',uwb_noise_data[:,uwb_valid],delimiter=',')
+
     plt.grid()
     plt.legend()
 
