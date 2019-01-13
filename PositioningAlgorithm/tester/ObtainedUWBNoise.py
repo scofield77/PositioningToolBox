@@ -23,7 +23,6 @@
          佛祖保佑       永无BUG 
 '''
 
-
 import numpy as np
 import scipy as sp
 from numba import jit, njit, prange
@@ -127,7 +126,6 @@ if __name__ == '__main__':
     END
     '''
 
-
     uwb_filter_list = list()
     for i in range(1, uwb_data.shape[1]):
         uwb_filter_list.append(UwbRangeEKF(1.0, beacon_set[i - 1, :].reshape(-1)))
@@ -220,14 +218,12 @@ if __name__ == '__main__':
                      pos=initial_pos,
                      ori=initial_orientation)
 
-
     zv_state = GLRT_Detector(imu_data[:, 1:7],
                              sigma_a=1.0,
                              sigma_g=1.0 * np.pi / 180.0,
                              gamma=200.0,
                              gravity=9.8,
                              time_Window_size=10)
-
 
     uwb_index = 0
 
@@ -245,18 +241,18 @@ if __name__ == '__main__':
             # print('i:',i)
             # zv_state[i] = z_tester.GLRT_Detector(imu_data[i - 4:i + 4, 1:8])
             if zv_state[i] > 0.5:
-
                 kf.measurement_function_zv(np.asarray((0, 0, 0)),
                                            np.diag((0.0001, 0.0001, 0.0001)))
 
             if uwb_data[uwb_index, 0] < imu_data[i, 0]:
                 if uwb_index < uwb_data.shape[0] - 1:
                     kf.measurement_uwb_iterate(np.asarray(uwb_data[uwb_index, 1:]),
-                                                 np.ones(1) * 0.01,
-                                                 beacon_set, ref_trace)
-                    for k in range(1,uwb_data.shape[1]):
-                        if uwb_data[uwb_index,k] > 0.0:
-                            uwb_noise_data[uwb_index,k] = uwb_data[uwb_index,k]- np.linalg.norm(kf.state[0:3]-beacon_set[k-1,:])
+                                               np.ones(1) * 0.01,
+                                               beacon_set, ref_trace)
+                    for k in range(1, uwb_data.shape[1]):
+                        if uwb_data[uwb_index, k] > 0.0:
+                            uwb_noise_data[uwb_index, k] = uwb_data[uwb_index, k] - np.linalg.norm(
+                                kf.state[0:3] - beacon_set[k - 1, :])
 
                     uwb_index += 1
 
@@ -299,8 +295,6 @@ if __name__ == '__main__':
         'REKF': 'blue',
         'RIEKF': 'red'
     }
-
-
 
     plt.figure()
     # plt.title('Trajectory')
@@ -358,12 +352,13 @@ if __name__ == '__main__':
 
     plt.subplot(313)
     for i in range(len(uwb_valid)):
-        plt.plot(uwb_data[:,0]-uwb_data[0,0],uwb_noise_data[:,uwb_valid[i]],'-+',label='id:'+str(i))
-    np.savetxt('/home/steve/temp/uwb_noise_data.csv',uwb_noise_data[:,uwb_valid],delimiter=',')
+        plt.plot(uwb_data[:, 0] - uwb_data[0, 0], uwb_noise_data[:, uwb_valid[i]], '-+', label='id:' + str(i))
+    np.savetxt('/home/steve/temp/uwb_noise_data.csv', uwb_noise_data[:, uwb_valid], delimiter=',')
+
+    np.savetxt(dir_name + 'uwb_noise_data.csv', uwb_noise_data, delimiter=',')
 
     plt.grid()
     plt.legend()
-
 
     #
     plt.show()
