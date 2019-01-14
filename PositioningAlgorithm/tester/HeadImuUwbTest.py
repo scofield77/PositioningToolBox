@@ -194,14 +194,14 @@ if __name__ == '__main__':
                     #                                  np.ones(1) * 0.01,
                     #                                  beacon_set,
                     #                                  7.0)
-                    # rkf.measurement_uwb_iterate(uwb_data[uwb_index, 1:],
-                    #                             np.ones(1) * 0.5,
-                    #                             beacon_set, ref_trace
-                    #                             )
+                    rkf.measurement_uwb_iterate(uwb_data[uwb_index, 1:],
+                                                np.ones(1) * 0.1,
+                                                beacon_set, ref_trace
+                                                )
 
-                    rkf.measurement_uwb_mc(np.asarray(uwb_data[uwb_index,1:]),
-                                           np.ones(1)*0.1,
-                                           beacon_set,ref_trace)
+                    # rkf.measurement_uwb_mc(np.asarray(uwb_data[uwb_index,1:]),
+                    #                        np.ones(1)*0.1,
+                    #                        beacon_set,ref_trace)
                     uwb_index += 1
                     for j in range(1, uwb_data.shape[1]):
                         if uwb_data[uwb_index, j] > 0.0 and uwb_data[uwb_index, j] < 1000.0 and beacon_set[
