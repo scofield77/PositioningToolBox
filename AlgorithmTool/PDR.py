@@ -254,7 +254,7 @@ def search_simple_data(alpha, beta):
 
 
 def try_ipin_data():
-    file_name = '/home/steve/Data/IPIN2017Data/Track3/01-Training/CAR/logfile_CAR_R02-2017_S4.txt'
+    file_name = '/home/steve/SourceData/IPIN2017Data/Track3/01-Training/CAR/logfile_CAR_R02-2017_S4.txt'
     # file_name = '/home/steve/Data/IPIN2017Data/Track3/01-Training/CAR/logfile_CAR_R01-2017_S4MINI.txt'
 
     ll = LogLoader(file_name)
@@ -292,7 +292,7 @@ def try_ipin_data():
 
 def try_Phonemini_data():
     # data = np.loadtxt('/home/steve/Data/pdr_imu.txt', delimiter=',')
-    data = np.loadtxt('/home/steve/Data/phoneData/PDRUWBBLEMini/0006/SMARTPHONE3_IMU.data', delimiter=',')
+    data = np.loadtxt('/home/steve/SourceData/phoneData/PDRUWBBLEMini/0006/SMARTPHONE3_IMU.data', delimiter=',')
     # step_detector = StepDetector(1.0, 0.8)
     step_detector = StepDetectorMannual(data[0, 0],
                                         1.4,
@@ -416,8 +416,8 @@ def try_Phonemini_data():
 
 if __name__ == '__main__':
     # try_simple_data()
-    try_ipin_data()
-    # try_Phonemini_data()
+    # try_ipin_data()
+    try_Phonemini_data()
 
     # value_list = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.3, 1.6, 1.8, 2.1, 2.5, 2.8, 3.2, 3.8]
     # for alpha in value_list:
