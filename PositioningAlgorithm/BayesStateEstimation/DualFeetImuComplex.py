@@ -184,7 +184,7 @@ class DualFeetImuComplex:
             H[0:3, 3:6] = np.identity(3)
 
             m = np.zeros(3)
-            cov_matrix = np.identity(3) * 0.0001
+            cov_matrix = np.identity(3) * 0.01
 
             K = (self.prob_state.dot(np.transpose(H))).dot(
                 np.linalg.inv((H.dot(self.prob_state)).dot(np.transpose(H)) + cov_matrix)
@@ -213,7 +213,7 @@ class DualFeetImuComplex:
             H[0:3, 3 + self.r_offset:6 + self.r_offset] = np.identity(3)
 
             m = np.zeros(3)
-            cov_matrix = np.identity(3) * 0.0001
+            cov_matrix = np.identity(3) * 0.01
 
             K = (self.prob_state.dot(np.transpose(H))).dot(
                 np.linalg.inv((H.dot(self.prob_state)).dot(np.transpose(H)) + cov_matrix)
