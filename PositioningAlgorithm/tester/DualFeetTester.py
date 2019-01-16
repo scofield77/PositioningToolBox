@@ -52,6 +52,7 @@ if __name__ == '__main__':
 
     from PositioningAlgorithm.BayesStateEstimation.ImuEKF import *
     # from gr import pygr
+    from PositioningAlgorithm.BayesStateEstimation.DualFeetImuComplex import DualFeetImuComplex
 
     # from AlgorithmTool
     import time
@@ -119,6 +120,20 @@ if __name__ == '__main__':
         0.0001 * np.pi / 180.0
     )),
         local_g=-9.81, time_interval=average_time_interval)
+    # lkf =
+    # lkf = ImuEKFComplex(np.diag((
+    #     0.001, 0.001, 0.001,
+    #     0.001, 0.001, 0.001,
+    #     0.001 * np.pi / 180.0, 0.001 * np.pi / 180.0, 0.0001 * np.pi / 180.0,
+    #     0.0001,
+    #     0.0001,
+    #     0.0001,
+    #     0.0001 * np.pi / 180.0,
+    #     0.0001 * np.pi / 180.0,
+    #     0.0001 * np.pi / 180.0
+    # )),
+    #     local_g=-9.81, time_interval=average_time_interval)
+
 
     lkf.initial_state(left_imu_data[:50, 1:7], mag=left_imu_data[0, 7:10])
 
@@ -164,10 +179,18 @@ if __name__ == '__main__':
     #
     # dkf.initial_state(left_imu_data[:50, 1:7], right_imu_data[:50, 1:7])
 
-    dkf = DualFeetImu(np.diag((
+    # dkf = DualFeetImu(np.diag((
+    #     0.001, 0.001, 0.001,
+    #     0.001, 0.001, 0.001,
+    #     0.001 * np.pi / 180.0, 0.001 * np.pi / 180.0, 0.0001 * np.pi / 180.0
+    # )),
+    #     local_g=-9.81, time_interval=average_time_interval)
+    dkf = DualFeetImuComplex(np.diag((
         0.001, 0.001, 0.001,
         0.001, 0.001, 0.001,
-        0.001 * np.pi / 180.0, 0.001 * np.pi / 180.0, 0.0001 * np.pi / 180.0
+        0.001 * np.pi / 180.0, 0.001 * np.pi / 180.0, 0.0001 * np.pi / 180.0,
+         0.001,0.001,0.001,
+         0.1 /180.0 * np.pi, 0.1 /180.0 * np.pi, 0.1 /180.0 * np.pi
     )),
         local_g=-9.81, time_interval=average_time_interval)
 
