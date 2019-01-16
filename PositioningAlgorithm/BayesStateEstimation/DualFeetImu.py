@@ -467,3 +467,4 @@ def aux_build_F_G_dual(F, G, lSt, rSt, lRb2t, rRb2t, time_interval):
 
             G[3 + i + 9, 0 + j + 6] = rRb2t[i, j] * time_interval
             G[6 + i + 9, 3 + j + 6] = -1.0 * rRb2t[i, j] * time_interval
+#

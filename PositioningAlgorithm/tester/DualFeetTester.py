@@ -67,7 +67,7 @@ if __name__ == '__main__':
     start_time = time.time()
     # dir_name = '/home/steve/Data/FusingLocationData/0017/'
     # dir_name = '/home/steve/Data/NewFusingLocationData/0036/'
-    dir_name = '/home/steve/Data/NewFusingLocationData/0040/'
+    dir_name = '/home/steve/Data/NewFusingLocationData/0041/'
     # dir_name = '/home/steve/Data/ZUPTPDR/0000/'
     # dir_name = 'C:/Data/NewFusingLocationData/0039/'
     # dir_name = '/home/steve/Data/PDR/0012/'
@@ -268,7 +268,7 @@ if __name__ == '__main__':
             # dual_left_trace[i, :] = dkf.l_ekf.state[0:3]
             # dual_right_trace[i, :] = dkf.r_ekf.state[0:3]
             dual_left_trace[i, :] = dkf.state[0:3]
-            dual_right_trace[i, :] = dkf.state[9:12]
+            dual_right_trace[i, :] = dkf.state[15:18]
             ang[i, :] = dkf.state[6:9]
 
     end_time = time.time()

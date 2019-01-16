@@ -122,15 +122,17 @@ class DualFeetImuComplex:
 
         self.state[0:3] = self.state[0:3] + self.state[3:6] * self.time_interval
         self.state[3:6] = self.state[3:6] + l_acc * self.time_interval
+        self.state[6:9] = dcm2euler(q2dcm(self.l_q))
+
 
         self.state[self.r_offset + 0:self.r_offset + 3] = self.state[self.r_offset + 0:self.r_offset + 3] + \
-                                                          self.state[
-                                                          self.r_offset + 3:self.r_offset + 6] * self.time_interval
+                                                          self.state[self.r_offset + 3:self.r_offset + 6] * self.time_interval
+
         self.state[self.r_offset + 3:self.r_offset + 6] = self.state[self.r_offset + 3:self.r_offset + 6] + \
                                                           r_acc * self.time_interval
 
-        self.state[6:9] = dcm2euler(q2dcm(self.l_q))
         self.state[self.r_offset + 6:self.r_offset + 9] = dcm2euler(q2dcm(self.r_q))
+        # print(np.transpose(self.state[15:21]))
 
         lf_t = l_Rb2t.dot(l_imu_data[0:3])
         rf_t = r_Rb2t.dot(r_imu_data[0:3])
@@ -159,144 +161,6 @@ class DualFeetImuComplex:
                           (self.G.dot(noise_matrix)).dot(np.transpose(self.G))
 
         self.prob_state = 0.5 * self.prob_state + 0.5 * (self.prob_state.transpose())
-
-    def measurement_zv_short(self,
-                             left_zv_flag,
-                             right_zv_flag,
-                             max_distance=1.0,
-                             pos_cov=0.1):
-        '''
-        measuremen zero velocity and distance inequality constraint.
-        :param left_zv_flag:
-        :param right_zv_flag:
-        :param max_distance:
-        :param pos_cov:
-        :return:
-        '''
-
-        # correct velocity of dual feet speratelly.
-        if left_zv_flag > 0.5:
-            before_p = self.prob_state * 1.0
-            # return
-            H = np.zeros([3, 30])
-            H[0:3, 3:6] = np.identity(3)
-
-            m = np.zeros(3)
-            cov_matrix = np.identity(3) * 0.0001
-
-            K = (self.prob_state.dot(np.transpose(H))).dot(
-                np.linalg.inv((H.dot(self.prob_state)).dot(np.transpose(H)) + cov_matrix)
-            )
-
-            before_p_norm = np.linalg.norm(self.prob_state)
-            self.prob_state = (np.identity(self.prob_state.shape[0]) - K.dot(H)).dot(self.prob_state)
-
-            self.prob_state[15:30, 15:30] = before_p[15:30, 15:30] * 1.0
-
-            dx = K.dot(m - H.dot(self.state))
-
-            # print('before:', self.state[3:6], self.state[12:15])
-            self.state[0:15] = self.state[0:15] + dx[0:15]
-
-            self.l_q = quaternion_left_update(self.l_q, dx[6:9], -1.0)
-            # self.r_q = quaternion_left_update(self.r_q, dx[self.r_offset + 6:self.r_offset + 9], -1.0)
-
-            self.state[6:9] = dcm2euler(q2dcm(self.l_q))
-            self.state[6 + self.r_offset:9 + self.r_offset] = dcm2euler(q2dcm(self.r_q))
-            # print('after:', self.state[3:6], self.state[12:15])
-
-        if right_zv_flag > 0.5:
-            before_p = self.prob_state * 1.0
-            H = np.zeros([3, 30])
-            H[0:3, 3 + self.r_offset:6 + self.r_offset] = np.identity(3)
-
-            m = np.zeros(3)
-            cov_matrix = np.identity(3) * 0.0001
-
-            K = (self.prob_state.dot(np.transpose(H))).dot(
-                np.linalg.inv((H.dot(self.prob_state)).dot(np.transpose(H)) + cov_matrix)
-            )
-
-            self.prob_state = (np.identity(self.prob_state.shape[0]) - K.dot(H)).dot(self.prob_state)
-
-            self.prob_state[0:15, 0:15] = before_p[0:15, 0:15] * 1.0
-
-            dx = K.dot(m - H.dot(self.state))
-
-            # print('before:', self.state[3:6], self.state[12:15])
-            self.state[15:30] = self.state[15:30] + dx[15:30]
-
-            # self.l_q = quaternion_left_update(self.l_q, dx[6:9], -1.0)
-            self.r_q = quaternion_left_update(self.r_q, dx[self.r_offset + 6:self.r_offset + 9], -1.0)
-
-            self.state[6:9] = dcm2euler(q2dcm(self.l_q))
-            self.state[6 + self.r_offset:9 + self.r_offset] = dcm2euler(q2dcm(self.r_q))
-            # print('after:', self.state[3:6], self.state[12:15])
-
-        self.prob_state = 0.5 * self.prob_state + 0.5 * np.transpose(self.prob_state)
-
-        # if np.linalg.norm(self.state[0:3] - self.state[9:12]) > max_distance and \
-        #         (left_zv_flag > 0.5 or \
-        #          right_zv_flag > 0.5):
-        if np.linalg.norm(self.state[0:3] - self.state[9:12]) > max_distance:
-            '''
-            Update and distance correct.
-            If distance bigger than threshold and zero state is detected.
-            According to paper:
-            Data Fusion of Dual Foot-Mounted INS to Reduce the Systematic Heading Drift
-            '''
-            # if left_zv_flag>0.5:
-
-            # self.distance_constrain(max_distance)
-            # self.distance_constrain_update(max_distance)
-
-            p_cov = np.identity(3) * pos_cov
-            pre_p = self.prob_state * 1.0
-            if right_zv_flag > 0.5:
-                d = np.linalg.norm(self.state[0:3] - self.state[15:18])
-                p = 1.0 / d * ((max_distance) * self.state[0:3] + (d - max_distance) * self.state[15:18])
-                H = np.zeros([3, self.state.shape[0]])
-                H[0:3, 0:3] = np.identity(3)
-                K = (self.prob_state.dot(np.transpose(H))).dot(
-                    np.linalg.inv((H.dot(self.prob_state)).dot(np.transpose(H)) + p_cov)
-                )
-                self.prob_state = (np.identity(self.prob_state.shape[0]) - K.dot(H)).dot(self.prob_state)
-                self.prob_state[15:30, 15:30] = pre_p[15:30, 15:30] * 1.0
-
-                dx = K.dot(p - H.dot(self.state))
-
-                # self.state = self.state+ dx
-                self.state[:15] = self.state[:15] + dx[:15]
-
-                self.l_q = quaternion_left_update(self.l_q, dx[6:9], -1.0)
-                # self.r_q = quaternion_left_update(self.r_q, dx[self.r_offset + 6:self.r_offset + 9], -1.0)
-
-                self.state[6:9] = dcm2euler(q2dcm(self.l_q))
-                self.state[6 + self.r_offset:9 + self.r_offset] = dcm2euler(q2dcm(self.r_q))
-
-            if left_zv_flag > 0.5:
-                d = np.linalg.norm(self.state[0:3] - self.state[15:18])
-                p = 1.0 / d * ((d - max_distance) * self.state[0:3] + (max_distance) * self.state[15:18])
-                H = np.zeros([3, self.state.shape[0]])
-                H[0:3, 15:18] = np.identity(3)
-                K = (self.prob_state.dot(np.transpose(H))).dot(
-                    np.linalg.inv((H.dot(self.prob_state)).dot(np.transpose(H)) + p_cov)
-                )
-                self.prob_state = (np.identity(self.prob_state.shape[0]) - K.dot(H)).dot(self.prob_state)
-                self.prob_state[0:15, 0:15] = pre_p[0:15, 0:15] * 1.0
-
-                dx = K.dot(p - H.dot(self.state))
-
-                # self.state = self.state + dx
-                self.state[15:] = self.state[15:] + dx[15:]
-
-                # self.l_q = quaternion_left_update(self.l_q, dx[6:9], -1.0)
-                self.r_q = quaternion_left_update(self.r_q, dx[self.r_offset + 6:self.r_offset + 9], -1.0)
-
-                self.state[6:9] = dcm2euler(q2dcm(self.l_q))
-                self.state[6 + self.r_offset:9 + self.r_offset] = dcm2euler(q2dcm(self.r_q))
-
-        self.prob_state = 0.5 * self.prob_state + 0.5 * np.transpose(self.prob_state)
 
     def measurement_zv(self,
                        left_zv_flag,
@@ -376,7 +240,7 @@ class DualFeetImuComplex:
         # if np.linalg.norm(self.state[0:3] - self.state[9:12]) > max_distance and \
         #         (left_zv_flag > 0.5 or \
         #          right_zv_flag > 0.5):
-        if np.linalg.norm(self.state[0:3] - self.state[9:12]) > max_distance:
+        if np.linalg.norm(self.state[0:3] - self.state[15:18]) > max_distance :
             '''
             Update and distance correct.
             If distance bigger than threshold and zero state is detected.
@@ -405,7 +269,7 @@ class DualFeetImuComplex:
                 dx = K.dot(p - H.dot(self.state))
 
                 # self.state = self.state+ dx
-                self.state[0:15] = self.state[0:15] + dx[0:15]
+                self.state[0:self.r_offset] = self.state[0:self.r_offset] + dx[0:self.r_offset]
 
                 self.l_q = quaternion_left_update(self.l_q, dx[6:9], -1.0)
                 # self.r_q = quaternion_left_update(self.r_q, dx[self.r_offset + 6:self.r_offset + 9], -1.0)
@@ -597,21 +461,28 @@ def aux_build_F_G_dual(F, G, lSt, rSt, lRb2t, rRb2t, time_interval):
         F[k, k] = 1.0
 
     for i in range(3):
+        ### delta pos / delta vel
         F[i, 3 + i] = time_interval
         F[i + 15, 3 + i + 15] = time_interval
 
         for j in range(3):
+            # delta vel / delta angle
             F[3 + i, 6 + j] = lSt[i, j] * time_interval
             F[3 + i + 15, 6 + j + 15] = rSt[i, j] * time_interval
 
+            # delta vel/ delta bias_acc
             F[3 + i, 9 + j] = lRb2t[i, j] * time_interval
             F[3 + i + 15, 9 + j + 15] = rRb2t[i, j] * time_interval
 
+            # delta angle / delta bias_gyr
             F[6 + i, 12 + j] = -1.0 * lRb2t[i, j] * time_interval
             F[6 + i + 15, 12 + j + 15] = -1.0 * rRb2t[i, j] * time_interval
 
+            # delta vel / delta gyr
             G[3 + i, 0 + j] = lRb2t[i, j] * time_interval
-            G[6 + i, 3 + j] = -1.0 * lRb2t[i, j] * time_interval
-
             G[3 + i + 15, 0 + j + 6] = rRb2t[i, j] * time_interval
+
+            # delta angle / delta gyr
+            G[6 + i, 3 + j] = -1.0 * lRb2t[i, j] * time_interval
             G[6 + i + 15, 3 + j + 6] = -1.0 * rRb2t[i, j] * time_interval
+    # print(F,G)
