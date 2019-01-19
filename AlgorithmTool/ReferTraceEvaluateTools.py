@@ -36,6 +36,9 @@ from numba import jit, prange, njit
 
 
 class Refscor:
+    '''
+    Calculate score using a matrix(*.npy) which is represent a score in a 2-D plane.
+    '''
     def __init__(self, file_dir):
         for name in os.listdir(file_dir):
             rem = re.compile('[0-9\.\-]{1,100}npy$')

@@ -115,7 +115,8 @@ if __name__ == '__main__':
     @jit(nopython=True)
     def process_ref_cal_range(ref_cal_range, ref_range):
         '''
-        process ref calibrated range, set the first and last several measurements be right.
+        process ref calibrated range,
+        set the first and last several measurements be right.
         :param ref_cal_range:
         :param ref_range:
         :return:
@@ -155,7 +156,8 @@ if __name__ == '__main__':
         '''
         for i in range(uwb_data.shape[0]):
             for j in range(1, uwb_data.shape[1]):
-                if uwb_data[i, j] > 0.0 and abs(uwb_data[i, j] - ref_cal_range[i, j]) < 1000.0:
+                if uwb_data[i, j] > 0.0 and \
+                        abs(uwb_data[i, j] - ref_cal_range[i, j]) < 1000.0:
                     r_error[i, j] = uwb_data[i, j] - ref_cal_range[i, j]
 
 
