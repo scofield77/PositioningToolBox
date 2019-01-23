@@ -115,4 +115,4 @@ if __name__ == '__main__':
                             dir_name + '../BeaconSet.csv')
 
     uwb_file_p.save(dir_name)
-    # uwb_file_p.show()
+    uwb_file_p.show()
