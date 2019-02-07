@@ -36,6 +36,10 @@ from numba import jit, prange, njit
 
 
 class Refscor:
+    '''
+    Calculate score using a matrix(*.npy) which is represent a score in a 2-D plane.
+    '''
+
     def __init__(self, file_dir):
         for name in os.listdir(file_dir):
             rem = re.compile('[0-9\.\-]{1,100}npy$')
@@ -77,26 +81,26 @@ class Refscor:
 
         # @jit(parallel=True, nopython=True)
         # @njit(parallel=True)
-        def scores_cal(ss, pts, map_range, relution, sd,max):
+        def scores_cal(ss, pts, map_range, relution, sd, max):
             first_error = True
             for i in prange(ss.shape[0]):
                 # ss[i] = rf.eval_point2d(pts[i, :2])
-                if map_range[0, 0] < pts[i, 0] < map_range[0, 1] and\
+                if map_range[0, 0] < pts[i, 0] < map_range[0, 1] and \
                         map_range[1, 0] < pts[i, 1] < map_range[1, 1]:
                     ss[i] = sd[int((pts[i, 0] - map_range[0, 0]) / relution),
                                int((pts[i, 1] - map_range[1, 0]) / relution)]
                 else:
                     if first_error:
-                        print('err:', pts[i,:],map_range)
-                        first_error=False
-                    ss[i] =max
+                        print('err:', pts[i, :], map_range)
+                        first_error = False
+                    ss[i] = max
             return ss
 
         return scores_cal(ss=scores, pts=points,
                           map_range=self.map_range,
                           relution=self.relution,
                           sd=self.score_data,
-                          max = self.max_score)
+                          max=self.max_score)
 
 
 if __name__ == '__main__':

@@ -47,10 +47,10 @@ if __name__ == '__main__':
                          label=str(tmp_uwb_data[tmp_uwb_data > 0].shape[0]) + '/' + str(tmp_uwb_data.shape[0]))
                 # plt.axvline(np.linalg.norm(pose - beacon_set[i, :]), color='k', linestyle='dashed', linewidth=1)
                 # plt.tight_layout()
-                print('beacon_id:', i,'({0})'.format(valid_index), 'point id:', p_i,
+                print('beacon_id:', i, '({0})'.format(valid_index), 'point id:', p_i,
                       'mean:', np.mean(tmp_uwb_data[tmp_uwb_data > 0.0]),
                       'std:', np.std(tmp_uwb_data[tmp_uwb_data > 0]),
-                      'valid rate:', float(tmp_uwb_data[tmp_uwb_data>0].shape[0])/float(tmp_uwb_data.shape[0]))
+                      'valid rate:', float(tmp_uwb_data[tmp_uwb_data > 0].shape[0]) / float(tmp_uwb_data.shape[0]))
                 if p_i == 1:
                     # plt.title(str(i - 29), loc='left')
                     # plt.ylabel('Number')
