@@ -23,8 +23,6 @@
          佛祖保佑       永无BUG 
 '''
 
-
-
 import numpy as np
 import scipy as sp
 import matplotlib.pyplot as plt
@@ -36,16 +34,13 @@ from PositioningAlgorithm.BayesStateEstimation.ImuEKF import *
 from PositioningAlgorithm.BayesStateEstimation.DualFeetImu import *
 
 
-
 class MadgwickFilter():
     def __init__(self, initial_ori, initial_gcc):
         self.initial_ori = initial_ori
         self.initial_gcc = initial_gcc
 
 
-
 if __name__ == '__main__':
-
     print('dual feet test')
 
     import math
