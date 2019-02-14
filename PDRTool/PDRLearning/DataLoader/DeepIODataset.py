@@ -35,3 +35,13 @@ class DeepIODataset(data.Dataset):
         load file name
         :param dir_name:
         '''
+
+
+
+if __name__ == '__main__':
+    dir_name ="/home/steve/Data/Oxford Inertial Tracking Dataset/"
+    import  os
+    import sys
+    print(os.listdir(dir_name))
+    for the_name in os.listdir(dir_name):
+        print(the_name, os.path.isdir(dir_name+'/'+the_name))
