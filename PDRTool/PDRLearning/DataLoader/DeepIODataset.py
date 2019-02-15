@@ -29,13 +29,12 @@ import torch.utils.data as data
 
 import numpy as np
 
-import  os
+import os
 import sys
 
 
-
 class DeepIODataset(data.Dataset):
-    def __init__(self,dir_name):
+    def __init__(self, dir_name):
         '''
         load file name
         :param dir_name:
@@ -44,15 +43,14 @@ class DeepIODataset(data.Dataset):
         self.
 
 
-
-
 if __name__ == '__main__':
-    dir_name ="/home/steve/Data/Oxford Inertial Tracking Dataset/"
-    import  os
+    dir_name = "/home/steve/Data/Oxford Inertial Tracking Dataset/"
+    import os
     import sys
+
     print(os.listdir(dir_name))
 
     DIODataset = DeepIODataset(dir_name)
     # for the_name in os.listdir(dir_name):
-        # process .
-        # print(the_name, os.path.isdir(dir_name+'/'+the_name))
+    # process .
+    # print(the_name, os.path.isdir(dir_name+'/'+the_name))
