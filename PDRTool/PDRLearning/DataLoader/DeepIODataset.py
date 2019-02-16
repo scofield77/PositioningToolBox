@@ -40,7 +40,7 @@ class DeepIODataset(data.Dataset):
         :param dir_name:
         '''
         self.valid_dir_name_list = list()
-        self.
+        self.version
 
 
 if __name__ == '__main__':
