@@ -41,7 +41,11 @@ class DeepIODataset(data.Dataset):
         '''
         self.valid_dir_name_list = list()
 
+
+
+
         '''
+        recursion searching directory named 'syn'
         '''
         def dg_search(current_dir_name):
             if current_dir_name[-1] != '/':
@@ -53,6 +57,7 @@ class DeepIODataset(data.Dataset):
                     # print('sub dir:', sub_dir)
                     if sub_dir == 'syn':
                         print(current_dir_name+sub_dir)
+
                     else:
                         dg_search(current_dir_name+sub_dir)
 
