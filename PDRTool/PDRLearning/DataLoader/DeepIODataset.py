@@ -40,7 +40,23 @@ class DeepIODataset(data.Dataset):
         :param dir_name:
         '''
         self.valid_dir_name_list = list()
-        self.version
+
+        '''
+        '''
+        def dg_search(current_dir_name):
+            if current_dir_name[-1] != '/':
+                current_dir_name = current_dir_name+'/'
+            sub_dir_list = os.listdir(current_dir_name)
+            for sub_dir in sub_dir_list:
+                # print('searching', sub_dir_list)
+                if os.path.isdir(current_dir_name + sub_dir):
+                    # print('sub dir:', sub_dir)
+                    if sub_dir == 'syn':
+                        print(current_dir_name+sub_dir)
+                    else:
+                        dg_search(current_dir_name+sub_dir)
+
+        dg_search(dir_name)
 
 
 if __name__ == '__main__':
