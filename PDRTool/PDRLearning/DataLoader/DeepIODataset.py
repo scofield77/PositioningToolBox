@@ -87,6 +87,8 @@ class DeepIODataset(data.Dataset):
                                               delimiter=',')
                         print('imu shape:', imu_data.shape,
                               'vi shape:', vi_data.shape)
+                        print('pos:',np.std(vi_data[:,2:5],axis=0))
+
 
 
 if __name__ == '__main__':
