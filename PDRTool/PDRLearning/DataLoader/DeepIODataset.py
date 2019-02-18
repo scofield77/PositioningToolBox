@@ -86,6 +86,9 @@ class DeepIODataset(data.Dataset):
                         print('imu shape:', imu_data.shape,
                               'vi shape:', vi_data.shape)
                         print('pos:', np.std(vi_data[:, 2:5], axis=0))
+                    else:
+                        print('some error happend, without imu*.csv in this directory',
+                              dir_name)
 
 
 if __name__ == '__main__':
