@@ -41,26 +41,24 @@ class DeepIODataset(data.Dataset):
         '''
         self.valid_dir_name_list = list()
 
-
-
-
         '''
         recursion searching directory named 'syn'
         '''
+
         def dg_search(current_dir_name):
             if current_dir_name[-1] != '/':
-                current_dir_name = current_dir_name+'/'
+                current_dir_name = current_dir_name + '/'
             sub_dir_list = os.listdir(current_dir_name)
             for sub_dir in sub_dir_list:
                 # print('searching', sub_dir_list)
                 if os.path.isdir(current_dir_name + sub_dir):
                     # print('sub dir:', sub_dir)
                     if sub_dir == 'syn':
-                        print(current_dir_name+sub_dir)
-                        self.valid_dir_name_list.append(current_dir_name+sub_dir)
+                        print(current_dir_name + sub_dir)
+                        self.valid_dir_name_list.append(current_dir_name + sub_dir)
 
                     else:
-                        dg_search(current_dir_name+sub_dir)
+                        dg_search(current_dir_name + sub_dir)
 
         # save all the sub directory named 'syn'
         dg_search(dir_name)
@@ -75,20 +73,19 @@ class DeepIODataset(data.Dataset):
             if 'vi1.csv' in os.listdir(dir_name):
                 print(os.listdir(dir_name))
                 if dir_name[-1] != '/':
-                    dir_name  = dir_name + '/'
+                    dir_name = dir_name + '/'
                 for imu_file_name in os.listdir(dir_name):
                     if 'imu' in imu_file_name:
-                        vi_file_name = imu_file_name.replace('imu','vi')
-                        print(imu_file_name,vi_file_name)
+                        vi_file_name = imu_file_name.replace('imu', 'vi')
+                        print(imu_file_name, vi_file_name)
 
-                        vi_data = np.loadtxt(dir_name+vi_file_name,
+                        vi_data = np.loadtxt(dir_name + vi_file_name,
                                              delimiter=',')
-                        imu_data = np.loadtxt(dir_name+imu_file_name,
+                        imu_data = np.loadtxt(dir_name + imu_file_name,
                                               delimiter=',')
                         print('imu shape:', imu_data.shape,
                               'vi shape:', vi_data.shape)
-                        print('pos:',np.std(vi_data[:,2:5],axis=0))
-
+                        print('pos:', np.std(vi_data[:, 2:5], axis=0))
 
 
 if __name__ == '__main__':
