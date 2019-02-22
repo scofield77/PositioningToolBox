@@ -101,7 +101,8 @@ class DeepIODataset(data.Dataset):
 
         self.x_array = array('f')
         self.y_array = array('f')
-        def process_to_save(process,imu_data,vi_data):
+
+        def process_to_save(process, imu_data, vi_data):
             '''
             process and save.
             :param process:
@@ -114,7 +115,6 @@ class DeepIODataset(data.Dataset):
             print(process)
 
         self.load_to_mem(process_to_save)
-
 
 
 if __name__ == '__main__':
